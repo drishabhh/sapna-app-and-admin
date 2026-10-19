@@ -19,7 +19,7 @@
             android:adjustViewBounds="true"
             android:contentDescription="@null"
             android:scaleType="fitEnd"
-            android:src="@drawable/doodle_thumbsup" />
+            android:src="@drawable/doodle_thumbs" />
 
         <LinearLayout
             android:layout_width="0dp"

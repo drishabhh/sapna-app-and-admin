@@ -8,4 +8,8 @@
     <color name="widget_line">#40FFFFFF</color>
     <color name="widget_pill">#CC17171E</color>
     <color name="widget_on_dot">#0C0C10</color>
+    <color name="widget_hot_start">#3A1A14</color>
+    <color name="widget_hot_end">#2A1420</color>
+    <color name="widget_cool_start">#1C1A33</color>
+    <color name="widget_cool_end">#14222B</color>
 </resources>

@@ -78,7 +78,7 @@ export default function Settings({ open, onClose }: { open: boolean; onClose: ()
         </section>
 
         <section className="card row" style={{ gap: 12 }} aria-label="Streak widget" data-acc="workout">
-          <Doodle name="thumbsup" size={78} />
+          <Doodle name="thumbs" size={78} />
           <div className="stack" style={{ gap: 6, flex: 1, minWidth: 0 }}>
             <h2 className="h2" style={{ fontSize: 19 }}>Streak widget</h2>
             <p className="small muted">Your streak on the home screen, with a doodle that changes through the day.</p>

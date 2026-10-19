@@ -13,7 +13,7 @@
         android:layout_marginBottom="22dp"
         android:contentDescription="@null"
         android:scaleType="fitCenter"
-        android:src="@drawable/doodle_thumbsup" />
+        android:src="@drawable/doodle_thumbs" />
 
     <LinearLayout
         android:layout_width="wrap_content"

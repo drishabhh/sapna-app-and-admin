@@ -43,10 +43,26 @@ public class StreakWidgetProvider extends AppWidgetProvider {
         return new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(c.getTime());
     }
 
+    private static long daysBetween(String from, String to) {
+        try {
+            SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+            Calendar a = Calendar.getInstance(); a.setTime(f.parse(from)); a.set(Calendar.HOUR_OF_DAY, 12);
+            Calendar b = Calendar.getInstance(); b.setTime(f.parse(to)); b.set(Calendar.HOUR_OF_DAY, 12);
+            return Math.round((b.getTimeInMillis() - a.getTimeInMillis()) / 86400000.0);
+        } catch (Exception e) {
+            return 9999;
+        }
+    }
+
+    private static String str(JSONObject j, String k) {
+        if (j.isNull(k)) return null;
+        String v = j.optString(k, null);
+        return (v == null || v.isEmpty() || "null".equals(v)) ? null : v;
+    }
+
     static void draw(Context ctx, AppWidgetManager mgr, int id) {
         int streak = 0;
-        String last = null;
-        String workout = null;
+        String last = null, prev = null, workout = null;
         String name = "Sapna";
         Set<String> week = new HashSet<>();
         try {
@@ -54,9 +70,11 @@ public class StreakWidgetProvider extends AppWidgetProvider {
             if (raw != null) {
                 JSONObject j = new JSONObject(raw);
                 streak = j.optInt("streak", 0);
-                last = j.optString("lastActive", null);
-                workout = j.optString("workoutOn", null);
-                name = j.optString("name", name);
+                last = str(j, "lastActive");
+                prev = str(j, "prevActive");
+                workout = str(j, "workoutOn");
+                String n = str(j, "name");
+                if (n != null) name = n;
                 JSONArray w = j.optJSONArray("week");
                 if (w != null) for (int i = 0; i < w.length(); i++) week.add(w.optString(i));
             }
@@ -64,40 +82,32 @@ public class StreakWidgetProvider extends AppWidgetProvider {
 
         Calendar now = Calendar.getInstance();
         String today = key(now);
-        Calendar y = (Calendar) now.clone();
-        y.add(Calendar.DAY_OF_YEAR, -1);
-        String yesterday = key(y);
+        Integer gap = last == null ? null : (int) Math.max(0, daysBetween(last, today));
+        boolean done = gap != null && gap == 0;
+        if (gap != null && gap >= 2) streak = 0; // streak broke while the app was closed
+        boolean comeback = done && streak == 1 && prev != null && daysBetween(prev, today) >= 2;
+        Calendar noon = (Calendar) now.clone();
+        noon.set(Calendar.HOUR_OF_DAY, 12); noon.set(Calendar.MINUTE, 0); noon.set(Calendar.SECOND, 0); noon.set(Calendar.MILLISECOND, 0);
+        // same as the app: whole days from epoch to local noon (UTC ms)
+        int dayIndex = (int) Math.floor(noon.getTimeInMillis() / 86400000.0);
+        MoodEngine.Mood mood = MoodEngine.compute(name, streak, done, done && today.equals(workout), gap, comeback, now.get(Calendar.HOUR_OF_DAY), dayIndex);
 
-        boolean done = today.equals(last);
-        if (!done && !yesterday.equals(last)) streak = 0; // streak broke while the app was closed
-
-        int doodle;
-        String title;
-        String sub;
-        int hour = now.get(Calendar.HOUR_OF_DAY);
-        if (done && today.equals(workout)) {
-            doodle = R.drawable.doodle_dumbbell; title = "Workout done!"; sub = "Streak safe today";
-        } else if (done) {
-            doodle = R.drawable.doodle_thumbsup; title = "Streak safe"; sub = "See you tomorrow, " + name;
-        } else if (streak == 0) {
-            doodle = R.drawable.doodle_stretch; title = "Start a streak"; sub = "Log one meal today";
-        } else if (hour >= 18) {
-            doodle = R.drawable.doodle_water; title = "Still time!"; sub = "One log keeps it alive";
-        } else {
-            doodle = R.drawable.doodle_planning; title = "Keep it going"; sub = "Log a meal today";
-        }
+        int doodle = ctx.getResources().getIdentifier("doodle_" + mood.doodle, "drawable", ctx.getPackageName());
+        if (doodle == 0) doodle = R.drawable.doodle_thumbs;
+        int bg = "hot".equals(mood.tone) ? R.drawable.widget_bg_hot : "cool".equals(mood.tone) ? R.drawable.widget_bg_cool : R.drawable.widget_bg;
 
         Bundle opts = mgr.getAppWidgetOptions(id);
         int minW = opts != null ? opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250) : 250;
         boolean small = minW < 200;
         RemoteViews v = new RemoteViews(ctx.getPackageName(), small ? R.layout.widget_streak_small : R.layout.widget_streak);
+        v.setInt(R.id.root, "setBackgroundResource", bg);
         v.setImageViewResource(R.id.doodle, doodle);
         v.setTextViewText(R.id.count, String.valueOf(streak));
-        v.setTextViewText(R.id.label, streak == 1 ? "day streak" : "day streak");
-        v.setInt(R.id.flame, "setImageAlpha", done ? 255 : 110);
+        v.setTextViewText(R.id.label, "day streak");
+        v.setInt(R.id.flame, "setImageAlpha", mood.lit ? 255 : 90);
         if (!small) {
-            v.setTextViewText(R.id.title, title);
-            v.setTextViewText(R.id.sub, sub);
+            v.setTextViewText(R.id.title, mood.title);
+            v.setTextViewText(R.id.sub, mood.sub);
             Calendar mon = (Calendar) now.clone();
             int dow = mon.get(Calendar.DAY_OF_WEEK); // Sunday = 1
             mon.add(Calendar.DAY_OF_YEAR, dow == Calendar.SUNDAY ? -6 : Calendar.MONDAY - dow);
@@ -105,11 +115,13 @@ public class StreakWidgetProvider extends AppWidgetProvider {
                 String k = key(mon);
                 boolean on = week.contains(k);
                 boolean isToday = k.equals(today);
-                v.setTextViewText(DOTS[i], on ? "✓" : LETTERS[i]);
+                v.setTextViewText(DOTS[i], on ? "\u2713" : LETTERS[i]);
                 v.setInt(DOTS[i], "setBackgroundResource", on ? R.drawable.widget_dot_on : isToday ? R.drawable.widget_dot_today : R.drawable.widget_dot_off);
                 v.setTextColor(DOTS[i], ctx.getResources().getColor(on ? R.color.widget_on_dot : R.color.widget_muted, ctx.getTheme()));
                 mon.add(Calendar.DAY_OF_YEAR, 1);
             }
+        } else {
+            v.setContentDescription(R.id.root, mood.title + ". " + mood.sub);
         }
         Intent open = new Intent(ctx, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pi = PendingIntent.getActivity(ctx, 0, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);

@@ -3,11 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-    <meta name="theme-color" content="#0c0c10" />
+    <meta name="theme-color" content="#fbfbfb" />
     <meta name="color-scheme" content="dark light" />
     <title>Sapna Health</title>
+    <style>
+      /* Launch art is painted by the page itself, before any JS: object-fit keeps her proportions on every screen shape. */
+      #boot { position: fixed; inset: 0; z-index: 1000; background: #fbfbfb; display: flex; align-items: center; justify-content: center; transition: opacity 0.35s ease; }
+      #boot.out { opacity: 0; pointer-events: none; }
+      #boot img { width: 100%; height: 100%; object-fit: contain; object-position: center; -webkit-mask-image: linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent); mask-image: linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent); }
+    </style>
   </head>
   <body>
+    <div id="boot"><img src="./intro/hero.webp" alt="" draggable="false" /></div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

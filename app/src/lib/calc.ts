@@ -1,4 +1,5 @@
 import { addDays, diffDays, dow, keyOf, parseKey, today } from './dates';
+import { computeMood, Mood } from './mood';
 import { AppData, Content, FoodEntry, Meal, Plan, Session } from './types';
 
 export const r1 = (n: number) => Math.round(n * 10) / 10;
@@ -52,30 +53,44 @@ export function bestStreak(days: Set<string>): number {
   return best;
 }
 
-export type StreakMood = 'done' | 'workout' | 'pending' | 'late' | 'fresh';
-
 export interface StreakInfo {
   streak: number;
   best: number;
   doneToday: boolean;
+  workoutToday: boolean;
   lastActive: string | null;
+  /** the active day before today (null if none) — lets the widget tell a comeback from a normal day */
+  prevActive: string | null;
+  /** whole days since she last logged anything; null = never */
+  gap: number | null;
+  comeback: boolean;
   week: { key: string; done: boolean; isToday: boolean; future: boolean }[];
-  mood: StreakMood;
+  mood: Mood;
 }
 
-export function streakInfo(d: AppData, hour = new Date().getHours()): StreakInfo {
+export function streakInfo(d: AppData, now = new Date()): StreakInfo {
   const days = activeDays(d);
-  const t = today();
+  const t = keyOf(now);
   const streak = logStreak(d, days);
   const doneToday = days.has(t);
-  const workedOut = d.sessions.some((x) => x.date === t && x.sets.length);
-  const sorted = [...days].sort();
-  const mood: StreakMood = workedOut ? 'workout' : doneToday ? 'done' : streak === 0 ? 'fresh' : hour >= 18 ? 'late' : 'pending';
+  const workoutToday = d.sessions.some((x) => x.date === t && x.sets.length > 0);
+  const sorted = [...days].filter((k) => k <= t).sort();
+  const lastActive = sorted.length ? sorted[sorted.length - 1] : null;
+  const before = sorted.filter((k) => k < t);
+  const prevActive = before.length ? before[before.length - 1] : null;
+  const gap = lastActive === null ? null : diffDays(t, lastActive);
+  const comeback = doneToday && streak === 1 && prevActive !== null && diffDays(t, prevActive) >= 2;
+  const dayIndex = Math.floor(parseKey(t).getTime() / 86400000);
+  const mood = computeMood({ name: d.profile.name || 'Sapna', streak, doneToday, workoutToday, gap, comeback, hour: now.getHours(), dayIndex });
   return {
     streak,
     best: Math.max(bestStreak(days), streak),
     doneToday,
-    lastActive: sorted.length ? sorted[sorted.length - 1] : null,
+    workoutToday,
+    lastActive,
+    prevActive,
+    gap,
+    comeback,
     week: weekKeys(t).map((key) => ({ key, done: days.has(key), isToday: key === t, future: key > t })),
     mood,
   };

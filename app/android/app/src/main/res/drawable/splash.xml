@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Solid colour only: a bitmap used as a window background is stretched to the screen, so no artwork here.
+     The artwork is drawn by the web layer (object-fit: contain), which can never distort. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/launch_bg" />
+</shape>

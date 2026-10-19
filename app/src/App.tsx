@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
 import { App as CapApp } from '@capacitor/app';
 import { Capacitor, SystemBars, SystemBarsStyle } from '@capacitor/core';
-import { SplashScreen } from '@capacitor/splash-screen';
+import { Launch } from './launch';
 import { haptic } from './lib/native';
 import { StoreProvider, useStore } from './lib/store';
 import { Meal } from './lib/types';
@@ -32,10 +32,6 @@ function Shell() {
   const [logger, setLogger] = useState<{ open: boolean; meal: Meal; date?: string }>({ open: false, meal: 'breakfast' });
   const [settings, setSettings] = useState(false);
   const [autoStart, setAutoStart] = useState(false);
-
-  useEffect(() => {
-    if (ready && Capacitor.isNativePlatform()) SplashScreen.hide().catch(() => {});
-  }, [ready]);
 
   // Keep the home-screen streak widget in step with her logs.
   useEffect(() => {
@@ -71,10 +67,11 @@ function Shell() {
     startWorkout: () => { setTab('workout'); setAutoStart(true); },
   }), [tab, go]);
 
-  if (!ready) return <div className="app" style={{ background: 'var(--bg)' }} />;
-  if (!data.onboarded) return <div className="app"><Onboarding /><ToastHost /></div>;
-
-  return (
+  // One stable <Launch/> at a fixed position so its timing state survives the ready → onboarded → app transitions.
+  let view: ReactElement;
+  if (!ready) view = <div className="app" style={{ background: 'var(--bg)' }} />;
+  else if (!data.onboarded) view = <div className="app"><Onboarding /><ToastHost /></div>;
+  else view = (
     <NavCtx.Provider value={nav}>
       <div className="app">
         {tab === 'today' && <Today />}
@@ -98,6 +95,7 @@ function Shell() {
       </div>
     </NavCtx.Provider>
   );
+  return <>{view}<Launch ready={ready} onboarded={data.onboarded} /></>;
 }
 
 export default function App() {

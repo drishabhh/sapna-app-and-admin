@@ -103,7 +103,7 @@ export default function Onboarding() {
         <div className="stack" style={{ flex: 1, gap: 18 }}>
           <div aria-hidden="true" className="doodle-hero" style={{ height: 300, alignItems: 'center', position: 'relative' }}>
             <div style={{ position: 'absolute', width: 250, height: 250, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--pink) 45%, transparent), transparent 70%)' }} />
-            <Doodle name="thumbsup" size={270} />
+            <img className="doodle" src="./doodles/fullbody.webp" alt="" draggable={false} style={{ height: 300, width: 'auto', maxWidth: '100%', objectFit: 'contain' }} />
           </div>
           <p className="eyebrow">Made for Sapna, by Rishu</p>
           <h1 className="h1" style={{ fontSize: 44 }}>Food, gym and your cycle. One calm app.</h1>
@@ -145,7 +145,7 @@ export default function Onboarding() {
       {step === 2 && (
         <div className="stack" style={{ flex: 1, gap: 18 }}>
           {progress}
-          <div className="row" style={{ alignItems: 'flex-end', gap: 4 }}><h1 className="h1" style={{ fontSize: 34, flex: 1 }}>What matters most right now?</h1><Doodle name="dumbbell" size={96} style={{ marginBottom: -6 }} /></div>
+          <div className="row" style={{ alignItems: 'flex-end', gap: 4 }}><h1 className="h1" style={{ fontSize: 34, flex: 1 }}>What matters most right now?</h1><Doodle name="flex" size={96} style={{ marginBottom: -6 }} /></div>
           <div className="grid2">
             {([
               ['lose', 'Lose fat gently', 'Small, steady deficit'],
@@ -185,7 +185,7 @@ export default function Onboarding() {
       {step === 3 && (
         <div className="stack" style={{ flex: 1, gap: 18 }}>
           {progress}
-          <div className="row" style={{ alignItems: 'flex-end', gap: 4 }}><h1 className="h1" style={{ fontSize: 34, flex: 1 }}>How do you eat?</h1><Doodle name="planning" size={96} style={{ marginBottom: -6 }} /></div>
+          <div className="row" style={{ alignItems: 'flex-end', gap: 4 }}><h1 className="h1" style={{ fontSize: 34, flex: 1 }}>How do you eat?</h1><Doodle name="eating" size={96} style={{ marginBottom: -6 }} /></div>
           <p className="muted">Your picks show first when you log — one tap.</p>
           <Seg<DietType> label="Diet type" value={p.diet} onChange={(v) => set('diet', v)} options={[{ v: 'veg', l: 'Veg' }, { v: 'egg', l: 'Eggetarian' }, { v: 'non', l: 'Non-veg' }]} />
           <div className="between"><span className="h3">Foods you have most weeks</span><span className="small muted">{p.favFoods.length} picked</span></div>
@@ -238,7 +238,7 @@ export default function Onboarding() {
       {step === 5 && (
         <div className="stack" style={{ flex: 1, gap: 18 }}>
           {progress}
-          <div className="row" style={{ alignItems: 'flex-end', gap: 4 }}><h1 className="h1" style={{ fontSize: 34, flex: 1 }}>Gentle reminders</h1><Doodle name="water" size={96} style={{ marginBottom: -6 }} /></div>
+          <div className="row" style={{ alignItems: 'flex-end', gap: 4 }}><h1 className="h1" style={{ fontSize: 34, flex: 1 }}>Gentle reminders</h1><Doodle name="phone" size={96} style={{ marginBottom: -6 }} /></div>
           <p className="muted">Little nudges, never spam. Change them anytime in Settings.</p>
           <div className="card" style={{ padding: '4px 16px' }}>
             {([

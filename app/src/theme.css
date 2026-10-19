@@ -313,3 +313,27 @@ p { margin: 0; }
 .sday.today .sletter { color: var(--acc-t); }
 .doodle-hero { display: flex; justify-content: center; margin: 8px 0 4px; }
 .json-box { width: 100%; min-height: 120px; font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size: 13px; line-height: 1.4; resize: vertical; }
+
+/* ---------- Launch film ---------- */
+.launch { position: fixed; inset: 0; z-index: 1001; background: #fbfbfb; color: #141218; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.35s ease; }
+.launch.on { opacity: 1; }
+.launch.out { opacity: 0; pointer-events: none; }
+.launch video { width: 100%; height: 100%; object-fit: contain; display: block; -webkit-mask-image: linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent); mask-image: linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent); }
+.launch-word { position: absolute; left: 0; right: 0; bottom: calc(var(--sb) + 56px); text-align: center; animation: fade 0.8s ease 1.4s both; }
+.launch-word .big { font-size: 30px; letter-spacing: -0.03em; }
+.launch-word .small { color: #5e5a66; margin-top: 4px; }
+.launch-skip { position: absolute; top: calc(var(--st) + 14px); right: 18px; font-size: 12px; font-weight: 700; color: #7d7985; }
+
+/* streak moods */
+.card.streak.tone-hot {
+  background: linear-gradient(150deg, color-mix(in srgb, var(--coral) 24%, transparent), transparent 62%), var(--card);
+  border-color: color-mix(in srgb, var(--coral) 40%, var(--line));
+}
+.card.streak.tone-cool {
+  background: linear-gradient(150deg, color-mix(in srgb, var(--violet) 20%, transparent), color-mix(in srgb, var(--cyan) 6%, transparent) 70%), var(--card);
+  border-color: color-mix(in srgb, var(--violet) 32%, var(--line));
+}
+.streak-flame.out { color: var(--faint); filter: none; opacity: 0.6; }
+.card.streak .doodle { animation: doodle-pop 0.5s cubic-bezier(0.3, 1.5, 0.5, 1) both; transform-origin: 50% 90%; }
+@keyframes doodle-pop { from { transform: scale(0.7) rotate(-6deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .card.streak .doodle { animation: none; } }
