@@ -1,6 +1,6 @@
 {
- "version": 2,
- "updatedAt": "2026-10-19T12:09:42.061Z",
+ "version": 3,
+ "updatedAt": "2026-10-19T12:24:52.137Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -9,11 +9,23 @@
  "plans": [
   {
    "id": "plan-mvf7ovd6",
-   "title": "test",
+   "title": "test2",
    "note": "Rest 1–1.5 min between sets.",
    "moves": [
     {
      "exId": "leg-curl",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "local-lat-pulldown",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "local-cable-row",
      "sets": 3,
      "reps": 12,
      "unit": "reps"
@@ -33,6 +45,24 @@
    "gif": "media/leg-curl.gif",
    "cue": "Control the way back up.",
    "id": "leg-curl"
+  },
+  {
+   "id": "local-lat-pulldown",
+   "name": "Lat pulldown",
+   "group": "exercises",
+   "part": "back",
+   "equipment": "local",
+   "gif": "media/lat-pulldown.gif",
+   "cue": ""
+  },
+  {
+   "id": "local-cable-row",
+   "name": "Seated cable row",
+   "group": "exercises",
+   "part": "back",
+   "equipment": "local",
+   "gif": "media/cable-row.gif",
+   "cue": ""
   }
  ],
  "foods": [
