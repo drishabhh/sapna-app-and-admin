@@ -1,6 +1,6 @@
 {
- "version": 3,
- "updatedAt": "2026-10-19T12:24:52.137Z",
+ "version": 4,
+ "updatedAt": "2026-10-19T17:35:49.890Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -34,6 +34,36 @@
    "days": [
     1
    ]
+  },
+  {
+   "id": "plan-mvfja8r4",
+   "title": "test 3",
+   "note": "Rest 1–1.5 min between sets.",
+   "moves": [
+    {
+     "exId": "quads-dumbbell-goblet-squat",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps",
+     "yt": "https://youtube.com/shorts/7-80HiXX1K8?si=OdaNIiwh8ZQD4TH7"
+    },
+    {
+     "exId": "glutes-barbell-clean-grip-front-squat",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "glutes-one-leg-squat",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    }
+   ],
+   "focus": "legs",
+   "days": [
+    2
+   ]
   }
  ],
  "exercises": [
@@ -62,6 +92,33 @@
    "part": "back",
    "equipment": "local",
    "gif": "media/cable-row.gif",
+   "cue": ""
+  },
+  {
+   "id": "quads-dumbbell-goblet-squat",
+   "name": "Dumbbell Goblet Squat",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "dumbbell",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/quads/dumbbell-goblet-squat.gif",
+   "cue": ""
+  },
+  {
+   "id": "glutes-barbell-clean-grip-front-squat",
+   "name": "Barbell Clean Grip Front Squat",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "barbell",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/barbell-clean-grip-front-squat.gif",
+   "cue": ""
+  },
+  {
+   "id": "glutes-one-leg-squat",
+   "name": "One Leg Squat",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "bodyweight",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/one-leg-squat.gif",
    "cue": ""
   }
  ],
