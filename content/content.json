@@ -1,106 +1,30 @@
 {
- "version": 1,
- "updatedAt": "2026-10-19T08:30:00Z",
+ "version": 2,
+ "updatedAt": "2026-10-19T12:09:42.061Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
   "water": 8
  },
- "plans": [],
+ "plans": [
+  {
+   "id": "plan-mvf7ovd6",
+   "title": "test",
+   "note": "Rest 1–1.5 min between sets.",
+   "moves": [
+    {
+     "exId": "leg-curl",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    }
+   ],
+   "days": [
+    1
+   ]
+  }
+ ],
  "exercises": [
-  {
-   "name": "Arm circles",
-   "group": "stretching",
-   "part": "arms",
-   "gif": "media/arm-circles.gif",
-   "cue": "Small circles, then bigger. Shoulders relaxed.",
-   "id": "arm-circles"
-  },
-  {
-   "name": "Torso rotations",
-   "group": "stretching",
-   "part": "core",
-   "gif": "media/torso-rotations.gif",
-   "cue": "Hips stay still, turn from the waist.",
-   "id": "torso-rotations"
-  },
-  {
-   "name": "Leg swings",
-   "group": "stretching",
-   "part": "legs",
-   "gif": "media/leg-swings.gif",
-   "cue": "Hold a wall. Swing front to back, 10 each side.",
-   "id": "leg-swings"
-  },
-  {
-   "name": "Baby sit",
-   "group": "stretching",
-   "part": "back",
-   "gif": "media/custom-baby-sit-mv3vcrf6.gif",
-   "cue": "Sink low, chest up, breathe slowly.",
-   "id": "baby-sit"
-  },
-  {
-   "name": "Arm rotation",
-   "group": "stretching",
-   "part": "arms",
-   "gif": "media/custom-arm-rotation-mvc7o8qb.gif",
-   "cue": "Slow and controlled.",
-   "id": "arm-rotation"
-  },
-  {
-   "name": "Bodyweight squats",
-   "group": "stretching",
-   "part": "legs",
-   "gif": "media/bodyweight-squats.gif",
-   "cue": "Warm-up pace, knees track over toes.",
-   "id": "bodyweight-squats"
-  },
-  {
-   "name": "Chest press flat bench",
-   "group": "exercises",
-   "part": "chest",
-   "equipment": "machine",
-   "gif": "media/chest-press.gif",
-   "cue": "Elbows about 45°, slow on the way back.",
-   "id": "chest-press"
-  },
-  {
-   "name": "Lat pulldown",
-   "group": "exercises",
-   "part": "back",
-   "equipment": "cable",
-   "gif": "media/lat-pulldown.gif",
-   "cue": "Pull to upper chest, squeeze shoulder blades.",
-   "id": "lat-pulldown"
-  },
-  {
-   "name": "Seated cable row",
-   "group": "exercises",
-   "part": "back",
-   "equipment": "cable",
-   "gif": "media/cable-row.gif",
-   "cue": "Tall back, pull elbows past your ribs.",
-   "id": "cable-row"
-  },
-  {
-   "name": "Shoulder press",
-   "group": "exercises",
-   "part": "shoulders",
-   "equipment": "dumbbell",
-   "gif": "media/shoulder-press.gif",
-   "cue": "Core tight, press straight up.",
-   "id": "shoulder-press"
-  },
-  {
-   "name": "Dumbbell squats",
-   "group": "exercises",
-   "part": "legs",
-   "equipment": "dumbbell",
-   "gif": "media/db-squats.gif",
-   "cue": "Sit back like into a chair, chest up.",
-   "id": "db-squats"
-  },
   {
    "name": "Seated leg curl",
    "group": "exercises",
@@ -109,23 +33,6 @@
    "gif": "media/leg-curl.gif",
    "cue": "Control the way back up.",
    "id": "leg-curl"
-  },
-  {
-   "name": "Cycle / treadmill walk",
-   "group": "exercises",
-   "part": "cardio",
-   "equipment": "machine",
-   "gif": "media/cycle-walk.gif",
-   "cue": "Easy steady pace — you can still talk.",
-   "id": "cycle-walk"
-  },
-  {
-   "name": "Spine stretch",
-   "group": "stretching",
-   "part": "back",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/spine/spine-stretch.gif",
-   "cue": "Round down slowly, one vertebra at a time.",
-   "id": "spine-stretch"
   }
  ],
  "foods": [
@@ -135,7 +42,7 @@
    "portion": "100g",
    "kcal": 241,
    "protein": 13.4,
-   "carbs": 44.0,
+   "carbs": 44,
    "fat": 1.3,
    "fiber": 6.3,
    "tags": [
@@ -160,7 +67,7 @@
    "name": "Cooked rice",
    "portion": "1 cup",
    "kcal": 200,
-   "protein": 4.0,
+   "protein": 4,
    "tags": [
     "carb",
     "indian"
@@ -171,7 +78,7 @@
    "name": "Dal",
    "portion": "1 bowl",
    "kcal": 180,
-   "protein": 12.0,
+   "protein": 12,
    "tags": [
     "protein",
     "indian"
@@ -182,7 +89,7 @@
    "name": "Paneer",
    "portion": "100 g",
    "kcal": 265,
-   "protein": 18.0,
+   "protein": 18,
    "tags": [
     "protein",
     "indian"
@@ -193,7 +100,7 @@
    "name": "Chicken breast",
    "portion": "100 g cooked",
    "kcal": 165,
-   "protein": 31.0,
+   "protein": 31,
    "tags": [
     "protein"
    ]
@@ -223,7 +130,7 @@
    "name": "Curd / dahi",
    "portion": "1 cup",
    "kcal": 150,
-   "protein": 8.0,
+   "protein": 8,
    "tags": [
     "protein",
     "indian"
@@ -234,7 +141,7 @@
    "name": "Milk",
    "portion": "1 cup",
    "kcal": 150,
-   "protein": 8.0,
+   "protein": 8,
    "tags": [
     "protein",
     "drink"
@@ -245,7 +152,7 @@
    "name": "Greek yogurt",
    "portion": "100 g",
    "kcal": 97,
-   "protein": 9.0,
+   "protein": 9,
    "tags": [
     "protein"
    ]
@@ -255,7 +162,7 @@
    "name": "Whey protein scoop",
    "portion": "1 serving",
    "kcal": 120,
-   "protein": 24.0,
+   "protein": 24,
    "tags": [
     "protein",
     "supplement"
@@ -266,7 +173,7 @@
    "name": "Oats",
    "portion": "40 g dry",
    "kcal": 150,
-   "protein": 5.0,
+   "protein": 5,
    "tags": [
     "carb"
    ]
@@ -306,7 +213,7 @@
    "name": "Peanut butter",
    "portion": "1 tbsp",
    "kcal": 95,
-   "protein": 4.0,
+   "protein": 4,
    "tags": [
     "snack"
    ]
@@ -316,7 +223,7 @@
    "name": "Mixed sabzi",
    "portion": "1 bowl",
    "kcal": 120,
-   "protein": 4.0,
+   "protein": 4,
    "tags": [
     "veg",
     "indian"
@@ -327,7 +234,7 @@
    "name": "Salad bowl",
    "portion": "1 serving",
    "kcal": 80,
-   "protein": 3.0,
+   "protein": 3,
    "tags": [
     "veg"
    ]
@@ -337,7 +244,7 @@
    "name": "Idli",
    "portion": "2 pcs",
    "kcal": 120,
-   "protein": 4.0,
+   "protein": 4,
    "tags": [
     "carb",
     "indian"
@@ -348,8 +255,8 @@
    "name": "Thatte idli",
    "portion": "1 large",
    "kcal": 180,
-   "protein": 6.0,
-   "carbs": 38.0,
+   "protein": 6,
+   "carbs": 38,
    "fat": 0.5,
    "tags": [
     "carb",
@@ -361,7 +268,7 @@
    "name": "Dosa",
    "portion": "1 plain",
    "kcal": 160,
-   "protein": 4.0,
+   "protein": 4,
    "tags": [
     "carb",
     "indian"
@@ -372,7 +279,7 @@
    "name": "Poha",
    "portion": "1 plate",
    "kcal": 250,
-   "protein": 6.0,
+   "protein": 6,
    "tags": [
     "carb",
     "indian"
@@ -383,7 +290,7 @@
    "name": "Upma",
    "portion": "1 plate",
    "kcal": 220,
-   "protein": 6.0,
+   "protein": 6,
    "tags": [
     "carb",
     "indian"
@@ -394,7 +301,7 @@
    "name": "Paratha",
    "portion": "1 plain",
    "kcal": 210,
-   "protein": 5.0,
+   "protein": 5,
    "tags": [
     "carb",
     "indian"
@@ -405,7 +312,7 @@
    "name": "Khichdi",
    "portion": "1 bowl",
    "kcal": 220,
-   "protein": 8.0,
+   "protein": 8,
    "tags": [
     "indian"
    ]
@@ -415,7 +322,7 @@
    "name": "Fish",
    "portion": "100 g cooked",
    "kcal": 140,
-   "protein": 25.0,
+   "protein": 25,
    "tags": [
     "protein"
    ]
@@ -425,7 +332,7 @@
    "name": "Tofu",
    "portion": "100 g",
    "kcal": 80,
-   "protein": 8.0,
+   "protein": 8,
    "tags": [
     "protein"
    ]
@@ -435,7 +342,7 @@
    "name": "Chana / chickpeas",
    "portion": "1 cup",
    "kcal": 270,
-   "protein": 15.0,
+   "protein": 15,
    "tags": [
     "protein",
     "indian"
@@ -446,7 +353,7 @@
    "name": "Rajma",
    "portion": "1 cup",
    "kcal": 225,
-   "protein": 15.0,
+   "protein": 15,
    "tags": [
     "protein",
     "indian"
@@ -457,7 +364,7 @@
    "name": "Sprouts salad",
    "portion": "1 bowl",
    "kcal": 100,
-   "protein": 7.0,
+   "protein": 7,
    "tags": [
     "protein",
     "indian"
@@ -468,7 +375,7 @@
    "name": "Cheese slice",
    "portion": "1 serving",
    "kcal": 70,
-   "protein": 4.0,
+   "protein": 4,
    "tags": [
     "protein"
    ]
@@ -478,7 +385,7 @@
    "name": "Bread",
    "portion": "2 slices",
    "kcal": 160,
-   "protein": 6.0,
+   "protein": 6,
    "tags": [
     "carb"
    ]
@@ -488,7 +395,7 @@
    "name": "Boiled potato",
    "portion": "1 medium",
    "kcal": 130,
-   "protein": 3.0,
+   "protein": 3,
    "tags": [
     "carb"
    ]
@@ -498,7 +405,7 @@
    "name": "Ghee",
    "portion": "1 tsp",
    "kcal": 45,
-   "protein": 0.0,
+   "protein": 0,
    "tags": [
     "fat",
     "indian"
@@ -509,7 +416,7 @@
    "name": "Cooking oil",
    "portion": "1 tsp",
    "kcal": 40,
-   "protein": 0.0,
+   "protein": 0,
    "tags": [
     "fat"
    ]
@@ -519,7 +426,7 @@
    "name": "Coffee with milk",
    "portion": "180ml",
    "kcal": 60,
-   "protein": 2.0,
+   "protein": 2,
    "tags": [
     "drink",
     "coffee"
@@ -530,9 +437,9 @@
    "name": "Cold coffee",
    "portion": "250ml",
    "kcal": 120,
-   "protein": 4.0,
-   "carbs": 18.0,
-   "fat": 3.0,
+   "protein": 4,
+   "carbs": 18,
+   "fat": 3,
    "tags": [
     "drink",
     "coffee",
@@ -544,7 +451,7 @@
    "name": "Chai with milk",
    "portion": "1 cup",
    "kcal": 90,
-   "protein": 3.0,
+   "protein": 3,
    "tags": [
     "drink",
     "indian"
@@ -565,7 +472,7 @@
    "name": "Protein bar",
    "portion": "1 serving",
    "kcal": 200,
-   "protein": 15.0,
+   "protein": 15,
    "tags": [
     "snack",
     "supplement"
@@ -576,7 +483,7 @@
    "name": "Hummus",
    "portion": "2 tbsp",
    "kcal": 70,
-   "protein": 2.0,
+   "protein": 2,
    "tags": [
     "snack"
    ]
@@ -586,7 +493,7 @@
    "name": "Avocado",
    "portion": "½",
    "kcal": 160,
-   "protein": 2.0,
+   "protein": 2,
    "tags": [
     "fat"
    ]
