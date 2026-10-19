@@ -1,6 +1,6 @@
 import { ReactNode, useMemo, useState } from 'react';
 import { streakInfo, weighStatus } from './lib/calc';
-import { latestWeight } from './lib/home';
+import { latestWeight } from './lib/burn';
 import { haptic } from './lib/native';
 import { useStore } from './lib/store';
 import { today } from './lib/dates';

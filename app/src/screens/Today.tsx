@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { cycleInfo, isGymDay, mealFor, streakInfo, mealTotals, nextPlan, PHASE_COPY, sessionsOn, totalsOn } from '../lib/calc';
 import { gifSrc } from '../lib/content';
 import { greeting, longLabel, today } from '../lib/dates';
@@ -9,7 +9,8 @@ import { useNav } from '../nav';
 import { Bar, Gif, Icon, Ring, Sheet, toast } from '../ui';
 import { StreakCard } from '../streak';
 import { WeighCard } from '../congrats';
-import { burnedOn } from '../lib/home';
+import { burnedOn, latestWeight, stepsKcal } from '../lib/burn';
+import { takeStepsRequest } from '../lib/intents';
 
 export default function Today() {
   const { data, content, foods, update, exById, contentFresh } = useStore();
@@ -30,6 +31,15 @@ export default function Today() {
   const cyc = data.profile.cycleEnabled ? cycleInfo(data) : null;
   const [stepsOpen, setStepsOpen] = useState(false);
   const [stepsVal, setStepsVal] = useState('');
+  const kg = latestWeight(data);
+  // Opened from the 11:30 pm "How many steps today?" notification.
+  useEffect(() => {
+    const open = () => { if (takeStepsRequest()) { setStepsVal(String(data.steps[today()] || '')); setStepsOpen(true); } };
+    open();
+    document.addEventListener('open-steps', open);
+    return () => document.removeEventListener('open-steps', open);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const suggestion = suggest(foods, left, protLeft);
 
@@ -126,7 +136,7 @@ export default function Today() {
           <button type="button" className="card tight stack" style={{ gap: 10, textAlign: 'left', color: 'var(--text)' }} data-acc="today" onClick={() => { setStepsVal(steps ? String(steps) : ''); setStepsOpen(true); }}>
             <strong className="row" style={{ gap: 6 }}><Icon name="steps" size={18} /> Steps</strong>
             <p className="big" style={{ fontSize: 30 }}>{steps.toLocaleString('en-IN')}</p>
-            <p className="small muted">{steps ? `≈ ${Math.round(steps * 0.04)} kcal burned` : 'Tap to log from Samsung Health'}</p>
+            <p className="small muted">{steps ? `≈ ${stepsKcal(steps, kg)} kcal burned` : 'Log tonight at 11:30 pm'}</p>
           </button>
         </section>
 
@@ -158,8 +168,12 @@ export default function Today() {
       <Sheet open={stepsOpen} onClose={() => setStepsOpen(false)} label="Log steps">
         <div className="stack" style={{ gap: 14 }} data-acc="today">
           <h2 className="h2">Steps today</h2>
-          <p className="muted small">Copy the number from Samsung Health.</p>
+          <p className="muted small">Your whole day, night walk included — copy the number from Samsung Health. Calories are worked out for you.</p>
           <input className="input" inputMode="numeric" autoFocus value={stepsVal} onChange={(e) => setStepsVal(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="e.g. 6500" style={{ fontSize: 26, fontFamily: 'var(--display)', fontWeight: 800 }} />
+          <div className="chips" aria-label="Quick add">
+            {[1000, 2000, 3000].map((n) => <button key={n} type="button" className="chip" onClick={() => setStepsVal(String(Number(stepsVal || 0) + n))}>+{n.toLocaleString('en-IN')} night walk</button>)}
+          </div>
+          <p className="small" style={{ fontWeight: 700 }}>{Number(stepsVal || 0) ? `≈ ${stepsKcal(Number(stepsVal), kg)} kcal burned · ${(Number(stepsVal) * 0.00072).toFixed(1)} km` : '\u00a0'}</p>
           <button type="button" className="btn lg block" onClick={() => {
             const n = Number(stepsVal || 0);
             update((x) => ({ ...x, steps: { ...x.steps, [d]: n } }));

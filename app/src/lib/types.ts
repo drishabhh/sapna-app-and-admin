@@ -84,6 +84,8 @@ export interface Session {
   endedAt?: number;
   sets: SetEntry[];
   kind?: 'gym' | 'home';
+  /** exercise ids she marked as done (lifts are never auto-completed) */
+  completed?: string[];
   /** estimated kcal burned */
   kcal?: number;
   programId?: string;
@@ -126,6 +128,8 @@ export interface Reminders {
   punch: boolean;
   /** "HH:MM", 24h */
   punchTime: string;
+  /** 11:30 pm "how many steps today?" with a 15-minute snooze */
+  steps: boolean;
 }
 
 export interface ProgramProgress {
@@ -178,9 +182,9 @@ export function emptyData(): AppData {
     onboarded: false,
     createdAt: Date.now(),
     profile: { ...DEFAULT_PROFILE },
-    reminders: { meals: true, water: true, gym: true, weigh: true, punch: true, punchTime: '07:10' },
+    reminders: { meals: true, water: true, gym: true, weigh: true, punch: true, punchTime: '07:10', steps: true },
     programs: {},
-    remV: 2,
+    remV: 3,
     food: [],
     water: {},
     steps: {},

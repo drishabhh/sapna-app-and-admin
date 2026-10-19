@@ -54,7 +54,8 @@ export function migrate(raw: unknown): AppData {
     customFoods: Array.isArray(d.customFoods) ? d.customFoods : [],
     programs: d.programs && typeof d.programs === 'object' ? d.programs : {},
     // v2 reminders: Friday weigh-ins and the daily punch line are on for everyone once.
-    ...((d.remV ?? 1) < 2 ? { reminders: { ...base.reminders, ...(d.reminders || {}), weigh: true, punch: true, punchTime: '07:10' }, remV: 2 } : {}),
+    ...((d.remV ?? 1) < 2 ? { reminders: { ...base.reminders, ...(d.reminders || {}), weigh: true, punch: true, punchTime: '07:10', steps: true }, remV: 3 } : {}),
+    ...((d.remV ?? 1) === 2 ? { reminders: { ...base.reminders, ...(d.reminders || {}), steps: true }, remV: 3 } : {}),
   };
 }
 

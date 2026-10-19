@@ -43,54 +43,37 @@ public class StreakWidgetProvider extends AppWidgetProvider {
         return new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(c.getTime());
     }
 
-    private static long daysBetween(String from, String to) {
-        try {
-            SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-            Calendar a = Calendar.getInstance(); a.setTime(f.parse(from)); a.set(Calendar.HOUR_OF_DAY, 12);
-            Calendar b = Calendar.getInstance(); b.setTime(f.parse(to)); b.set(Calendar.HOUR_OF_DAY, 12);
-            return Math.round((b.getTimeInMillis() - a.getTimeInMillis()) / 86400000.0);
-        } catch (Exception e) {
-            return 9999;
-        }
-    }
-
-    private static String str(JSONObject j, String k) {
-        if (j.isNull(k)) return null;
-        String v = j.optString(k, null);
-        return (v == null || v.isEmpty() || "null".equals(v)) ? null : v;
-    }
-
     static void draw(Context ctx, AppWidgetManager mgr, int id) {
-        int streak = 0;
-        String last = null, prev = null, workout = null;
         String name = "Sapna";
-        Set<String> week = new HashSet<>();
+        Set<Long> workouts = new HashSet<>();
+        int[] gym = new int[0];
         try {
             String raw = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY, null);
             if (raw != null) {
                 JSONObject j = new JSONObject(raw);
-                streak = j.optInt("streak", 0);
-                last = str(j, "lastActive");
-                prev = str(j, "prevActive");
-                workout = str(j, "workoutOn");
-                String n = str(j, "name");
-                if (n != null) name = n;
-                JSONArray w = j.optJSONArray("week");
-                if (w != null) for (int i = 0; i < w.length(); i++) week.add(w.optString(i));
+                String n = j.optString("name", "");
+                if (!n.isEmpty() && !"null".equals(n)) name = n;
+                JSONArray w = j.optJSONArray("workouts");
+                if (w != null) for (int i = 0; i < w.length(); i++) {
+                    String k = w.optString(i, "");
+                    if (k.length() >= 10) workouts.add(WorkoutStreak.epochDay(k));
+                }
+                JSONArray g = j.optJSONArray("gymDays");
+                if (g != null) {
+                    gym = new int[g.length()];
+                    for (int i = 0; i < g.length(); i++) gym[i] = g.optInt(i);
+                }
             }
         } catch (Exception ignored) {}
 
         Calendar now = Calendar.getInstance();
-        String today = key(now);
-        Integer gap = last == null ? null : (int) Math.max(0, daysBetween(last, today));
-        boolean done = gap != null && gap == 0;
-        if (gap != null && gap >= 2) streak = 0; // streak broke while the app was closed
-        boolean comeback = done && streak == 1 && prev != null && daysBetween(prev, today) >= 2;
+        String todayKey = key(now);
+        long today = WorkoutStreak.epochDay(todayKey);
         Calendar noon = (Calendar) now.clone();
         noon.set(Calendar.HOUR_OF_DAY, 12); noon.set(Calendar.MINUTE, 0); noon.set(Calendar.SECOND, 0); noon.set(Calendar.MILLISECOND, 0);
-        // same as the app: whole days from epoch to local noon (UTC ms)
         int dayIndex = (int) Math.floor(noon.getTimeInMillis() / 86400000.0);
-        MoodEngine.Mood mood = MoodEngine.compute(name, streak, done, done && today.equals(workout), gap, comeback, now.get(Calendar.HOUR_OF_DAY), dayIndex);
+        WorkoutStreak.State st = WorkoutStreak.state(workouts, gym, today);
+        MoodEngine.Mood mood = WorkoutStreak.mood(st, name, now.get(Calendar.HOUR_OF_DAY), dayIndex);
 
         int doodle = ctx.getResources().getIdentifier("doodle_" + mood.doodle, "drawable", ctx.getPackageName());
         if (doodle == 0) doodle = R.drawable.doodle_thumbs;
@@ -102,23 +85,22 @@ public class StreakWidgetProvider extends AppWidgetProvider {
         RemoteViews v = new RemoteViews(ctx.getPackageName(), small ? R.layout.widget_streak_small : R.layout.widget_streak);
         v.setInt(R.id.root, "setBackgroundResource", bg);
         v.setImageViewResource(R.id.doodle, doodle);
-        v.setTextViewText(R.id.count, String.valueOf(streak));
-        v.setTextViewText(R.id.label, "day streak");
+        v.setTextViewText(R.id.count, String.valueOf(st.streak));
+        v.setTextViewText(R.id.label, small ? "workouts" : "workout streak");
         v.setInt(R.id.flame, "setImageAlpha", mood.lit ? 255 : 90);
         if (!small) {
             v.setTextViewText(R.id.title, mood.title);
             v.setTextViewText(R.id.sub, mood.sub);
-            Calendar mon = (Calendar) now.clone();
-            int dow = mon.get(Calendar.DAY_OF_WEEK); // Sunday = 1
-            mon.add(Calendar.DAY_OF_YEAR, dow == Calendar.SUNDAY ? -6 : Calendar.MONDAY - dow);
+            long mon = today - ((WorkoutStreak.dow(today) + 6) % 7); // Monday of this week
             for (int i = 0; i < 7; i++) {
-                String k = key(mon);
-                boolean on = week.contains(k);
-                boolean isToday = k.equals(today);
+                long k = mon + i;
+                boolean on = workouts.contains(k);
+                boolean isToday = k == today;
+                boolean gymDay = gym.length == 0;
+                for (int g : gym) if (g == WorkoutStreak.dow(k)) gymDay = true;
                 v.setTextViewText(DOTS[i], on ? "\u2713" : LETTERS[i]);
-                v.setInt(DOTS[i], "setBackgroundResource", on ? R.drawable.widget_dot_on : isToday ? R.drawable.widget_dot_today : R.drawable.widget_dot_off);
+                v.setInt(DOTS[i], "setBackgroundResource", on ? R.drawable.widget_dot_on : isToday ? R.drawable.widget_dot_today : gymDay ? R.drawable.widget_dot_off : R.drawable.widget_dot_rest);
                 v.setTextColor(DOTS[i], ctx.getResources().getColor(on ? R.color.widget_on_dot : R.color.widget_muted, ctx.getTheme()));
-                mon.add(Calendar.DAY_OF_YEAR, 1);
             }
         } else {
             v.setContentDescription(R.id.root, mood.title + ". " + mood.sub);

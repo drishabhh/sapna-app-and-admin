@@ -27,6 +27,20 @@ public class StreakWidgetPlugin extends Plugin {
         call.resolve();
     }
 
+    /** enabled, time ("HH:MM"), name, loggedOn ("YYYY-MM-DD" when today's steps are in) */
+    @PluginMethod
+    public void configureSteps(PluginCall call) {
+        Context ctx = getContext();
+        StepsReminder.prefs(ctx).edit()
+            .putBoolean("enabled", Boolean.TRUE.equals(call.getBoolean("enabled", true)))
+            .putString("time", call.getString("time", "23:30"))
+            .putString("name", call.getString("name", "Sapna"))
+            .putString("loggedOn", call.getString("loggedOn", ""))
+            .apply();
+        StepsReminder.scheduleDaily(ctx);
+        call.resolve();
+    }
+
     @PluginMethod
     public void pin(PluginCall call) {
         JSObject ret = new JSObject();

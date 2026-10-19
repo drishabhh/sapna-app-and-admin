@@ -100,6 +100,7 @@ export default function Settings({ open, onClose }: { open: boolean; onClose: ()
             ['water', 'Water', 'Every 2 hours, 9 am – 7 pm, with a little quote'],
             ['gym', 'Workout days', '6:30 pm on gym days'],
             ['weigh', 'Weekly weigh-in', 'Friday 8 am · Monday nudge if missed'],
+            ['steps', 'Night steps check-in', '11:30 pm · “remind in 15 min” button'],
           ] as [BoolRem, string, string][]).map(([k, l, w], i, a) => (
             <div key={k} className="between" style={{ padding: '13px 0', borderBottom: i < a.length - 1 ? '1px solid var(--line)' : 'none' }}>
               <div><strong>{l}</strong><p className="small muted">{w}</p></div>

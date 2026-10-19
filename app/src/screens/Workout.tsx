@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { exerciseHistory, isGymDay, lastWeight, nextPlan, sessionsPerWeek, uid } from '../lib/calc';
-import { latestWeight, sessionKcal } from '../lib/home';
+import { exerciseHistory, lastWeight, nextPlan, sessionsPerWeek, uid } from '../lib/calc';
+import { latestWeight, sessionKcal } from '../lib/burn';
 import { Congrats } from '../congrats';
-import { HomeTab } from './Home';
 import { gifSrc } from '../lib/content';
 import { parseKey, shortLabel, today, DOW_SHORT } from '../lib/dates';
 import { haptic } from '../lib/native';
@@ -11,14 +10,12 @@ import { Exercise, Plan, PlanMove, Session } from '../lib/types';
 import { FullSheet, Gif, Icon, Seg, Sheet, Stepper, toast } from '../ui';
 import { Doodle } from '../streak';
 
-const active0 = (d: { sessions: Session[] }) => d.sessions.some((s) => !s.endedAt && s.date === today() && s.kind !== 'home');
-
 export default function WorkoutScreen({ autoStart, onAutoStartHandled }: { autoStart: boolean; onAutoStartHandled: () => void }) {
   const { data, content, exById } = useStore();
   const suggested = nextPlan(data, content);
   const [planId, setPlanId] = useState<string | null>(null);
   const plan = content.plans.find((p) => p.id === planId) || suggested;
-  const [view, setView] = useState<'home' | 'plan' | 'history'>(() => (isGymDay(data) || active0(data) ? 'plan' : 'home'));
+  const [view, setView] = useState<'plan' | 'history'>('plan');
   const [detail, setDetail] = useState<{ ex: Exercise; move: PlanMove } | null>(null);
   const active = data.sessions.find((s) => !s.endedAt && s.date === today());
   const [sessionOpen, setSessionOpen] = useState(false);
@@ -40,11 +37,11 @@ export default function WorkoutScreen({ autoStart, onAutoStartHandled }: { autoS
       <div className="stack" style={{ gap: 16 }}>
         <header className="stack" style={{ gap: 4 }}>
           <p className="eyebrow">Workout</p>
-          <h1 className="h1">{view === 'home' ? 'Home workouts' : view === 'plan' ? plan?.title || 'No plan yet' : 'Your progress'}</h1>
+          <h1 className="h1">{view === 'plan' ? plan?.title || 'No plan yet' : 'Your progress'}</h1>
         </header>
-        <Seg<'home' | 'plan' | 'history'> label="View" value={view} onChange={setView} options={[{ v: 'home', l: 'Home' }, { v: 'plan', l: 'Gym' }, { v: 'history', l: 'History' }]} />
+        <Seg<'plan' | 'history'> label="View" value={view} onChange={setView} options={[{ v: 'plan', l: 'Gym' }, { v: 'history', l: 'History' }]} />
 
-        {view === 'home' ? <HomeTab /> : view === 'plan' ? (
+        {view === 'plan' ? (
           plan ? (
             <>
               {content.plans.length > 1 ? (
@@ -123,21 +120,21 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
   const [idx, setIdx] = useState(0);
   const [kg, setKg] = useState(0);
   const [reps, setReps] = useState(10);
-  const [rest, setRest] = useState(0);
   const [summary, setSummary] = useState<Session | null>(null);
   const moves = plan.moves.filter((m) => exById[m.exId]);
   const move = moves[Math.min(idx, moves.length - 1)];
   const ex = move ? exById[move.exId] : undefined;
   const isStretch = ex?.group === 'stretching';
   const sets = session ? session.sets.filter((x) => x.exId === move?.exId) : [];
-  const doneMove = (m: PlanMove) => (session ? session.sets.filter((x) => x.exId === m.exId).length >= m.sets : false);
+  const doneMove = (m: PlanMove) => !!session?.completed?.includes(m.exId);
+  const [logOpen, setLogOpen] = useState(false);
 
   // Create (or resume) the session when opened.
   useEffect(() => {
     if (!open) return;
     setSummary(null);
     if (!session) {
-      const s: Session = { id: uid(), date: d, planId: plan.id, title: plan.title, startedAt: Date.now(), sets: [] };
+      const s: Session = { id: uid(), date: d, planId: plan.id, title: plan.title, startedAt: Date.now(), sets: [], completed: [], kind: 'gym' };
       update((x) => ({ ...x, sessions: [...x.sessions, s] }));
       setIdx(0);
     } else {
@@ -154,35 +151,33 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
     const mine = sets[sets.length - 1];
     setKg(mine ? mine.kg : last ? last.kg : move.kg || 0);
     setReps(mine ? mine.reps : move.reps);
+    setLogOpen(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [move?.exId, open]);
 
-  useEffect(() => {
-    if (rest <= 0) return;
-    const t = window.setTimeout(() => setRest((r) => r - 1), 1000);
-    if (rest === 1) haptic.success();
-    return () => window.clearTimeout(t);
-  }, [rest]);
-
   if (!open) return null;
 
+  const patch = (fn: (s: Session) => Session) => update((x) => ({ ...x, sessions: x.sessions.map((s) => (s.id === session!.id ? fn(s) : s)) }));
+
+  /** optional: record one set with weight × reps */
   function logSet() {
     if (!session || !move) return;
     const set = { exId: move.exId, set: sets.length + 1, kg: isStretch ? 0 : kg, reps, at: Date.now() };
-    update((x) => ({ ...x, sessions: x.sessions.map((s) => (s.id === session.id ? { ...s, sets: [...s.sets, set] } : s)) }));
-    haptic.success();
-    const nowDone = sets.length + 1 >= move.sets;
-    if (nowDone) {
-      if (idx < moves.length - 1) {
-        toast(`${ex?.name} done`);
-        setTimeout(() => setIdx(idx + 1), 350);
-      }
-    } else if (!isStretch) setRest(90);
+    patch((s) => ({ ...s, sets: [...s.sets, set] }));
+    haptic.tap();
+    toast(`Set ${set.set} logged`);
   }
-  function undo() {
-    if (!session || !sets.length) return;
-    const lastAt = sets[sets.length - 1].at;
-    update((x) => ({ ...x, sessions: x.sessions.map((s) => (s.id === session.id ? { ...s, sets: s.sets.filter((z) => z.at !== lastAt) } : s)) }));
+  /** she says she did it. Stretches move on by themselves; lifts wait for her. */
+  function complete() {
+    if (!session || !move) return;
+    const extra = sets.length ? [] : [{ exId: move.exId, set: 1, kg: isStretch ? 0 : kg, reps: move.reps, at: Date.now() }];
+    patch((s) => ({ ...s, sets: [...s.sets, ...extra], completed: [...new Set([...(s.completed || []), move.exId])] }));
+    haptic.success();
+    if (isStretch && idx < moves.length - 1) setTimeout(() => setIdx(idx + 1), 450);
+  }
+  function uncomplete() {
+    if (!session || !move) return;
+    patch((s) => ({ ...s, completed: (s.completed || []).filter((x) => x !== move.exId) }));
   }
   function finish() {
     if (!session) return;
@@ -199,6 +194,7 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
   }
 
   const allDone = moves.every(doneMove);
+  const isDone = move ? doneMove(move) : false;
 
   return (
     <FullSheet open={open} onClose={onClose} label="Workout session" acc="workout">
@@ -209,7 +205,7 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
           <div className="row" style={{ padding: 'calc(var(--st) + 12px) 18px 6px' }}>
             <button type="button" className="icon-btn" aria-label="Minimise session" onClick={onClose}><Icon name="back" /></button>
             <div style={{ flex: 1 }} className="stack">
-              <span className="small muted" style={{ fontWeight: 700 }}>{plan.title} · {idx + 1} of {moves.length}</span>
+              <span className="small muted" style={{ fontWeight: 700 }}>{idx + 1} of {moves.length}</span>
               <div role="img" aria-label={`Move ${idx + 1} of ${moves.length}`} style={{ display: 'grid', gridTemplateColumns: `repeat(${moves.length}, minmax(0,1fr))`, gap: 4, marginTop: 6 }}>
                 {moves.map((m, i) => (
                   <span key={m.exId} style={{ height: 5, borderRadius: 99, background: doneMove(m) ? 'var(--acc)' : i === idx ? 'color-mix(in srgb, var(--acc) 45%, transparent)' : 'var(--card-2)' }} />
@@ -220,51 +216,40 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', padding: '8px 18px 12px' }} className="stack">
-            <Gif src={gifSrc(ex)} alt={`${ex.name} demonstration`} style={{ width: '100%', height: 250, objectFit: 'contain', background: '#fff', borderRadius: 22 }} />
-            <div className="between" style={{ alignItems: 'flex-start' }}>
-              <h1 className="h1" style={{ fontSize: 28 }}>{ex.name}</h1>
-              <span className="pill" style={{ whiteSpace: 'nowrap' }}>{move.sets} × {move.reps}{move.unit === 'min' ? ' min' : ''}</span>
-            </div>
-            {ex.cue ? <p className="muted">{ex.cue}</p> : null}
-            <div className="stack" style={{ gap: 6 }}>
-              {sets.map((s) => (
-                <div key={s.at} className="list-row" style={{ padding: '10px 14px' }}>
-                  <span className="icon-btn solid" style={{ width: 28, height: 28 }} aria-hidden="true"><Icon name="check" size={14} stroke={3} /></span>
-                  <strong>Set {s.set}</strong><span className="spacer" />
-                  <span className="muted">{isStretch ? `${s.reps} ${move.unit === 'min' ? 'min' : 'reps'}` : `${s.kg} kg × ${s.reps}`}</span>
-                </div>
-              ))}
-            </div>
-            {rest > 0 ? (
-              <div className="card tight between" role="timer" aria-live="polite">
-                <span className="row" style={{ gap: 8 }}><Icon name="timer" size={20} /><strong>Rest {Math.floor(rest / 60)}:{String(rest % 60).padStart(2, '0')}</strong></span>
-                <button type="button" className="btn sm ghost" onClick={() => setRest(0)}>Skip</button>
+            <Gif src={gifSrc(ex)} alt={`${ex.name} demonstration`} style={{ width: '100%', height: '46vh', minHeight: 240, objectFit: 'contain', background: '#fff', borderRadius: 24 }} />
+            <h1 className="h1" style={{ fontSize: 30, textAlign: 'center', marginTop: 6 }}>{ex.name}</h1>
+            {sets.length ? (
+              <div className="chips" style={{ justifyContent: 'center' }} aria-label="Logged sets">
+                {sets.map((s) => <span key={s.at} className="chip" aria-pressed="true">{isStretch || !s.kg ? `${s.reps}` : `${s.kg} kg × ${s.reps}`}</span>)}
               </div>
             ) : null}
           </div>
 
           <div style={{ padding: '14px 18px calc(var(--sb) + 18px)', borderTop: '1px solid var(--line)', background: 'var(--bg-2)' }} className="stack">
-            {sets.length < move.sets ? (
-              <>
-                <div className={isStretch ? '' : 'grid2'}>
-                  {!isStretch ? <div className="field">Weight<Stepper label="weight" value={kg} step={2.5} decimals={1} min={0} max={300} unit="kg" onChange={setKg} /></div> : null}
-                  <div className="field">{move.unit === 'min' ? 'Minutes' : 'Reps'}<Stepper label="reps" value={reps} min={1} max={200} onChange={setReps} /></div>
+            {!isStretch && logOpen && !isDone ? (
+              <div className="stack" style={{ gap: 8 }}>
+                <div className="grid2">
+                  <div className="field">Weight<Stepper label="weight" value={kg} step={2.5} decimals={1} min={0} max={300} unit="kg" onChange={setKg} /></div>
+                  <div className="field">Reps<Stepper label="reps" value={reps} min={1} max={200} onChange={setReps} /></div>
                 </div>
-                <button type="button" className="btn lg block" onClick={logSet}>{isStretch ? `Done · set ${sets.length + 1}` : `Log set ${sets.length + 1}`}</button>
-              </>
-            ) : (
+                <button type="button" className="btn ghost block" onClick={logSet}><Icon name="plus" size={18} /> Add set {sets.length + 1}</button>
+              </div>
+            ) : null}
+            {isDone ? (
               <>
-                <p className="ok-t" style={{ fontWeight: 700 }}>All {move.sets} sets done.</p>
+                <p className="ok-t" style={{ fontWeight: 700, textAlign: 'center' }}><Icon name="check" size={16} stroke={3} /> Logged as done</p>
                 {idx < moves.length - 1 ? (
                   <button type="button" className="btn lg block" onClick={() => setIdx(idx + 1)}>Next: {exById[moves[idx + 1].exId]?.name} <Icon name="next" size={18} /></button>
                 ) : (
                   <button type="button" className="btn lg block" onClick={finish}>{allDone ? 'Finish workout' : 'Finish anyway'}</button>
                 )}
               </>
+            ) : (
+              <button type="button" className="btn lg block" onClick={complete}><Icon name="check" size={20} stroke={2.6} /> {isStretch ? 'Done' : 'I did this'}</button>
             )}
             <div className="between">
               <button type="button" className="btn quiet" disabled={idx === 0} onClick={() => setIdx(idx - 1)}>Previous</button>
-              {sets.length ? <button type="button" className="btn quiet" onClick={undo}>Undo last set</button> : null}
+              {isDone ? <button type="button" className="btn quiet" onClick={uncomplete}>Undo</button> : !isStretch ? <button type="button" className="btn quiet" onClick={() => setLogOpen((v) => !v)}>{logOpen ? 'Hide weights' : 'Log weight'}</button> : null}
               <button type="button" className="btn quiet" disabled={idx >= moves.length - 1} onClick={() => setIdx(idx + 1)}>Skip</button>
             </div>
           </div>

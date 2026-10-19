@@ -1,5 +1,7 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
-import { DOW_LETTER, dow } from './lib/dates';
+import { addDays, DOW_LETTER, dow, today } from './lib/dates';
+import { workoutDays } from './lib/workoutStreak';
+import type { AppData } from './lib/types';
 import { StreakInfo } from './lib/calc';
 import type { DoodleName } from './lib/mood';
 import { Icon } from './ui';
@@ -45,25 +47,37 @@ export function StreakCard({ s, onLog }: { s: StreakInfo; onLog: () => void }) {
 
 interface StreakWidgetPlugin {
   update(o: { json: string }): Promise<void>;
+  configureSteps(o: { enabled: boolean; time: string; name: string; loggedOn: string }): Promise<void>;
   pin(): Promise<{ supported: boolean }>;
 }
 const StreakWidget = registerPlugin<StreakWidgetPlugin>('StreakWidget');
 
 let lastSent = '';
-export function syncWidget(s: StreakInfo, name: string) {
+/** The widget shows the WORKOUT streak; it recomputes mood/time-of-day itself, so we only send facts. */
+export function syncWidget(d: AppData) {
   if (!Capacitor.isNativePlatform()) return;
+  const cutoff = addDays(today(), -150);
   const payload = JSON.stringify({
-    name,
-    streak: s.streak,
-    best: s.best,
-    lastActive: s.lastActive,
-    prevActive: s.prevActive,
-    workoutOn: s.workoutToday ? s.lastActive : null,
-    week: s.week.filter((w) => w.done).map((w) => w.key),
+    v: 2,
+    name: d.profile.name || 'Sapna',
+    gymDays: d.profile.gymDays,
+    workouts: [...workoutDays(d.sessions)].filter((k) => k >= cutoff).sort(),
   });
   if (payload === lastSent) return;
   lastSent = payload;
   StreakWidget.update({ json: payload }).catch(() => {});
+}
+
+let lastSteps = '';
+/** Native 11:30 pm steps prompt (works with the app closed). Skips tonight once steps are logged. */
+export function syncNightSteps(d: AppData) {
+  if (!Capacitor.isNativePlatform()) return;
+  const t = today();
+  const o = { enabled: d.reminders.steps !== false, time: '23:30', name: d.profile.name || 'Sapna', loggedOn: (d.steps[t] || 0) > 0 ? t : '' };
+  const key = JSON.stringify(o);
+  if (key === lastSteps) return;
+  lastSteps = key;
+  StreakWidget.configureSteps(o).catch(() => {});
 }
 
 export async function pinWidget(): Promise<boolean> {

@@ -16,8 +16,8 @@ import Settings from './screens/Settings';
 import Today from './screens/Today';
 import WorkoutScreen from './screens/Workout';
 import { Icon, popBack, ToastHost } from './ui';
-import { streakInfo } from './lib/calc';
-import { syncWidget } from './streak';
+import { syncNightSteps, syncWidget } from './streak';
+import { requestSteps } from './lib/intents';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'today', label: 'Today', icon: 'home' },
@@ -46,7 +46,7 @@ function Shell() {
 
   // Keep the home-screen streak widget in step with her logs.
   useEffect(() => {
-    if (ready && data.onboarded) syncWidget(streakInfo(data), data.profile.name);
+    if (ready && data.onboarded) { syncWidget(data); syncNightSteps(data); }
   }, [ready, data]);
 
   // Status / navigation bar icons follow light–dark mode.
@@ -58,6 +58,15 @@ function Shell() {
     mq.addEventListener('change', apply);
     return () => mq.removeEventListener('change', apply);
   }, []);
+
+  // com.rishu.sapnahealth://steps from the night notification → Today + steps sheet.
+  useEffect(() => {
+    if (!ready || !data.onboarded) return;
+    const handle = (url?: string) => { if (url && /:\/\/steps/.test(url)) { setTab('today'); requestSteps(); } };
+    CapApp.getLaunchUrl().then((r) => handle(r?.url)).catch(() => {});
+    const sub = CapApp.addListener('appUrlOpen', (e) => handle(e.url));
+    return () => { sub.then((s) => s.remove()).catch(() => {}); };
+  }, [ready, data.onboarded]);
 
   // Android back button: close the top sheet first, then go to Today, then leave the app.
   useEffect(() => {
