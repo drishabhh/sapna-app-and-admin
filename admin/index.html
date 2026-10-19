@@ -154,21 +154,21 @@ function askToken(reason, then) {
   document.getElementById('tokfix')?.remove();
   const m = document.createElement('div'); m.className = 'modal'; m.id = 'tokfix';
   m.innerHTML = `<div class="sheet stack" role="dialog" aria-label="Token">
-    <div class="between"><h2>Token can’t publish</h2><button class="ib" type="button" id="tfx">✕</button></div>
+    <div class="between"><h2>${then ? 'Token can’t publish' : 'Change token'}</h2><button class="ib" type="button" id="tfx">✕</button></div>
     <p class="small muted">${reason}</p><p class="small">${WRITE_HELP}</p>
     <p class="small muted">Then press Check again — or paste a different token that has that access. Your unpublished changes stay.</p>
     <label class="f">Token<input class="input" id="tfv" type="password" autocomplete="off" placeholder="leave empty to re-check the saved one"></label>
     <p class="small" id="tfe" style="color:var(--danger)"></p>
-    <button class="btn" type="button" id="tfs">Check again & publish</button></div>`;
+    <button class="btn" type="button" id="tfs">${then ? 'Check again & publish' : 'Check & save token'}</button></div>`;
   document.body.appendChild(m);
   const close = () => m.remove();
   $('#tfx').onclick = close; m.onclick = (e) => { if (e.target === m) close(); };
   $('#tfs').onclick = async () => {
     const t = ($('#tfv').value || S.token).trim(); const b = $('#tfs'); b.disabled = true; b.textContent = 'Checking…';
     let ok = false; try { ok = await canWrite(t); } catch {}
-    if (!ok) { $('#tfe').textContent = 'Still can’t write to sapna-app-and-admin with this token. GitHub changes apply instantly — check the repo is selected and Contents is “Read and write”.'; b.disabled = false; b.textContent = 'Check again & publish'; return; }
+    if (!ok) { $('#tfe').textContent = 'Still can’t write to sapna-app-and-admin with this token. GitHub changes apply instantly — check the repo is selected and Contents is “Read and write”.'; b.disabled = false; b.textContent = then ? 'Check again & publish' : 'Check & save token'; return; }
     S.token = t; try { localStorage.setItem(LS_TOKEN, t); } catch {}
-    close(); toast('Token works'); then && then();
+    close(); toast(then ? 'Token works — publishing…' : 'Token works — saved on this device'); then && then();
   };
 }
 
