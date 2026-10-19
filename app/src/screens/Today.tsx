@@ -27,7 +27,7 @@ export default function Today() {
   const steps = data.steps[d] || 0;
   const streak = streakInfo(data);
   const plan = todayPlan(data, content);
-  const done = sessionsOn(data, d).some((s) => s.endedAt && s.sets.length);
+  const done = sessionsOn(data, d).some((s) => s.endedAt && s.sets.length && (!plan || s.planId === plan.id));
   const gym = isGymDay(data);
   const cyc = data.profile.cycleEnabled ? cycleInfo(data) : null;
   const [stepsOpen, setStepsOpen] = useDraft('today.stepsOpen', false);

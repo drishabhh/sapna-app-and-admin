@@ -130,11 +130,12 @@ export function todayPlan(d: AppData, c: Content, date = today()): Plan | null {
   const active = d.sessions.find((s) => !s.endedAt && s.date === date);
   const act = active && c.plans.find((p) => p.id === active.planId);
   if (act) return act;
+  // A plan Rishu pinned to this weekday wins — even if she already did something else today.
+  const pinned = c.plans.filter((p) => p.days?.includes(dow(date)));
+  if (pinned.length) return pinned.find((p) => !d.sessions.some((s) => s.date === date && s.endedAt && s.sets.length && s.planId === p.id)) || pinned[0];
   const doneToday = [...d.sessions].filter((s) => s.date === date && s.sets.length).sort((a, b) => b.startedAt - a.startedAt)[0];
   const did = doneToday && c.plans.find((p) => p.id === doneToday.planId);
   if (did) return did;
-  const pinned = c.plans.filter((p) => p.days?.includes(dow(date)));
-  if (pinned.length) return pinned[0];
   const floating = c.plans.filter((p) => !p.days || !p.days.length);
   return floating.length ? nextPlan(d, { ...c, plans: floating }) : null;
 }

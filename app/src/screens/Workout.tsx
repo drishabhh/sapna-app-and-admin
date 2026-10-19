@@ -48,7 +48,8 @@ function TodayTile({ plan, onStart }: { plan: Plan | null; onStart: () => void }
   const d = today();
   const gym = isGymDay(data, d) || data.profile.gymDays.length === 0;
   const active = data.sessions.find((s) => !s.endedAt && s.date === d);
-  const done = data.sessions.some((s) => s.endedAt && s.date === d && s.sets.length);
+  // Done = THIS plan was finished today (another session earlier today doesn't count).
+  const done = !!plan && data.sessions.some((s) => s.endedAt && s.date === d && s.sets.length && s.planId === plan.id);
   const dayLabel = `${DOW_FULL[dow(d)]}`;
 
   if (!plan) {
