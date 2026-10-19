@@ -94,7 +94,11 @@ function toast(m) { const t = document.createElement('div'); t.className = 'toas
 function b64(str) { return btoa(unescape(encodeURIComponent(str))); }
 function unb64(s) { return decodeURIComponent(escape(atob(s.replace(/\n/g, '')))); }
 async function gh(path, opts = {}) {
-  const res = await fetch(`https://api.github.com/repos/${REPO.owner}/${REPO.name}/${path}`, { ...opts, headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${S.token}`, ...(opts.body ? { 'Content-Type': 'application/json' } : {}) } });
+  // No trailing slash for the repo itself: GitHub answers /repos/o/r/ with a 400 that has no CORS headers,
+  // which the browser reports only as "Failed to fetch".
+  const url = `https://api.github.com/repos/${REPO.owner}/${REPO.name}` + (path ? '/' + path.replace(/^\/+/, '') : '');
+  const token = String(S.token || '').trim();
+  const res = await fetch(url, { ...opts, headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}`, ...(opts.body ? { 'Content-Type': 'application/json' } : {}) } });
   if (res.status === 404) return null;
   const j = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(j.message || `GitHub ${res.status}`);
