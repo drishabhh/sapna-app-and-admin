@@ -143,18 +143,75 @@ export function FoodLogger({ open, meal: initialMeal, date = today(), onClose }:
   );
 }
 
+const JSON_TEMPLATE = `[
+  { "name": "Besan chilla", "portion": "1 piece", "kcal": 180, "protein": 9 },
+  { "name": "Masala oats", "portion": "1 bowl", "kcal": 210, "protein": 7, "carbs": 32, "fat": 5 }
+]`;
+
+const num = (v: unknown): number => {
+  if (typeof v === 'number') return v;
+  if (typeof v === 'string') return parseFloat(v.replace(/[^0-9.\-]/g, ''));
+  return NaN;
+};
+const pickKey = (o: Record<string, unknown>, keys: string[]) => {
+  for (const k of Object.keys(o)) if (keys.includes(k.toLowerCase().replace(/[\s_-]/g, ''))) return o[k];
+  return undefined;
+};
+
+/** Accepts one food, a list, or {foods:[...]}; tolerant of ```json fences and "180 kcal" style values. */
+export function parseFoodJson(text: string): { foods: Food[]; errors: string[] } {
+  const errors: string[] = [];
+  const clean = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+  if (!clean) return { foods: [], errors };
+  let j: unknown;
+  try {
+    j = JSON.parse(clean);
+  } catch (e) {
+    return { foods: [], errors: ['That isn’t valid JSON yet — check commas and quotes.'] };
+  }
+  const list = Array.isArray(j) ? j : j && typeof j === 'object' && Array.isArray((j as { foods?: unknown }).foods) ? (j as { foods: unknown[] }).foods : [j];
+  const foods: Food[] = [];
+  list.forEach((raw, i) => {
+    if (!raw || typeof raw !== 'object') { errors.push(`Item ${i + 1}: not an object`); return; }
+    const o = raw as Record<string, unknown>;
+    const name = String(pickKey(o, ['name', 'food', 'item', 'title']) ?? '').trim();
+    const kcal = num(pickKey(o, ['kcal', 'calories', 'cal', 'energy', 'energykcal']));
+    const protein = num(pickKey(o, ['protein', 'proteing', 'proteingrams']) ?? 0);
+    const portion = String(pickKey(o, ['portion', 'serving', 'servingsize', 'quantity', 'qty']) ?? '1 serving').trim() || '1 serving';
+    if (!name) { errors.push(`Item ${i + 1}: missing "name"`); return; }
+    if (!Number.isFinite(kcal) || kcal <= 0 || kcal > 5000) { errors.push(`${name}: "kcal" should be a number`); return; }
+    const opt = (keys: string[]) => { const v = num(pickKey(o, keys)); return Number.isFinite(v) && v >= 0 ? r1(v) : undefined; };
+    foods.push({
+      id: 'custom-' + uid(),
+      name: name.slice(0, 60),
+      portion: portion.slice(0, 40),
+      kcal: Math.round(kcal),
+      protein: Number.isFinite(protein) && protein >= 0 ? r1(protein) : 0,
+      carbs: opt(['carbs', 'carbohydrates', 'carbsg']),
+      fat: opt(['fat', 'fats', 'fatg', 'totalfat']),
+      fiber: opt(['fiber', 'fibre', 'fiberg']),
+      custom: true,
+    });
+  });
+  if (foods.length > 50) return { foods: foods.slice(0, 50), errors: [...errors, 'Only the first 50 foods are used.'] };
+  return { foods, errors };
+}
+
 function CustomFoodSheet({ open, initialName, onClose, onCreated }: { open: boolean; initialName: string; onClose: () => void; onCreated: (f: Food) => void }) {
   const { update } = useStore();
+  const [mode, setMode] = useState<'form' | 'json'>('form');
   const [name, setName] = useState('');
   const [portion, setPortion] = useState('1 serving');
   const [kcal, setKcal] = useState('');
   const [protein, setProtein] = useState('');
+  const [json, setJson] = useState('');
   useEffect(() => {
-    if (open) { setName(initialName); setPortion('1 serving'); setKcal(''); setProtein(''); }
+    if (open) { setName(initialName); setPortion('1 serving'); setKcal(''); setProtein(''); setJson(''); setMode('form'); }
   }, [open, initialName]);
   const k = Number(kcal);
   const p = Number(protein || 0);
   const ok = name.trim() && Number.isFinite(k) && k > 0 && Number.isFinite(p) && p >= 0;
+  const parsed = useMemo(() => parseFoodJson(json), [json]);
   function save() {
     if (!ok) return;
     const f: Food = { id: 'custom-' + uid(), name: name.trim(), portion: portion.trim() || '1 serving', kcal: Math.round(k), protein: r1(p), custom: true };
@@ -162,18 +219,56 @@ function CustomFoodSheet({ open, initialName, onClose, onCreated }: { open: bool
     toast(`${f.name} saved to your library`);
     onCreated(f);
   }
+  function saveJson() {
+    const fs = parsed.foods;
+    if (!fs.length) return;
+    update((d) => {
+      const byName = new Map(d.customFoods.map((x) => [x.name.toLowerCase(), x]));
+      // Same name again = update it instead of adding a duplicate.
+      for (const f of fs) { const prev = byName.get(f.name.toLowerCase()); byName.set(f.name.toLowerCase(), prev ? { ...f, id: prev.id } : f); }
+      return { ...d, customFoods: [...byName.values()] };
+    });
+    haptic.success();
+    if (fs.length === 1) { toast(`${fs[0].name} saved to your library`); onCreated(fs[0]); }
+    else { toast(`${fs.length} foods saved to your library`); onClose(); }
+  }
   return (
     <Sheet open={open} onClose={onClose} label="Create custom food">
       <div className="stack" data-acc="food" style={{ gap: 14 }}>
         <h2 className="h2">New food</h2>
-        <label className="field">Name<input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Besan chilla" /></label>
-        <label className="field">Portion<input className="input" value={portion} onChange={(e) => setPortion(e.target.value)} placeholder="1 piece / 1 katori" /></label>
-        <div className="grid2">
-          <label className="field">Calories<input className="input" inputMode="numeric" value={kcal} onChange={(e) => setKcal(e.target.value.replace(/[^0-9.]/g, ''))} placeholder="kcal" /></label>
-          <label className="field">Protein (g)<input className="input" inputMode="decimal" value={protein} onChange={(e) => setProtein(e.target.value.replace(/[^0-9.]/g, ''))} placeholder="g" /></label>
-        </div>
-        <p className="small muted">Tip: check the pack label, "per serving" row.</p>
-        <button type="button" className="btn lg block" disabled={!ok} onClick={save}>Save & pick portion</button>
+        <Seg<'form' | 'json'> label="How to add" value={mode} onChange={setMode} options={[{ v: 'form', l: 'Type it' }, { v: 'json', l: 'Paste JSON' }]} />
+        {mode === 'form' ? (
+          <>
+            <label className="field">Name<input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Besan chilla" /></label>
+            <label className="field">Portion<input className="input" value={portion} onChange={(e) => setPortion(e.target.value)} placeholder="1 piece / 1 katori" /></label>
+            <div className="grid2">
+              <label className="field">Calories<input className="input" inputMode="numeric" value={kcal} onChange={(e) => setKcal(e.target.value.replace(/[^0-9.]/g, ''))} placeholder="kcal" /></label>
+              <label className="field">Protein (g)<input className="input" inputMode="decimal" value={protein} onChange={(e) => setProtein(e.target.value.replace(/[^0-9.]/g, ''))} placeholder="g" /></label>
+            </div>
+            <p className="small muted">Tip: check the pack label, "per serving" row.</p>
+            <button type="button" className="btn lg block" disabled={!ok} onClick={save}>Save & pick portion</button>
+          </>
+        ) : (
+          <>
+            <p className="small muted">Paste one food or a list. Ask any AI: <em>“Give me nutrition for besan chilla as JSON with name, portion, kcal, protein.”</em></p>
+            <label className="field">JSON
+              <textarea className="input json-box" spellCheck={false} autoCapitalize="off" autoCorrect="off" value={json} onChange={(e) => setJson(e.target.value)} placeholder={JSON_TEMPLATE} />
+            </label>
+            {json.trim() ? (
+              <div className="stack" style={{ gap: 6 }} aria-live="polite">
+                {parsed.foods.map((f) => (
+                  <div key={f.id} className="between small"><span><strong>{f.name}</strong> <span className="muted">· {f.portion}</span></span><span className="muted" style={{ whiteSpace: 'nowrap' }}>{f.kcal} kcal · {f.protein} g</span></div>
+                ))}
+                {parsed.errors.map((e) => <p key={e} className="small" style={{ color: 'var(--danger)' }}>{e}</p>)}
+              </div>
+            ) : (
+              <button type="button" className="btn ghost sm" onClick={() => setJson(JSON_TEMPLATE)}>Fill an example</button>
+            )}
+            <button type="button" className="btn lg block" disabled={!parsed.foods.length} onClick={saveJson}>
+              {parsed.foods.length > 1 ? `Save ${parsed.foods.length} foods` : 'Save & pick portion'}
+            </button>
+          </>
+        )}
       </div>
     </Sheet>
   );

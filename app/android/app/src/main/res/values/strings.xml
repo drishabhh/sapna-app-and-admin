@@ -4,4 +4,5 @@
     <string name="title_activity_main">Sapna Health</string>
     <string name="package_name">com.rishu.sapnahealth</string>
     <string name="custom_url_scheme">com.rishu.sapnahealth</string>
+    <string name="widget_description">Sapna\'s streak — keep the flame going</string>
 </resources>

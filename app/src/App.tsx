@@ -15,6 +15,8 @@ import Settings from './screens/Settings';
 import Today from './screens/Today';
 import WorkoutScreen from './screens/Workout';
 import { Icon, popBack, ToastHost } from './ui';
+import { streakInfo } from './lib/calc';
+import { syncWidget } from './streak';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'today', label: 'Today', icon: 'home' },
@@ -34,6 +36,11 @@ function Shell() {
   useEffect(() => {
     if (ready && Capacitor.isNativePlatform()) SplashScreen.hide().catch(() => {});
   }, [ready]);
+
+  // Keep the home-screen streak widget in step with her logs.
+  useEffect(() => {
+    if (ready && data.onboarded) syncWidget(streakInfo(data), data.profile.name);
+  }, [ready, data]);
 
   // Status / navigation bar icons follow light–dark mode.
   useEffect(() => {

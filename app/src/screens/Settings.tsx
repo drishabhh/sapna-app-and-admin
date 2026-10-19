@@ -5,6 +5,7 @@ import { exportBackup, haptic, readBackupFile, shareReport, syncReminders } from
 import { useStore } from '../lib/store';
 import { emptyData, Reminders, ShareCycle } from '../lib/types';
 import { FullSheet, Icon, Sheet, Stepper, toast, Toggle, TopBar } from '../ui';
+import { Doodle, pinWidget } from '../streak';
 
 export const APP_VERSION = '1.0.0';
 
@@ -73,6 +74,18 @@ export default function Settings({ open, onClose }: { open: boolean; onClose: ()
             {([['phase', 'Phase only'], ['all', 'Everything'], ['none', 'Nothing']] as [ShareCycle, string][]).map(([k, l]) => (
               <button key={k} type="button" className="chip" aria-pressed={p.shareCycle === k} onClick={() => setProfile({ shareCycle: k })}>{l}</button>
             ))}
+          </div>
+        </section>
+
+        <section className="card row" style={{ gap: 12 }} aria-label="Streak widget" data-acc="workout">
+          <Doodle name="thumbsup" size={78} />
+          <div className="stack" style={{ gap: 6, flex: 1, minWidth: 0 }}>
+            <h2 className="h2" style={{ fontSize: 19 }}>Streak widget</h2>
+            <p className="small muted">Your streak on the home screen, with a doodle that changes through the day.</p>
+            <button type="button" className="btn sm" style={{ alignSelf: 'flex-start' }} onClick={async () => {
+              const ok = await pinWidget();
+              if (!ok) toast('Long-press your home screen → Widgets → Sapna Health');
+            }}>Add to home screen</button>
           </div>
         </section>
 

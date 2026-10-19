@@ -21,9 +21,15 @@ export function mealTotals(d: AppData, date: string, meal: Meal) {
   return { kcal: Math.round(es.reduce((s, e) => s + e.kcal, 0)), protein: r1(es.reduce((s, e) => s + e.protein, 0)), entries: es };
 }
 
-/** Consecutive days (ending today, or yesterday if today has nothing yet) with at least one food log. */
-export function logStreak(d: AppData): number {
-  const days = new Set(d.food.map((f) => f.date));
+/** Days she showed up: logged any food or finished a workout. */
+export function activeDays(d: AppData): Set<string> {
+  const s = new Set(d.food.map((f) => f.date));
+  for (const x of d.sessions) if (x.sets.length) s.add(x.date);
+  return s;
+}
+
+/** Consecutive active days ending today (or yesterday, if today has nothing yet — the streak is still alive). */
+export function logStreak(d: AppData, days = activeDays(d)): number {
   let k = today();
   if (!days.has(k)) k = addDays(k, -1);
   let n = 0;
@@ -32,6 +38,53 @@ export function logStreak(d: AppData): number {
     k = addDays(k, -1);
   }
   return n;
+}
+
+export function bestStreak(days: Set<string>): number {
+  let best = 0;
+  for (const k of days) {
+    if (days.has(addDays(k, -1))) continue; // only start counting at the first day of a run
+    let n = 0;
+    let c = k;
+    while (days.has(c)) { n++; c = addDays(c, 1); }
+    best = Math.max(best, n);
+  }
+  return best;
+}
+
+export type StreakMood = 'done' | 'workout' | 'pending' | 'late' | 'fresh';
+
+export interface StreakInfo {
+  streak: number;
+  best: number;
+  doneToday: boolean;
+  lastActive: string | null;
+  week: { key: string; done: boolean; isToday: boolean; future: boolean }[];
+  mood: StreakMood;
+}
+
+export function streakInfo(d: AppData, hour = new Date().getHours()): StreakInfo {
+  const days = activeDays(d);
+  const t = today();
+  const streak = logStreak(d, days);
+  const doneToday = days.has(t);
+  const workedOut = d.sessions.some((x) => x.date === t && x.sets.length);
+  const sorted = [...days].sort();
+  const mood: StreakMood = workedOut ? 'workout' : doneToday ? 'done' : streak === 0 ? 'fresh' : hour >= 18 ? 'late' : 'pending';
+  return {
+    streak,
+    best: Math.max(bestStreak(days), streak),
+    doneToday,
+    lastActive: sorted.length ? sorted[sorted.length - 1] : null,
+    week: weekKeys(t).map((key) => ({ key, done: days.has(key), isToday: key === t, future: key > t })),
+    mood,
+  };
+}
+
+function weekKeys(k: string): string[] {
+  const dw = dow(k);
+  const mon = addDays(k, dw === 0 ? -6 : 1 - dw);
+  return Array.from({ length: 7 }, (_, i) => addDays(mon, i));
 }
 
 export function mealFor(hour = new Date().getHours()): Meal {

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="WidgetDot">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">22dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginStart">1.5dp</item>
+        <item name="android:layout_marginEnd">1.5dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/widget_muted</item>
+        <item name="android:background">@drawable/widget_dot_off</item>
+    </style>
+</resources>

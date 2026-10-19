@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { cycleInfo, isGymDay, logStreak, mealFor, mealTotals, nextPlan, PHASE_COPY, sessionsOn, totalsOn } from '../lib/calc';
+import { cycleInfo, isGymDay, mealFor, streakInfo, mealTotals, nextPlan, PHASE_COPY, sessionsOn, totalsOn } from '../lib/calc';
 import { gifSrc } from '../lib/content';
 import { greeting, longLabel, today } from '../lib/dates';
 import { haptic } from '../lib/native';
@@ -7,6 +7,7 @@ import { useStore } from '../lib/store';
 import { Food, MEALS } from '../lib/types';
 import { useNav } from '../nav';
 import { Bar, Gif, Icon, Ring, Sheet, toast } from '../ui';
+import { StreakCard } from '../streak';
 
 export default function Today() {
   const { data, content, foods, update, exById, contentFresh } = useStore();
@@ -17,7 +18,7 @@ export default function Today() {
   const protLeft = Math.max(0, Math.round(content.targets.protein - t.protein));
   const water = data.water[d] || 0;
   const steps = data.steps[d] || 0;
-  const streak = logStreak(data);
+  const streak = streakInfo(data);
   const plan = nextPlan(data, content);
   const done = sessionsOn(data, d).some((s) => s.endedAt && s.sets.length);
   const gym = isGymDay(data);
@@ -63,7 +64,6 @@ export default function Today() {
             <div className="stack" style={{ gap: 12, minWidth: 0 }}>
               <div><p className="eyebrow">Eaten</p><p className="big" style={{ fontSize: 26 }}>{t.kcal.toLocaleString('en-IN')}</p></div>
               <div><p className="eyebrow">Target</p><p className="big" style={{ fontSize: 26 }}>{content.targets.kcal.toLocaleString('en-IN')}</p></div>
-              {streak > 0 ? <div className="pill" style={{ alignSelf: 'flex-start', whiteSpace: 'nowrap' }}><Icon name="flame" size={14} /> {streak}-day streak</div> : null}
             </div>
           </div>
           <div className="stack" style={{ gap: 8, marginTop: 18 }} data-acc="food">
@@ -71,6 +71,8 @@ export default function Today() {
             <Bar value={t.protein} max={content.targets.protein} label={`Protein ${t.protein} of ${content.targets.protein} grams`} />
           </div>
         </section>
+
+        <StreakCard s={streak} onLog={() => nav.openLogger(mealFor())} />
 
         {suggestion ? (
           <section className="card ink" aria-label="Suggestion" data-acc="food">

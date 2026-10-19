@@ -6,6 +6,7 @@ import { haptic } from '../lib/native';
 import { useStore } from '../lib/store';
 import { Exercise, Plan, PlanMove, Session } from '../lib/types';
 import { FullSheet, Gif, Icon, Seg, Sheet, Stepper, toast } from '../ui';
+import { Doodle } from '../streak';
 
 export default function WorkoutScreen({ autoStart, onAutoStartHandled }: { autoStart: boolean; onAutoStartHandled: () => void }) {
   const { data, content, exById } = useStore();
@@ -284,6 +285,7 @@ function SessionSummary({ s, onClose }: { s: Session; onClose: () => void }) {
     <div className="screen no-nav" data-acc="workout" style={{ display: 'flex', flexDirection: 'column' }}>
       <div className="glow" />
       <div className="stack" style={{ gap: 16, flex: 1 }}>
+        <div className="doodle-hero"><Doodle name="dumbbell" size={200} /></div>
         <p className="eyebrow">Workout done</p>
         <h1 className="h1" style={{ fontSize: 44 }}>Strong work, {data.profile.name}.</h1>
         <div className="grid3">
@@ -358,7 +360,7 @@ function History() {
             <span style={{ flex: 1 }}><strong>{s.title}</strong><span className="small muted" style={{ display: 'block' }}>{new Set(s.sets.map((x) => x.exId)).size} moves · {s.sets.length} sets{s.endedAt ? ` · ${Math.max(1, Math.round((s.endedAt - s.startedAt) / 60000))} min` : ' · in progress'}</span></span>
           </div>
         );
-      }) : <div className="empty">No sessions yet.</div>}
+      }) : <div className="empty"><Doodle name="stretch" size={120} style={{ margin: '0 auto 8px' }} />No sessions yet — your first one shows up here.</div>}
     </div>
   );
 }

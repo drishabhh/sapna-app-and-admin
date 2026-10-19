@@ -4,6 +4,7 @@ import { haptic, readBackupFile, syncReminders } from '../lib/native';
 import { useStore } from '../lib/store';
 import { Activity, DietType, Goal, Profile, Reminders, ShareCycle } from '../lib/types';
 import { Icon, Seg, Stepper, toast, Toggle, useBack } from '../ui';
+import { Doodle } from '../streak';
 
 const FAV_IDS: { id: string; label: string; diet: DietType }[] = [
   { id: 'roti', label: 'Roti', diet: 'veg' },
@@ -100,16 +101,9 @@ export default function Onboarding() {
 
       {step === 0 && (
         <div className="stack" style={{ flex: 1, gap: 18 }}>
-          <div aria-hidden="true" style={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-            {[{ r: 120, c: 'var(--coral)', p: 0.42 }, { r: 92, c: 'var(--lime)', p: 0.62 }, { r: 64, c: 'var(--amber)', p: 0.5 }, { r: 38, c: 'var(--pink)', p: 0.78 }].map((x, i) => {
-              const circ = 2 * Math.PI * x.r;
-              return (
-                <svg key={i} width="280" height="280" viewBox="0 0 280 280" style={{ position: 'absolute' }}>
-                  <circle cx="140" cy="140" r={x.r} fill="none" stroke="var(--card-2)" strokeWidth="16" />
-                  <circle cx="140" cy="140" r={x.r} fill="none" stroke={x.c} strokeWidth="16" strokeLinecap="round" strokeDasharray={`${circ * x.p} ${circ}`} transform="rotate(-90 140 140)" style={{ filter: `drop-shadow(0 0 10px ${x.c})` }} />
-                </svg>
-              );
-            })}
+          <div aria-hidden="true" className="doodle-hero" style={{ height: 300, alignItems: 'center', position: 'relative' }}>
+            <div style={{ position: 'absolute', width: 250, height: 250, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--pink) 45%, transparent), transparent 70%)' }} />
+            <Doodle name="thumbsup" size={270} />
           </div>
           <p className="eyebrow">Made for Sapna, by Rishu</p>
           <h1 className="h1" style={{ fontSize: 44 }}>Food, gym and your cycle. One calm app.</h1>
@@ -151,7 +145,7 @@ export default function Onboarding() {
       {step === 2 && (
         <div className="stack" style={{ flex: 1, gap: 18 }}>
           {progress}
-          <h1 className="h1" style={{ fontSize: 34 }}>What matters most right now?</h1>
+          <div className="row" style={{ alignItems: 'flex-end', gap: 4 }}><h1 className="h1" style={{ fontSize: 34, flex: 1 }}>What matters most right now?</h1><Doodle name="dumbbell" size={96} style={{ marginBottom: -6 }} /></div>
           <div className="grid2">
             {([
               ['lose', 'Lose fat gently', 'Small, steady deficit'],
@@ -191,7 +185,7 @@ export default function Onboarding() {
       {step === 3 && (
         <div className="stack" style={{ flex: 1, gap: 18 }}>
           {progress}
-          <h1 className="h1" style={{ fontSize: 34 }}>How do you eat?</h1>
+          <div className="row" style={{ alignItems: 'flex-end', gap: 4 }}><h1 className="h1" style={{ fontSize: 34, flex: 1 }}>How do you eat?</h1><Doodle name="planning" size={96} style={{ marginBottom: -6 }} /></div>
           <p className="muted">Your picks show first when you log — one tap.</p>
           <Seg<DietType> label="Diet type" value={p.diet} onChange={(v) => set('diet', v)} options={[{ v: 'veg', l: 'Veg' }, { v: 'egg', l: 'Eggetarian' }, { v: 'non', l: 'Non-veg' }]} />
           <div className="between"><span className="h3">Foods you have most weeks</span><span className="small muted">{p.favFoods.length} picked</span></div>
@@ -244,7 +238,7 @@ export default function Onboarding() {
       {step === 5 && (
         <div className="stack" style={{ flex: 1, gap: 18 }}>
           {progress}
-          <h1 className="h1" style={{ fontSize: 34 }}>Gentle reminders</h1>
+          <div className="row" style={{ alignItems: 'flex-end', gap: 4 }}><h1 className="h1" style={{ fontSize: 34, flex: 1 }}>Gentle reminders</h1><Doodle name="water" size={96} style={{ marginBottom: -6 }} /></div>
           <p className="muted">Little nudges, never spam. Change them anytime in Settings.</p>
           <div className="card" style={{ padding: '4px 16px' }}>
             {([
