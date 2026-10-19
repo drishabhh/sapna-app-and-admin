@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { buildReport, haptic, saveTextFile, shareReport } from './lib/native';
 import { today } from './lib/dates';
 import { useStore } from './lib/store';
-import { connectSync, disconnectSync, pushReport, useSyncCfg } from './lib/sync';
+import { connectSync, disconnectSync, pushReport, setSyncEvery, SYNC_EVERY_DEFAULT, useSyncCfg } from './lib/sync';
 import { Icon, toast } from './ui';
 
 export function ago(ms?: number): string {
@@ -50,6 +50,13 @@ export function SyncCard() {
         <>
           <p className="small muted">Your dashboard (meals, workouts, steps, water, weight{data.profile.cycleEnabled && data.profile.shareCycle !== 'none' ? ', cycle as chosen below' : ''}) is encrypted on this phone and updates for Rishu whenever you use the app.</p>
           <p className="small"><strong>Last synced:</strong> {ago(cfg.lastAt)}</p>
+          <div className="row" style={{ gap: 6, flexWrap: 'wrap', alignItems: 'center' }} role="group" aria-label="Sync every">
+            <span className="small muted">Sync every</span>
+            {([[20, '20 sec'], [60, '1 min'], [300, '5 min']] as [number, string][]).map(([v, l]) => (
+              <button key={v} type="button" className="chip" style={{ minHeight: 34, padding: '0 12px', fontSize: 13 }} aria-pressed={(cfg.every ?? SYNC_EVERY_DEFAULT) === v} onClick={() => setSyncEvery(v)}>{l}{v === SYNC_EVERY_DEFAULT ? ' · default' : ''}</button>
+            ))}
+          </div>
+          <p className="small faint" style={{ marginTop: -4 }}>Only uploads when something changed. Also syncs the moment you leave the app.</p>
           {cfg.error ? <p className="small" style={{ color: 'var(--danger)' }}>{cfg.error}</p> : null}
           {replacing || tokenProblem ? (
             <div className="stack" style={{ gap: 8 }}>

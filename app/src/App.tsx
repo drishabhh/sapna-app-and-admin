@@ -19,7 +19,7 @@ import { Icon, popBack, ToastHost } from './ui';
 import { syncNightSteps, syncWidget } from './streak';
 import { requestSteps } from './lib/intents';
 import { clearDrafts, getDraft, setDraft, useDraft } from './lib/drafts';
-import { pushReport } from './lib/sync';
+import { pushReport, SYNC_EVERY_DEFAULT, useSyncCfg } from './lib/sync';
 import { buildReport } from './lib/native';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
@@ -55,15 +55,19 @@ function Shell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remKey]);
 
-  // Live sync with Rishu's dashboard: shortly after changes, when she leaves the app, and on launch.
+  // Live sync with Rishu's dashboard: every tick (default 20 s) while open — uploads only when
+  // something changed — plus immediately when she leaves the app and right after launch.
   const { content } = useStore();
+  const syncCfg = useSyncCfg();
   const latest = useRef({ data, content });
   latest.current = { data, content };
+  const every = Math.max(10, syncCfg?.every ?? SYNC_EVERY_DEFAULT) * 1000;
   useEffect(() => {
-    if (!ready || !data.onboarded) return;
-    const t = window.setTimeout(() => { pushReport(buildReport(data, content), { minGapMs: 90_000 }).catch(() => {}); }, 20_000);
-    return () => window.clearTimeout(t);
-  }, [ready, data, content]);
+    if (!ready || !data.onboarded || !syncCfg) return;
+    const tick = () => { if (document.visibilityState !== 'hidden') { const { data: d, content: c } = latest.current; pushReport(buildReport(d, c)).catch(() => {}); } };
+    const t = window.setInterval(tick, every);
+    return () => window.clearInterval(t);
+  }, [ready, data.onboarded, !!syncCfg, every]);
   useEffect(() => {
     if (!ready || !data.onboarded) return;
     const now = () => { const { data: d, content: c } = latest.current; pushReport(buildReport(d, c)).catch(() => {}); };

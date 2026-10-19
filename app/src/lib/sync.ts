@@ -28,6 +28,14 @@ export interface SyncCfg {
   lastAt?: number;
   lastHash?: string;
   error?: string;
+  /** seconds between checks while the app is open (default 20) */
+  every?: number;
+}
+
+export const SYNC_EVERY_DEFAULT = 20;
+export async function setSyncEvery(sec: number) {
+  const c = cfg || (await loadSyncCfg());
+  if (c) await saveCfg({ ...c, every: sec });
 }
 
 /* ---------------- config ---------------- */
@@ -175,7 +183,7 @@ async function putFile(c: SyncCfg, text: string) {
 function friendly(e: unknown): string {
   if (e instanceof SyncError) {
     if (e.status === 401) return 'The sync key expired or was removed. Ask Rishu for a new code.';
-    if (e.status === 403 || e.status === 404) return 'No access to Rishu’s sync repo. Ask him for a new code.';
+    if ((e.status === 403 && !/rate limit/i.test(e.message)) || e.status === 404) return 'No access to Rishu’s sync repo. Ask him for a new code.';
     return e.message;
   }
   return navigator.onLine === false ? 'Offline — will sync when you are back online.' : 'Could not reach GitHub — will retry.';
@@ -185,6 +193,7 @@ function friendly(e: unknown): string {
 
 let inflight: Promise<boolean> | null = null;
 let lastTry = 0;
+let backoffUntil = 0; // GitHub said "slow down" — wait before trying again
 
 /**
  * Upload her dashboard. Skips when nothing changed since the last upload (unless forced).
@@ -199,12 +208,18 @@ export function pushReport(report: Record<string, unknown>, opts: { force?: bool
     const hash = await sha256(JSON.stringify(stable));
     if (!opts.force && hash === c.lastHash && !c.error) return true;
     if (!opts.force && opts.minGapMs && Date.now() - lastTry < opts.minGapMs) return false;
+    if (!opts.force && Date.now() < backoffUntil) return false;
     lastTry = Date.now();
     try {
       await putFile(c, await encrypt(JSON.stringify(report), c.k));
       await saveCfg({ ...c, lastAt: Date.now(), lastHash: hash, error: undefined });
       return true;
     } catch (e) {
+      // Rate limited (403 with "rate limit" / 429): pause 5 min quietly instead of erroring.
+      if (e instanceof SyncError && (e.status === 429 || (e.status === 403 && /rate limit|abuse|secondary/i.test(e.message)))) {
+        backoffUntil = Date.now() + 5 * 60_000;
+        return false;
+      }
       await saveCfg({ ...c, error: friendly(e) });
       return false;
     }

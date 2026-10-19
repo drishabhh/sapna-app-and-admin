@@ -482,6 +482,7 @@ function vDash(rep, c) {
   return `<div class="stack dash" style="gap:16px">
     <div class="between wrapr"><p class="muted small">${fromSync ? '<span class="live"></span>Live from her phone' : 'From a file'} · updated ${fresh}${m.r.streaks ? ` · logging streak <b>${m.r.streaks.logging}</b> · workout streak <b>${m.r.streaks.workout}</b>` : ''}</p>${c ? `<button class="btn ghost sm" type="button" id="srefresh">${S.sync.status === 'loading' ? 'Refreshing…' : 'Refresh'}</button>` : ''}</div>
     ${stale}${v1}
+    ${m.r.activeSession && m.r.activeSession.startedAt > Date.now() - 4 * 3600000 ? `<div class="card" style="--acc:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,transparent)"><p class="eyebrow" style="color:var(--amber)"><span class="live" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span>At the gym now</p><p class="big" style="font-size:22px;margin-top:6px">${esc(m.r.activeSession.title)}</p><p class="small muted">Started ${new Date(m.r.activeSession.startedAt).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })} · ${m.r.activeSession.done.length} moves done${m.r.activeSession.done.length ? ': ' + esc(m.r.activeSession.done.join(', ')) : ''}</p></div>` : ''}
     <div class="chips" role="group" aria-label="Range">${[['7', '7 days'], ['30', '30 days'], ['all', 'All time']].map(([v, l]) => `<button class="chip" type="button" data-range="${v}" aria-pressed="${S.dash.range === v}">${l}</button>`).join('')}</div>
     <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
       <div class="card"><p class="eyebrow">Avg calories</p><p class="big" style="font-size:30px">${n0(avg((k) => m.daily[k].kcal))}</p><p class="small muted">target ${n0(T.kcal)} · ${logged.length} days logged</p></div>
@@ -504,6 +505,14 @@ function vDash(rep, c) {
     ${inR.length ? `<div class="card stack"><h2>Food habits</h2>
       <p class="eyebrow">Calories by meal</p>${mealK.map(([ml, v]) => `<div class="mrow"><span>${MEAL_LABEL[ml]}</span><div class="bar"><i style="width:${mealTot ? (v / mealTot) * 100 : 0}%"></i></div><span class="small muted">${mealTot ? Math.round((v / mealTot) * 100) : 0}%</span></div>`).join('')}
       <p class="eyebrow" style="margin-top:6px">Most logged</p>${top.map(([n, c]) => `<div class="between"><span>${esc(n)}</span><span class="small muted">${c.n}×${c.kcal ? ` · ~${n0(c.kcal / c.n)} kcal` : ''}</span></div>`).join('')}</div>` : ''}
+    ${m.r.reminders || m.r.profile ? `<details class="card"><summary><strong>Her settings</strong> <span class="small muted">as set on her phone</span></summary><div class="stack small" style="gap:6px;margin-top:10px">
+      ${m.r.profile ? `<div class="between"><span class="muted">Goal · diet</span><span>${esc(m.r.goal || '—')} · ${esc(m.r.profile.diet || '—')}</span></div>
+      <div class="between"><span class="muted">Gym days</span><span>${(m.r.profile.gymDays || []).map((d) => ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d]).join(', ') || 'none picked'}</span></div>
+      <div class="between"><span class="muted">Height · start weight</span><span>${m.r.profile.heightCm || '—'} cm · ${m.r.profile.startKg || '—'} kg</span></div>
+      ${m.r.profile.avoid ? `<div class="between"><span class="muted">Avoids</span><span>${esc(m.r.profile.avoid)}</span></div>` : ''}` : ''}
+      ${m.r.reminders ? `<div class="between"><span class="muted">Reminders on</span><span>${Object.entries(m.r.reminders).filter(([k, v]) => v === true).map(([k]) => ({ punch: 'gym punch line', meals: 'meals', water: 'water', gym: 'workout days', weigh: 'weigh-in', steps: 'night steps' }[k] || k)).join(', ') || 'none'}</span></div>` : ''}
+      ${(m.r.customFoods || []).length ? `<div class="between"><span class="muted">Her own foods</span><span>${m.r.customFoods.length}</span></div>` : ''}
+    </div></details>` : ''}
     <details class="card"><summary><strong>Table view</strong> <span class="small muted">every day in range</span></summary><div style="overflow-x:auto;margin-top:10px"><table><thead><tr><th>Day</th><th>kcal</th><th>Protein</th><th>Water</th><th>Steps</th><th>Burned</th><th>Gym</th></tr></thead><tbody>
       ${days.slice().reverse().map((k) => `<tr data-day="${k}" class="trow"><td>${esc(dlabel(k))}</td><td${(m.daily[k]?.kcal || 0) > T.kcal * 1.1 ? ' class="bad"' : ''}>${m.daily[k]?.kcal ? n0(m.daily[k].kcal) : '—'}</td><td>${m.daily[k]?.protein ? r1(m.daily[k].protein) + ' g' : '—'}</td><td>${m.water[k] || '—'}</td><td>${m.steps[k] ? n0(m.steps[k]) : '—'}</td><td>${m.burned[k] ? n0(m.burned[k]) : '—'}</td><td>${m.sessions.some((s) => s.date === k) ? '✓' : ''}</td></tr>`).join('')}
     </tbody></table></div></details>
@@ -740,6 +749,14 @@ function wireSettings() {
 }
 
 document.addEventListener('visibilitychange', () => { if (!document.hidden && S.tab === 'status' && syncCfg() && S.content) { S.sync.fetchedAt = 0; render(); } });
+// Live: re-check her file every 20 s while the dashboard is on screen; repaint only if it changed.
+setInterval(async () => {
+  if (document.hidden || S.tab !== 'status' || !S.content || !syncCfg() || S.sync.status === 'loading') return;
+  const a = document.activeElement; if (a && /INPUT|TEXTAREA|SELECT/.test(a.tagName)) return; // don't disturb typing
+  const before = S.sync.at;
+  await fetchSync();
+  if (S.sync.at !== before || S.sync.status === 'error') { const y = scrollY; render(); scrollTo(0, y); }
+}, 20000);
 window.addEventListener('beforeunload', (e) => { if (S.dirty) { e.preventDefault(); e.returnValue = ''; } });
 
 async function boot() {
