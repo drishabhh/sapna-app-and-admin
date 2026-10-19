@@ -43,6 +43,12 @@ jobs:
       - name: Sync into Android project
         run: npx cap sync android
 
+      - name: Firebase config (kept out of the public repo — from the GOOGLE_SERVICES_JSON secret)
+        env:
+          GSJ: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GSJ" ]; then printf '%s' "$GSJ" > android/app/google-services.json; echo "google-services.json written"; else echo "::warning::GOOGLE_SERVICES_JSON secret not set — building without push notifications"; fi
+
       - name: Build release APK (unsigned — signed offline with Rishu's key)
         working-directory: app/android
         run: |

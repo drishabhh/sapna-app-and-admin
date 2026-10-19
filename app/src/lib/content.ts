@@ -36,11 +36,17 @@ export async function initialContent(): Promise<Content> {
 }
 
 /** Background refresh. Returns new content only when Rishu has published something newer. */
-export async function refreshContent(current: Content): Promise<Content | null> {
+/** Straight from the repo via GitHub's API — no ~1 min GitHub Pages delay. Used right after a push from Rishu. */
+const CONTENT_API = 'https://api.github.com/repos/drishabhh/sapna-app-and-admin/contents/content/content.json?ref=main';
+
+export async function refreshContent(current: Content, opts: { direct?: boolean } = {}): Promise<Content | null> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 8000);
   try {
-    const res = await fetch(`${CONTENT_URL}?t=${Date.now()}`, { cache: 'no-store', signal: ctrl.signal });
+    let res = opts.direct
+      ? await fetch(`${CONTENT_API}&t=${Date.now()}`, { cache: 'no-store', signal: ctrl.signal, headers: { Accept: 'application/vnd.github.raw' } }).catch(() => null)
+      : null;
+    if (!res || !res.ok) res = await fetch(`${CONTENT_URL}?t=${Date.now()}`, { cache: 'no-store', signal: ctrl.signal });
     if (!res.ok) return null;
     const data = await res.json();
     if (!valid(data)) return null;

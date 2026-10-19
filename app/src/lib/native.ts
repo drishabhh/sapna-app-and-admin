@@ -5,6 +5,7 @@ import { Share } from '@capacitor/share';
 import { activeDays, bestStreak, cycleInfo, last7, logStreak, PHASE_COPY, totalsOn } from './calc';
 import { burnedOn, latestWeight, sessionKcal } from './burn';
 import { workoutDays, workoutState } from './workoutStreak';
+import { pushToken } from './push';
 import { today } from './dates';
 import { AppData, Content, MEALS } from './types';
 
@@ -125,6 +126,7 @@ export function buildReport(d: AppData, c: Content) {
     goal: d.profile.goal,
     profile: { heightCm: d.profile.heightCm, startKg: d.profile.weightKg, gymDays: d.profile.gymDays, diet: d.profile.diet, activity: d.profile.activity, since: d.createdAt, favFoods: d.profile.favFoods, avoid: d.profile.avoid, cycleEnabled: d.profile.cycleEnabled, shareCycle: d.profile.shareCycle },
     reminders: d.reminders,
+    push: pushToken(),
     customFoods: d.customFoods.map((f) => ({ name: f.name, portion: f.portion, kcal: f.kcal, protein: f.protein })),
     activeSession: (() => { const a = d.sessions.find((s) => !s.endedAt && s.date === today()); return a ? { title: a.title, startedAt: a.startedAt, done: (a.completed || []).map(exName), sets: a.sets.length } : null; })(),
     targets: c.targets,

@@ -156,6 +156,8 @@ let S = { token: '', content: null, sha: null, dirty: false, tab: 'status', lib:
     const j = JSON.parse(decodeURIComponent(escape(bin)));
     if (j.t) localStorage.setItem('sapna_admin_gh_token', j.t);
     if (j.s && j.s.k) localStorage.setItem('sapna_admin_sync_v1', JSON.stringify(j.s));
+    if (j.f && j.f.private_key) localStorage.setItem('sapna_admin_fcm_sa', JSON.stringify(j.f));
+    if (j.a === false) localStorage.setItem('sapna_admin_autopush', '0');
     sessionStorage.setItem('sapna_admin_linked', '1');
   } catch { sessionStorage.setItem('sapna_admin_linked', 'bad'); }
   history.replaceState(null, '', location.pathname + location.search);
@@ -232,7 +234,8 @@ async function publish() {
     if (latest?.sha) body.sha = latest.sha;
     const r = await gh(`contents/${CONTENT_PATH}`, { method: 'PUT', body: JSON.stringify(body) });
     S.content = c; S.sha = r.content.sha; S.dirty = false; renderPub();
-    toast('Published — live for Sapna in about a minute');
+    toast('Published');
+    notifyPublished(c);
   } catch (e) {
     const m = String(e.message || '');
     if (/not accessible by personal access token|Resource not accessible|403/i.test(m)) {
@@ -425,7 +428,7 @@ function currentReport() {
 }
 
 function deviceLink() {
-  const payload = JSON.stringify({ v: 1, t: S.token, s: syncCfg() });
+  const payload = JSON.stringify({ v: 1, t: S.token, s: syncCfg(), f: fcmSa(), a: autoPush() });
   const b = btoa(unescape(encodeURIComponent(payload))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   return location.origin + location.pathname + '#link=' + b;
 }
@@ -479,6 +482,68 @@ function syncForm() {
       <label class="f">Token <span class="faint">(empty = use this page’s token)</span><input class="input" id="st" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…"></label></div>
     <button class="btn" type="button" id="smake">Create pairing code</button>`;
 }
+
+/* --- Push to her phone (Firebase Cloud Messaging) ---
+   Default route: GitHub workflow "Push to Sapna" (holds the Firebase key as a secret; ~15–30 s).
+   Optional instant route: the service-account key pasted here (stays in this browser; ~1 s). */
+const LS_FCM = 'sapna_admin_fcm_sa';
+const LS_AUTOPUSH = 'sapna_admin_autopush';
+const fcmSa = () => { try { return JSON.parse(localStorage.getItem(LS_FCM) || 'null'); } catch { return null; } };
+const autoPush = () => { try { return localStorage.getItem(LS_AUTOPUSH) !== '0'; } catch { return true; } };
+function herPush() { const r = S.syncReport || S.report; return r && r.push && r.push.token ? r.push : null; }
+
+async function fcmDirect(sa, msg) {
+  const enc = (o) => btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const now = Math.floor(Date.now() / 1000);
+  const unsigned = enc({ alg: 'RS256', typ: 'JWT' }) + '.' + enc({ iss: sa.client_email, scope: 'https://www.googleapis.com/auth/firebase.messaging', aud: 'https://oauth2.googleapis.com/token', iat: now, exp: now + 3600 });
+  const der = Uint8Array.from(atob(sa.private_key.replace(/-----[^-]+-----/g, '').replace(/\s+/g, '')), (c) => c.charCodeAt(0));
+  const key = await crypto.subtle.importKey('pkcs8', der, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
+  const sig = new Uint8Array(await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(unsigned)));
+  const jwt = unsigned + '.' + b64u(sig);
+  const tr = await fetch('https://oauth2.googleapis.com/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion: jwt }) });
+  const tj = await tr.json(); if (!tr.ok) throw new Error('Google sign-in failed: ' + (tj.error_description || tj.error));
+  const r = await fetch(`https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`, { method: 'POST', headers: { Authorization: `Bearer ${tj.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(msg) });
+  const rj = await r.json().catch(() => ({})); if (!r.ok) throw new Error('FCM: ' + (rj.error?.message || r.status));
+}
+
+/** Returns 'instant' | 'queued'. Throws with a readable message. */
+async function sendPush(title, body, data = {}) {
+  const p = herPush();
+  if (!p) throw new Error('Her phone hasn’t registered for notifications yet — she needs app 1.7 and to open it once with live sync on.');
+  const strData = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, String(v)]));
+  const sa = fcmSa();
+  if (sa) {
+    try {
+      await fcmDirect(sa, { message: { token: p.token, notification: { title, body }, data: strData, android: { priority: 'HIGH', notification: { channel_id: 'rishu', icon: 'ic_stat_sapna', color: '#FF7A59', sound: 'default' } } } });
+      return 'instant';
+    } catch (e) { console.warn('Instant push failed, using GitHub route:', e.message); }
+  }
+  await gh('dispatches', { method: 'POST', body: JSON.stringify({ event_type: 'sapna-push', client_payload: { token: p.token, title, body, data: strData } }) });
+  return 'queued';
+}
+const sentMsg = (how) => (how === 'instant' ? 'Sent — she has it now' : 'Sent — reaches her phone in ~20 s');
+
+/** After Publish: tell her what changed, today’s plan first. */
+async function notifyPublished(c) {
+  if (!autoPush() || !herPush()) return;
+  const dow = new Date().getDay();
+  const plan = c.plans.find((p) => (p.days || []).includes(dow)) || c.plans.find((p) => !(p.days || []).length);
+  const title = plan ? 'Today’s workout is ready 💪' : 'Rishu updated your plans';
+  const body = plan ? `${plan.title}${plan.focus ? ' — ' + plan.focus : ''}. Tap to see it.` : 'Tap to see what’s new.';
+  try { toast(sentMsg(await sendPush(title, body, { kind: 'plan', tab: 'workout', v: c.version }))); }
+  catch (e) { toastLong('Published, but the notification didn’t go out: ' + e.message); }
+}
+
+function vPushCard() {
+  const p = herPush();
+  const seen = p && p.seen && p.seen.at ? `Last opened ${new Date(p.seen.at).toLocaleString('en-IN', { weekday: 'short', hour: 'numeric', minute: '2-digit' })}${p.seen.title ? ' — “' + esc(p.seen.title) + '”' : ''}` : '';
+  return `<div class="card stack" id="pushcard"><div class="between"><h2>Send her a note</h2><span class="pill">${p ? 'Notifications on' : 'Not set up yet'}</span></div>
+    ${p ? `<textarea class="input" id="pnote" maxlength="180" placeholder="e.g. Proud of you — don’t skip leg day 😄"></textarea>
+      <div class="row wrapr"><button class="btn sm" type="button" id="psend">Send to her phone</button><span class="small muted">${seen}</span></div>`
+      : `<p class="small muted">Once she installs app 1.7 and opens it with live sync on, you can ping her here — and every Publish tells her automatically.</p>`}
+  </div>`;
+}
+
 function vSyncCard(c) {
   const code = pairingCode(c);
   return `<div class="card stack"><div class="between"><h2>Live sync</h2><span class="pill">${esc(c.o)}/${esc(c.r)}</span></div>
@@ -580,6 +645,7 @@ function vDash(rep, c) {
     <div class="between wrapr"><p class="muted small">${fromSync ? '<span class="live"></span>Live from her phone' : 'From a file'} · updated ${fresh}${m.r.streaks ? ` · logging streak <b>${m.r.streaks.logging}</b> · workout streak <b>${m.r.streaks.workout}</b>` : ''}</p>${c ? `<button class="btn ghost sm" type="button" id="srefresh">${S.sync.status === 'loading' ? 'Refreshing…' : 'Refresh'}</button>` : ''}</div>
     ${stale}${v1}
     ${m.r.activeSession && m.r.activeSession.startedAt > Date.now() - 4 * 3600000 ? `<div class="card" style="--acc:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,transparent)"><p class="eyebrow" style="color:var(--amber)"><span class="live" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span>At the gym now</p><p class="big" style="font-size:22px;margin-top:6px">${esc(m.r.activeSession.title)}</p><p class="small muted">Started ${new Date(m.r.activeSession.startedAt).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })} · ${m.r.activeSession.done.length} moves done${m.r.activeSession.done.length ? ': ' + esc(m.r.activeSession.done.join(', ')) : ''}</p></div>` : ''}
+    ${c ? vPushCard() : ''}
     <div class="chips" role="group" aria-label="Range">${[['7', '7 days'], ['30', '30 days'], ['all', 'All time']].map(([v, l]) => `<button class="chip" type="button" data-range="${v}" aria-pressed="${S.dash.range === v}">${l}</button>`).join('')}</div>
     <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
       <div class="card"><p class="eyebrow">Avg calories</p><p class="big" style="font-size:30px">${n0(avg((k) => m.daily[k].kcal))}</p><p class="small muted">target ${n0(T.kcal)} · ${logged.length} days logged</p></div>
@@ -629,6 +695,14 @@ function wireStatus() {
       .then((r) => { S.syncExists = r.ok; if (r.ok && S.tab === 'status') render(); }).catch(() => { S.syncExists = false; });
   }
   document.querySelectorAll('[data-link]').forEach((b) => (b.onclick = showLink));
+  const ps = $('#psend');
+  if (ps) ps.onclick = async () => {
+    const msg = $('#pnote').value.trim(); if (!msg) return toast('Write something first');
+    ps.disabled = true; ps.textContent = 'Sending…';
+    try { toast(sentMsg(await sendPush('Rishu 💌', msg, { kind: 'note', tab: 'today' }))); $('#pnote').value = ''; }
+    catch (e) { toastLong(e.message); }
+    ps.disabled = false; ps.textContent = 'Send to her phone';
+  };
   const refresh = async () => { await fetchSync(); if (S.tab === 'status') { const y = scrollY; render(); scrollTo(0, y); } };
   if (c && S.sync.status !== 'loading' && (!S.sync.fetchedAt || Date.now() - S.sync.fetchedAt > 60000)) refresh();
   const rb = $('#srefresh'); if (rb) rb.onclick = () => { S.sync.fetchedAt = 0; rb.textContent = 'Refreshing…'; refresh(); };
@@ -838,6 +912,13 @@ function vSettings() {
       <label class="f">Protein (g)<input class="input" id="tp" inputmode="numeric" value="${t.protein}"></label>
       <label class="f">Water (glasses)<input class="input" id="tw" inputmode="numeric" value="${t.water ?? 8}"></label></div></div>
     <div class="card stack"><h2>Note on her Today screen</h2><textarea class="input" id="msg" placeholder="e.g. Proud of you this week! Try paneer at dinner.">${esc(S.content.message || '')}</textarea><p class="small muted">Leave empty to hide it.</p></div>
+    <div class="card stack"><h2>Notifications to her phone</h2>
+      <label class="row" style="gap:10px;cursor:pointer"><input type="checkbox" id="autop" ${autoPush() ? 'checked' : ''} style="width:20px;height:20px"> <span>Tell her automatically every time I publish</span></label>
+      <p class="small muted">${herPush() ? 'Her phone is registered.' : 'Her phone isn’t registered yet (needs app 1.7 + live sync).'} Pushes go through your GitHub workflow — usually 15–30 s.</p>
+      <details><summary class="small" style="cursor:pointer">Instant mode (optional, ~1 s)</summary><div class="stack" style="margin-top:8px">
+        <p class="small muted">Paste the Firebase <b>service-account key</b> JSON (Project settings → Service accounts → Generate new private key). It stays in this browser and travels to your other devices only through “Link another device”. If instant sending fails, the GitHub route is used automatically.</p>
+        ${fcmSa() ? `<p class="small"><b>Instant mode on</b> · ${esc(fcmSa().client_email)}</p><button class="btn ghost sm" type="button" id="fcmoff" style="align-self:flex-start">Remove key from this device</button>` : `<textarea class="input mono" id="fcmsa" placeholder='{"type":"service_account", …}'></textarea><button class="btn sm" type="button" id="fcmsave" style="align-self:flex-start">Save key</button>`}
+      </div></details></div>
     <div class="card stack"><h2>Link another device</h2><p class="small muted">Open this admin on your phone (or any device) already set up — publishing and her live dashboard — by scanning a QR. No tokens or codes to paste.</p><button class="btn" type="button" data-link style="align-self:flex-start">Show QR & link</button></div>
     <div class="card stack small muted"><strong style="color:var(--text)">Published</strong><span>Version ${S.content.version || 0} · ${S.content.updatedAt ? new Date(S.content.updatedAt).toLocaleString() : 'never'}</span>
       <div class="row wrapr"><button class="btn ghost sm" type="button" id="chtok">Change token (keeps changes)</button><button class="btn ghost sm" type="button" id="logout">Forget token on this device</button></div></div></div>`;
@@ -849,6 +930,13 @@ function wireSettings() {
   $('#tw').oninput = (e) => { t.water = Math.max(1, parseInt(e.target.value) || 8); markDirty(); };
   $('#msg').oninput = (e) => { S.content.message = e.target.value.slice(0, 220); markDirty(); };
   document.querySelectorAll('[data-link]').forEach((b) => (b.onclick = showLink));
+  $('#autop').onchange = (e) => { try { localStorage.setItem(LS_AUTOPUSH, e.target.checked ? '1' : '0'); } catch {} toast(e.target.checked ? 'She’ll be notified on every publish' : 'Publishing quietly'); };
+  const fs = $('#fcmsave'); if (fs) fs.onclick = () => {
+    let j; try { j = JSON.parse($('#fcmsa').value); } catch { return toast('That isn’t valid JSON — paste the whole file'); }
+    if (j.type !== 'service_account' || !j.private_key || !j.client_email || !j.project_id) return toast('That isn’t a Firebase service-account key');
+    localStorage.setItem(LS_FCM, JSON.stringify({ project_id: j.project_id, client_email: j.client_email, private_key: j.private_key })); render(); toast('Instant mode on');
+  };
+  const fo = $('#fcmoff'); if (fo) fo.onclick = () => { localStorage.removeItem(LS_FCM); render(); };
   $('#chtok').onclick = () => askToken('Paste a token with write access to sapna-app-and-admin.', null);
   $('#logout').onclick = () => { localStorage.removeItem(LS_TOKEN); S.token = ''; viewSetup(); };
 }

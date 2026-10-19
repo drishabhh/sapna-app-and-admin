@@ -17,7 +17,7 @@ interface Store {
   saveNow: () => Promise<void>;
   contentFresh: boolean;
   /** fetch Rishu's latest plans/foods now; true if something new arrived */
-  reloadContent: () => Promise<boolean>;
+  reloadContent: (opts?: { direct?: boolean }) => Promise<boolean>;
 }
 
 const Ctx = createContext<Store | null>(null);
@@ -98,8 +98,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const exById = useMemo(() => Object.fromEntries(content.exercises.map((e) => [e.id, e])), [content.exercises]);
 
-  const reloadContent = useCallback(async () => {
-    const fresh = await refreshContent(contentRef.current);
+  const reloadContent = useCallback(async (opts: { direct?: boolean } = {}) => {
+    const fresh = await refreshContent(contentRef.current, opts);
     if (fresh) { setContent(fresh); setFresh(true); return true; }
     return false;
   }, []);

@@ -21,6 +21,15 @@ import java.nio.charset.StandardCharsets;
 @CapacitorPlugin(name = "FileSaver")
 public class FileSaverPlugin extends Plugin {
 
+    /** True when this build contains the Firebase config (google-services.json from the CI secret). */
+    @PluginMethod
+    public void firebaseReady(PluginCall call) {
+        int id = getContext().getResources().getIdentifier("google_app_id", "string", getContext().getPackageName());
+        JSObject r = new JSObject();
+        r.put("ready", id != 0);
+        call.resolve(r);
+    }
+
     @PluginMethod
     public void saveToDownloads(PluginCall call) {
         String name = call.getString("fileName", "sapna-health.txt");

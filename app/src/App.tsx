@@ -15,12 +15,13 @@ import ProgressScreen from './screens/Progress';
 import Settings from './screens/Settings';
 import Today from './screens/Today';
 import WorkoutScreen from './screens/Workout';
-import { Icon, popBack, ToastHost } from './ui';
+import { Icon, popBack, toast, ToastHost } from './ui';
 import { syncNightSteps, syncWidget } from './streak';
 import { requestSteps } from './lib/intents';
 import { clearDrafts, getDraft, setDraft, useDraft } from './lib/drafts';
 import { pushReport, SYNC_EVERY_DEFAULT, useSyncCfg } from './lib/sync';
 import { PullToRefresh } from './pull';
+import { initPush } from './lib/push';
 import { buildReport } from './lib/native';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
@@ -77,6 +78,21 @@ function Shell() {
     document.addEventListener('visibilitychange', onHide);
     const sub = CapApp.addListener('appStateChange', ({ isActive }) => { if (!isActive) now(); });
     return () => { window.clearTimeout(first); document.removeEventListener('visibilitychange', onHide); sub.then((x) => x.remove()).catch(() => {}); };
+  }, [ready, data.onboarded]);
+
+  // Instant pushes from Rishu: a new plan → fetch it straight from GitHub; tap → open that tab.
+  const { reloadContent } = useStore();
+  useEffect(() => {
+    if (!ready || !data.onboarded) return;
+    initPush({
+      onReceived: (d) => { if (d.kind === 'plan') reloadContent({ direct: true }).then((fresh) => { if (fresh) toast('New plan from Rishu is here'); }); },
+      onTapped: (d) => {
+        const t = (d.tab as Tab) || (d.kind === 'plan' ? 'workout' : 'today');
+        setTab(t);
+        if (d.kind === 'plan') reloadContent({ direct: true });
+      },
+    }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, data.onboarded]);
 
   // Keep the home-screen streak widget in step with her logs.
