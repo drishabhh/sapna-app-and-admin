@@ -184,7 +184,7 @@ export function parseFoodJson(text: string): { foods: Food[]; errors: string[] }
     foods.push({
       id: 'custom-' + uid(),
       name: name.slice(0, 60),
-      portion: portion.slice(0, 40),
+      portion: portion.slice(0, 90),
       kcal: Math.round(kcal),
       protein: Number.isFinite(protein) && protein >= 0 ? r1(protein) : 0,
       carbs: opt(['carbs', 'carbohydrates', 'carbsg']),
