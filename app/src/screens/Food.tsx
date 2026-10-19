@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { mealTotals, r1, totalsOn } from '../lib/calc';
 import { addDays, longLabel, today } from '../lib/dates';
 import { haptic } from '../lib/native';
@@ -7,13 +6,14 @@ import { FoodEntry, MEALS } from '../lib/types';
 import { useNav } from '../nav';
 import { Bar, Icon, Sheet, Stepper, toast } from '../ui';
 import { Num } from '../anim';
+import { useDraft } from '../lib/drafts';
 
 export default function FoodScreen() {
   const { data, content, update } = useStore();
   const nav = useNav();
-  const [day, setDay] = useState(today());
-  const [edit, setEdit] = useState<FoodEntry | null>(null);
-  const [mult, setMult] = useState(1);
+  const [day, setDay] = useDraft('food.day', today());
+  const [edit, setEdit] = useDraft<FoodEntry | null>('food.edit', null);
+  const [mult, setMult] = useDraft('food.mult', 1);
   const t = totalsOn(data, day);
   const isToday = day === today();
 

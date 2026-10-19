@@ -2,6 +2,7 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, 
 import { App as CapApp } from '@capacitor/app';
 import { BUNDLED, initialContent, refreshContent } from './content';
 import { loadData, migrate, saveData } from './storage';
+import { flushDrafts, initDrafts } from './drafts';
 import { AppData, Content, emptyData, Exercise, Food } from './types';
 
 interface Store {
@@ -12,6 +13,8 @@ interface Store {
   exById: Record<string, Exercise>;
   update: (fn: (d: AppData) => AppData) => void;
   replaceAll: (d: AppData) => void;
+  /** write to disk right now (use before clearing drafts that the data replaces) */
+  saveNow: () => Promise<void>;
   contentFresh: boolean;
 }
 
@@ -28,13 +31,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const flush = useCallback(() => {
     if (timer.current) window.clearTimeout(timer.current);
     timer.current = undefined;
-    saveData(dataRef.current).catch(() => {});
+    return saveData(dataRef.current).catch(() => {});
   }, []);
 
   useEffect(() => {
     let alive = true;
     (async () => {
-      const [d, c] = await Promise.all([loadData(), initialContent()]);
+      const [d, c] = await Promise.all([loadData(), initialContent(), initDrafts()]);
       if (!alive) return;
       dataRef.current = d;
       setData(d);
@@ -48,7 +51,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })();
     // Save immediately when the app goes to the background — never lose a log.
     const sub = CapApp.addListener('appStateChange', ({ isActive }) => {
-      if (!isActive) flush();
+      if (!isActive) { flush(); flushDrafts(); }
       else
         refreshContent(contentRef.current).then((fresh) => {
           if (fresh) {
@@ -57,9 +60,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           }
         });
     });
-    const onHide = () => document.visibilityState === 'hidden' && flush();
+    const onHide = () => { if (document.visibilityState === 'hidden') { flush(); flushDrafts(); } };
     document.addEventListener('visibilitychange', onHide);
+    window.addEventListener('pagehide', onHide);
     return () => {
+      window.removeEventListener('pagehide', onHide);
       alive = false;
       sub.then((s) => s.remove()).catch(() => {});
       document.removeEventListener('visibilitychange', onHide);
@@ -92,8 +97,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const exById = useMemo(() => Object.fromEntries(content.exercises.map((e) => [e.id, e])), [content.exercises]);
 
   const value = useMemo(
-    () => ({ ready, data, content, foods, exById, update, replaceAll, contentFresh }),
-    [ready, data, content, foods, exById, update, replaceAll, contentFresh],
+    () => ({ ready, data, content, foods, exById, update, replaceAll, saveNow: flush, contentFresh }),
+    [ready, data, content, foods, exById, update, replaceAll, flush, contentFresh],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

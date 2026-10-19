@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { exerciseHistory, isGymDay, lastWeight, planBrief, sessionsPerWeek, todayPlan, uid } from '../lib/calc';
 import { latestWeight, sessionKcal } from '../lib/burn';
 import { Congrats } from '../congrats';
@@ -10,12 +10,13 @@ import { Plan, PlanMove, Session } from '../lib/types';
 import { FullSheet, Gif, Icon, Seg, Sheet, Stepper, toast } from '../ui';
 import { Doodle } from '../streak';
 import { Num } from '../anim';
+import { useDraft } from '../lib/drafts';
 
 export default function WorkoutScreen({ autoStart, onAutoStartHandled }: { autoStart: boolean; onAutoStartHandled: () => void }) {
   const { data, content } = useStore();
   const plan = todayPlan(data, content);
-  const [view, setView] = useState<'plan' | 'history'>('plan');
-  const [sessionOpen, setSessionOpen] = useState(false);
+  const [view, setView] = useDraft<'plan' | 'history'>('wk.view', 'plan');
+  const [sessionOpen, setSessionOpen] = useDraft('wk.sessionOpen', false);
 
   useEffect(() => {
     if (autoStart) {
@@ -103,23 +104,30 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
   const { data, update, exById } = useStore();
   const d = today();
   const session = data.sessions.find((s) => !s.endedAt && s.date === d && s.planId === plan.id);
-  const [idx, setIdx] = useState(0);
-  const [kg, setKg] = useState(0);
-  const [reps, setReps] = useState(10);
-  const [summary, setSummary] = useState<Session | null>(null);
+  const [idx, setIdx] = useDraft('wk.idx', 0);
+  const [kg, setKg] = useDraft('wk.kg', 0);
+  const [reps, setReps] = useDraft('wk.reps', 10);
+  // Was this session screen restored after Android killed the app? Then keep her place, don't reset.
+  const restored = useRef(open);
+  const restoredPrefill = useRef(open);
+  const [summary, setSummary] = useDraft<Session | null>('wk.summary', null);
   const moves = plan.moves.filter((m) => exById[m.exId]);
   const move = moves[Math.min(idx, moves.length - 1)];
   const ex = move ? exById[move.exId] : undefined;
   const isStretch = ex?.group === 'stretching';
   const sets = session ? session.sets.filter((x) => x.exId === move?.exId) : [];
   const doneMove = (m: PlanMove) => !!session?.completed?.includes(m.exId);
-  const [logOpen, setLogOpen] = useState(false);
-  const [listOpen, setListOpen] = useState(false);
+  const [logOpen, setLogOpen] = useDraft('wk.logOpen', false);
+  const [listOpen, setListOpen] = useDraft('wk.listOpen', false);
   const yt = ex ? ytLink(ex, move) : null;
 
   // Create (or resume) the session when opened.
   useEffect(() => {
     if (!open) return;
+    if (restored.current) {
+      restored.current = false;
+      if (summary || session) return; // back on the same move / the same congrats screen
+    }
     setSummary(null);
     if (!session) {
       const s: Session = { id: uid(), date: d, planId: plan.id, title: plan.title, startedAt: Date.now(), sets: [], completed: [], kind: 'gym' };
@@ -135,6 +143,7 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
   // Prefill weight/reps from last time (or the plan) whenever the move changes.
   useEffect(() => {
     if (!move) return;
+    if (restoredPrefill.current) { restoredPrefill.current = false; return; }
     const last = lastWeight(data, move.exId, session?.id);
     const mine = sets[sets.length - 1];
     setKg(mine ? mine.kg : last ? last.kg : move.kg || 0);
@@ -315,7 +324,7 @@ function History() {
   const max = Math.max(3, ...perWeek);
   const exIds = [...new Set(data.sessions.filter((s) => s.kind !== 'home').flatMap((s) => s.sets.map((x) => x.exId)))].filter((id) => exById[id] && exById[id].group !== 'stretching');
   const recent = [...data.sessions].filter((s) => s.sets.length).sort((a, b) => b.startedAt - a.startedAt).slice(0, 12);
-  const [tab, setTab] = useState<'ex' | 'sessions'>('ex');
+  const [tab, setTab] = useDraft<'ex' | 'sessions'>('wk.histTab', 'ex');
 
   return (
     <div className="stack" style={{ gap: 14 }}>

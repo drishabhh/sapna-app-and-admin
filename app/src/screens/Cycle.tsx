@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { avgCycleLen, cycleInfo, isPredictedPeriod, monthGrid, periodStarts, PHASE_COPY } from '../lib/calc';
 import { addDays, diffDays, DOW_LETTER, MONTHS_FULL, parseKey, shortLabel, today } from '../lib/dates';
 import { haptic } from '../lib/native';
@@ -6,6 +6,7 @@ import { useStore } from '../lib/store';
 import { Flow } from '../lib/types';
 import { Icon, Ring, toast } from '../ui';
 import { Num } from '../anim';
+import { useDraft } from '../lib/drafts';
 
 const SYMPTOMS = ['Cramps', 'Bloating', 'Headache', 'Low energy', 'Mood swings', 'Cravings', 'Acne', 'Back pain', 'Tender breasts'];
 const FLOWS: { v: Flow; l: string }[] = [{ v: 'none', l: 'None' }, { v: 'light', l: 'Light' }, { v: 'medium', l: 'Medium' }, { v: 'heavy', l: 'Heavy' }];
@@ -14,8 +15,8 @@ export default function CycleScreen() {
   const { data, update } = useStore();
   const t = today();
   const now = parseKey(t);
-  const [ym, setYm] = useState({ y: now.getFullYear(), m: now.getMonth() });
-  const [sel, setSel] = useState(t);
+  const [ym, setYm] = useDraft('cyc.ym', { y: now.getFullYear(), m: now.getMonth() });
+  const [sel, setSel] = useDraft('cyc.sel', t);
   const info = cycleInfo(data);
   const cells = useMemo(() => monthGrid(ym.y, ym.m), [ym]);
   const day = data.cycle[sel] || {};

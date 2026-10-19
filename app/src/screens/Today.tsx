@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { cycleInfo, isGymDay, mealFor, streakInfo, mealTotals, planBrief, todayPlan, PHASE_COPY, sessionsOn, totalsOn } from '../lib/calc';
 import { greeting, longLabel, today } from '../lib/dates';
 import { haptic } from '../lib/native';
@@ -11,6 +11,7 @@ import { WeighCard } from '../congrats';
 import { burnedOn, latestWeight, stepsKcal } from '../lib/burn';
 import { takeStepsRequest } from '../lib/intents';
 import { Num } from '../anim';
+import { TTL, useDraft } from '../lib/drafts';
 
 export default function Today() {
   const { data, content, foods, update, exById, contentFresh } = useStore();
@@ -29,8 +30,8 @@ export default function Today() {
   const done = sessionsOn(data, d).some((s) => s.endedAt && s.sets.length);
   const gym = isGymDay(data);
   const cyc = data.profile.cycleEnabled ? cycleInfo(data) : null;
-  const [stepsOpen, setStepsOpen] = useState(false);
-  const [stepsVal, setStepsVal] = useState('');
+  const [stepsOpen, setStepsOpen] = useDraft('today.stepsOpen', false);
+  const [stepsVal, setStepsVal] = useDraft('today.stepsVal', '', TTL.text);
   const kg = latestWeight(data);
   // Opened from the 11:30 pm "How many steps today?" notification.
   useEffect(() => {

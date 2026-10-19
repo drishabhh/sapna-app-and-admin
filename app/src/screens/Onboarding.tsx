@@ -1,10 +1,11 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 import { addDays, DOW_FULL, DOW_LETTER, today } from '../lib/dates';
 import { haptic, readBackupFile, syncReminders } from '../lib/native';
 import { useStore } from '../lib/store';
 import { Activity, DietType, Goal, Profile, Reminders, ShareCycle } from '../lib/types';
 import { Icon, Seg, Stepper, toast, Toggle, useBack } from '../ui';
 import { Doodle } from '../streak';
+import { clearDrafts, TTL, useDraft } from '../lib/drafts';
 
 const FAV_IDS: { id: string; label: string; diet: DietType }[] = [
   { id: 'roti', label: 'Roti', diet: 'veg' },
@@ -28,11 +29,11 @@ const FAV_IDS: { id: string; label: string; diet: DietType }[] = [
 ];
 
 export default function Onboarding() {
-  const { data, content, foods, update, replaceAll } = useStore();
-  const [step, setStep] = useState(0);
-  const [p, setP] = useState<Profile>({ ...data.profile });
-  const [rem, setRem] = useState<Reminders>({ ...data.reminders });
-  const [lastStart, setLastStart] = useState(addDays(today(), -10));
+  const { data, content, foods, update, replaceAll, saveNow } = useStore();
+  const [step, setStep] = useDraft('onb.step', 0, TTL.forever);
+  const [p, setP] = useDraft<Profile>('onb.profile', () => ({ ...data.profile }), TTL.forever);
+  const [rem, setRem] = useDraft<Reminders>('onb.rem', () => ({ ...data.reminders }), TTL.forever);
+  const [lastStart, setLastStart] = useDraft('onb.lastStart', () => addDays(today(), -10), TTL.forever);
   const fileRef = useRef<HTMLInputElement>(null);
   const set = <K extends keyof Profile>(k: K, v: Profile[K]) => setP((x) => ({ ...x, [k]: v }));
 
@@ -69,6 +70,8 @@ export default function Onboarding() {
       const weighIns = d.weighIns.some((w) => w.date === today()) ? d.weighIns : [...d.weighIns, { date: today(), kg: p.weightKg }];
       return { ...d, onboarded: true, profile: { ...p, favFoods }, reminders: rem, cycle, weighIns };
     });
+    await saveNow();
+    clearDrafts('onb.');
     const r = await syncReminders({ ...data, onboarded: true, profile: { ...p }, reminders: rem, weighIns: [...data.weighIns, { date: today(), kg: p.weightKg }] });
     if (r === 'denied') toast('Reminders are off — allow notifications in Settings to turn them on.');
   }
@@ -78,6 +81,7 @@ export default function Onboarding() {
     const d = readBackupFile(await file.text());
     if (!d) { toast("That file isn't a Sapna Health backup."); return; }
     replaceAll({ ...d, onboarded: true });
+    clearDrafts('onb.');
     toast('Backup restored — welcome back.');
   }
 

@@ -1,25 +1,29 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { r1, totalsOn, uid } from '../lib/calc';
 import { today } from '../lib/dates';
 import { haptic } from '../lib/native';
 import { useStore } from '../lib/store';
 import { Food, Meal, MEALS } from '../lib/types';
 import { Bar, FullSheet, Icon, Seg, Sheet, Stepper, toast } from '../ui';
+import { TTL, useDraft } from '../lib/drafts';
 
 const PORTIONS = [0.5, 1, 1.5, 2];
 const portionLabel = (m: number) => (m === 0.5 ? '½' : m === 1.5 ? '1½' : String(m));
 
 export function FoodLogger({ open, meal: initialMeal, date = today(), onClose }: { open: boolean; meal: Meal; date?: string; onClose: () => void }) {
   const { data, content, foods, update } = useStore();
-  const [meal, setMeal] = useState<Meal>(initialMeal);
-  const [q, setQ] = useState('');
-  const [pick, setPick] = useState<Food | null>(null);
-  const [mult, setMult] = useState(1);
-  const [creating, setCreating] = useState(false);
+  const [meal, setMeal] = useDraft<Meal>('log.meal', initialMeal, TTL.text);
+  const [q, setQ] = useDraft('log.q', '', TTL.text);
+  const [pick, setPick] = useDraft<Food | null>('log.pick', null, TTL.text);
+  const [mult, setMult] = useDraft('log.mult', 1, TTL.text);
+  const [creating, setCreating] = useDraft('log.creating', false, TTL.text);
 
+  // Reset only when she opens the logger fresh — not when it is restored after Android killed the app.
+  const wasOpen = useRef(open);
   useEffect(() => {
-    if (open) { setMeal(initialMeal); setQ(''); setPick(null); setCreating(false); }
-  }, [open, initialMeal]);
+    if (open && !wasOpen.current) { setMeal(initialMeal); setQ(''); setPick(null); setCreating(false); }
+    wasOpen.current = open;
+  }, [open, initialMeal, setMeal, setQ, setPick, setCreating]);
 
   const t = totalsOn(data, date);
   const left = content.targets.kcal - t.kcal;
@@ -199,15 +203,17 @@ export function parseFoodJson(text: string): { foods: Food[]; errors: string[] }
 
 function CustomFoodSheet({ open, initialName, onClose, onCreated }: { open: boolean; initialName: string; onClose: () => void; onCreated: (f: Food) => void }) {
   const { update } = useStore();
-  const [mode, setMode] = useState<'form' | 'json'>('form');
-  const [name, setName] = useState('');
-  const [portion, setPortion] = useState('1 serving');
-  const [kcal, setKcal] = useState('');
-  const [protein, setProtein] = useState('');
-  const [json, setJson] = useState('');
+  const [mode, setMode] = useDraft<'form' | 'json'>('log.cf.mode', 'form', TTL.text);
+  const [name, setName] = useDraft('log.cf.name', '', TTL.text);
+  const [portion, setPortion] = useDraft('log.cf.portion', '1 serving', TTL.text);
+  const [kcal, setKcal] = useDraft('log.cf.kcal', '', TTL.text);
+  const [protein, setProtein] = useDraft('log.cf.protein', '', TTL.text);
+  const [json, setJson] = useDraft('log.cf.json', '', TTL.text);
+  const wasOpen = useRef(open);
   useEffect(() => {
-    if (open) { setName(initialName); setPortion('1 serving'); setKcal(''); setProtein(''); setJson(''); setMode('form'); }
-  }, [open, initialName]);
+    if (open && !wasOpen.current) { setName(initialName); setPortion('1 serving'); setKcal(''); setProtein(''); setJson(''); setMode('form'); }
+    wasOpen.current = open;
+  }, [open, initialName, setName, setPortion, setKcal, setProtein, setJson, setMode]);
   const k = Number(kcal);
   const p = Number(protein || 0);
   const ok = name.trim() && Number.isFinite(k) && k > 0 && Number.isFinite(p) && p >= 0;

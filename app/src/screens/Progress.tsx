@@ -1,18 +1,18 @@
-import { useState } from 'react';
 import { logStreak, totalsOn } from '../lib/calc';
 import { addDays, DOW_SHORT, keyOf, parseKey, shortLabel, today, weekOf } from '../lib/dates';
 import { haptic, shareReport } from '../lib/native';
 import { useStore } from '../lib/store';
 import { Icon, Seg, Sheet, Stepper, toast } from '../ui';
 import { Num } from '../anim';
+import { TTL, useDraft } from '../lib/drafts';
 
 export default function ProgressScreen() {
   const { data, content, update } = useStore();
-  const [metric, setMetric] = useState<'kcal' | 'protein'>('kcal');
-  const [anchor, setAnchor] = useState(today());
-  const [weighOpen, setWeighOpen] = useState(false);
+  const [metric, setMetric] = useDraft<'kcal' | 'protein'>('prog.metric', 'kcal');
+  const [anchor, setAnchor] = useDraft('prog.anchor', today());
+  const [weighOpen, setWeighOpen] = useDraft('prog.weighOpen', false);
   const lastW = data.weighIns[data.weighIns.length - 1];
-  const [kg, setKg] = useState(lastW?.kg || data.profile.weightKg);
+  const [kg, setKg] = useDraft('prog.kg', lastW?.kg || data.profile.weightKg, TTL.text);
 
   const week = weekOf(anchor);
   const t = today();

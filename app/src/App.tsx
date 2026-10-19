@@ -1,4 +1,4 @@
-import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
+import { ReactElement, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { App as CapApp } from '@capacitor/app';
 import { Capacitor, SystemBars, SystemBarsStyle } from '@capacitor/core';
 import { Launch } from './launch';
@@ -18,6 +18,7 @@ import WorkoutScreen from './screens/Workout';
 import { Icon, popBack, ToastHost } from './ui';
 import { syncNightSteps, syncWidget } from './streak';
 import { requestSteps } from './lib/intents';
+import { clearDrafts, getDraft, setDraft, useDraft } from './lib/drafts';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'today', label: 'Today', icon: 'home' },
@@ -29,10 +30,18 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 
 function Shell() {
   const { ready, data } = useStore();
-  const [tab, setTab] = useState<Tab>('today');
-  const [logger, setLogger] = useState<{ open: boolean; meal: Meal; date?: string }>({ open: false, meal: 'breakfast' });
-  const [settings, setSettings] = useState(false);
+  const [tab, setTab] = useDraft<Tab>('app.tab', 'today');
+  const [logger, setLogger] = useDraft<{ open: boolean; meal: Meal; date?: string }>('app.logger', { open: false, meal: 'breakfast' });
+  const [settings, setSettings] = useDraft('app.settings', false);
   const [autoStart, setAutoStart] = useState(false);
+  // The file copy of drafts (loaded with her data) can be newer than localStorage — re-read once ready.
+  useEffect(() => {
+    if (!ready) return;
+    setTab(getDraft<Tab>('app.tab', tab));
+    setLogger(getDraft('app.logger', logger));
+    setSettings(getDraft('app.settings', settings));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
 
   // Re-plan the rolling notification window whenever something that changes it moves
   // (and on every launch), so tomorrow's punch line and the Monday weigh-in nudge stay correct.
@@ -68,6 +77,23 @@ function Shell() {
     return () => { sub.then((s) => s.remove()).catch(() => {}); };
   }, [ready, data.onboarded]);
 
+  // After Android kills the app in the background, put her back at the same scroll position.
+  const restoreScroll = useRef(true);
+  useEffect(() => {
+    if (!ready || !data.onboarded) return;
+    const el = document.querySelector<HTMLElement>('.app .screen');
+    if (!el) return;
+    if (restoreScroll.current) {
+      restoreScroll.current = false;
+      const y = getDraft<{ tab: string; y: number } | null>('app.scroll', null);
+      if (y && y.tab === tab && y.y > 0) requestAnimationFrame(() => requestAnimationFrame(() => { el.scrollTop = y.y; }));
+    }
+    let t = 0;
+    const onScroll = () => { window.clearTimeout(t); t = window.setTimeout(() => setDraft('app.scroll', { tab, y: Math.round(el.scrollTop) }), 250); };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => { window.clearTimeout(t); el.removeEventListener('scroll', onScroll); };
+  }, [ready, data.onboarded, tab]);
+
   // Android back button: close the top sheet first, then go to Today, then leave the app.
   useEffect(() => {
     const sub = CapApp.addListener('backButton', () => {
@@ -82,7 +108,7 @@ function Shell() {
   const nav: Nav = useMemo(() => ({
     tab,
     go,
-    openLogger: (meal: Meal, date?: string) => setLogger({ open: true, meal, date }),
+    openLogger: (meal: Meal, date?: string) => { clearDrafts('log.'); setLogger({ open: true, meal, date }); },
     openSettings: () => setSettings(true),
     startWorkout: () => { setTab('workout'); setAutoStart(true); },
   }), [tab, go]);
@@ -109,7 +135,7 @@ function Shell() {
           ))}
         </nav>
 
-        <FoodLogger open={logger.open} meal={logger.meal} date={logger.date} onClose={() => setLogger((l) => ({ ...l, open: false }))} />
+        <FoodLogger open={logger.open} meal={logger.meal} date={logger.date} onClose={() => { clearDrafts('log.'); setLogger((l) => ({ ...l, open: false })); }} />
         <Settings open={settings} onClose={() => setSettings(false)} />
         <ToastHost />
       </div>

@@ -7,6 +7,7 @@ import { today } from './lib/dates';
 import { Doodle, type DoodleName } from './streak';
 import { Icon, Stepper, toast } from './ui';
 import { Num } from './anim';
+import { TTL, useDraft } from './lib/drafts';
 
 export type Feel = 'easy' | 'right' | 'hard';
 
@@ -36,7 +37,7 @@ export function Confetti() {
 export function WeighCard({ force = false, compact = false }: { force?: boolean; compact?: boolean }) {
   const { data, update } = useStore();
   const status = weighStatus(data);
-  const [kg, setKg] = useState(() => latestWeight(data));
+  const [kg, setKg] = useDraft('weigh.kg', () => latestWeight(data), TTL.text);
   const [saved, setSaved] = useState(false);
   if (saved) return null;
   if (!status && !force) return null;

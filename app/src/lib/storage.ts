@@ -79,7 +79,20 @@ export async function loadData(): Promise<AppData> {
   }
 }
 
-export async function saveData(data: AppData): Promise<void> {
+/** Saves run strictly one after another: two overlapping temp-file swaps could drop the newer one. */
+let saveChain: Promise<void> = Promise.resolve();
+let latest: AppData | null = null;
+export function saveData(data: AppData): Promise<void> {
+  latest = data;
+  saveChain = saveChain.then(() => {
+    const d = latest;
+    latest = null;
+    return d ? writeData(d) : undefined; // several queued saves collapse into the newest one
+  }).catch(() => {});
+  return saveChain;
+}
+
+async function writeData(data: AppData): Promise<void> {
   const text = JSON.stringify(data);
   if (native()) {
     await writeFileSafe(DATA_FILE, DATA_TMP, text);
