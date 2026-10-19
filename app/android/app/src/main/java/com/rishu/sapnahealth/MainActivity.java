@@ -13,6 +13,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(StreakWidgetPlugin.class);
+        registerPlugin(FileSaverPlugin.class);
         super.onCreate(savedInstanceState);
         // Draw behind the status and navigation bars on every Android version; the web layer
         // pads itself with the injected safe-area insets, so bars always match the app's background.

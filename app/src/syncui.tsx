@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { buildReport, haptic, shareReport } from './lib/native';
+import { buildReport, haptic, saveTextFile, shareReport } from './lib/native';
+import { today } from './lib/dates';
 import { useStore } from './lib/store';
 import { connectSync, disconnectSync, pushReport, useSyncCfg } from './lib/sync';
 import { Icon, toast } from './ui';
@@ -68,7 +69,10 @@ export function SyncCard() {
         <summary className="muted" style={{ cursor: 'pointer', fontWeight: 600 }}>Emergency: send as a file instead</summary>
         <div className="stack" style={{ gap: 8, marginTop: 10 }}>
           <p className="muted">Only if sync isn’t working. Shares one file with your full history over WhatsApp.</p>
-          <button type="button" className="btn sm ghost" style={{ alignSelf: 'flex-start' }} onClick={async () => { const ok = await shareReport(data, content); if (ok) update((d) => ({ ...d, lastReportAt: Date.now() })); }}><Icon name="share" size={16} /> Send my dashboard file</button>
+          <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+            <button type="button" className="btn sm ghost" onClick={async () => { const ok = await shareReport(data, content); if (ok) update((d) => ({ ...d, lastReportAt: Date.now() })); }}><Icon name="share" size={16} /> WhatsApp / Telegram</button>
+            <button type="button" className="btn sm ghost" onClick={async () => { const p = await saveTextFile(`sapna-dashboard-${today()}.txt`, JSON.stringify(buildReport(data, content))); toast(p ? `Saved to ${p}` : 'Could not save'); }}>Save to phone</button>
+          </div>
         </div>
       </details>
     </section>

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { BUNDLED, refreshContent } from '../lib/content';
 import { DOW_FULL, DOW_LETTER, keyOf, shortLabel } from '../lib/dates';
-import { exportBackup, haptic, readBackupFile, syncReminders } from '../lib/native';
+import { haptic, readBackupFile, saveBackup, shareBackup, syncReminders } from '../lib/native';
 import { SyncCard } from '../syncui';
 import { useStore } from '../lib/store';
 import { emptyData, Reminders, ShareCycle } from '../lib/types';
@@ -33,12 +33,19 @@ export default function Settings({ open, onClose }: { open: boolean; onClose: ()
     setProfile({ gymDays: days });
     await syncReminders({ ...data, profile: { ...data.profile, gymDays: days } }, { ask: false });
   }
-  async function backup() {
-    const ok = await exportBackup(data);
-    if (ok) {
+  async function saveToPhone() {
+    const path = await saveBackup(data);
+    if (path) {
+      haptic.success();
       update((d) => ({ ...d, lastBackupAt: Date.now() }));
-      toast('Backup ready — save it to Drive or send it to yourself.');
+      toast(`Saved to ${path}`);
+    } else {
+      toast('Could not save here — use “Send file” instead.');
     }
+  }
+  async function sendBackup() {
+    const ok = await shareBackup(data);
+    if (ok) update((d) => ({ ...d, lastBackupAt: Date.now() }));
   }
   async function onFile(f: File | undefined) {
     if (!f) return;
@@ -60,13 +67,15 @@ export default function Settings({ open, onClose }: { open: boolean; onClose: ()
 
         <section className="card stack" style={{ gap: 14 }} aria-label="Backup">
           <div className="row"><span className="acc-t"><Icon name="lock" /></span><h2 className="h2" style={{ fontSize: 19 }}>Your data</h2></div>
-          <p className="small muted">Everything is stored on this phone. Android's backup (Settings › Google › Backup) copies it to your Google account automatically, so reinstalling restores it. For extra safety, save a file now and then.</p>
+          <p className="small muted">Everything is stored on this phone. For safety, save a backup file now and then — it restores all your logs on any phone.</p>
+          <button type="button" className="btn" onClick={saveToPhone}><Icon name="plus" size={18} /> Save backup to phone</button>
+          <p className="small faint" style={{ marginTop: -6 }}>Goes to Downloads › Sapna Health (open My Files to see it). “Send file” shares it to WhatsApp, Telegram or Drive.</p>
           <div className="grid2">
-            <button type="button" className="btn" onClick={backup}><Icon name="share" size={18} /> Export</button>
+            <button type="button" className="btn ghost" onClick={sendBackup}><Icon name="share" size={18} /> Send file</button>
             <button type="button" className="btn ghost" onClick={() => fileRef.current?.click()}>Restore</button>
           </div>
-          <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ''; }} />
-          <p className="small faint">{data.lastBackupAt ? `Last exported ${shortLabel(keyOf(new Date(data.lastBackupAt)))}` : 'Never exported'} · {data.food.length} food logs · {data.sessions.length} workout{data.sessions.length === 1 ? '' : 's'}</p>
+          <input ref={fileRef} type="file" hidden onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ''; }} />
+          <p className="small faint">{data.lastBackupAt ? `Last backup ${shortLabel(keyOf(new Date(data.lastBackupAt)))}` : 'No backup yet'} · {data.food.length} food logs · {data.sessions.length} workout{data.sessions.length === 1 ? '' : 's'}</p>
         </section>
 
         <SyncCard />

@@ -115,7 +115,7 @@ export default function Onboarding() {
           <span className="spacer" />
           <button type="button" className="btn lg block" onClick={next}>Let's set you up</button>
           <button type="button" className="btn quiet" onClick={() => fileRef.current?.click()}>I have a backup file</button>
-          <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => onImport(e.target.files?.[0])} />
+          <input ref={fileRef} type="file" hidden onChange={(e) => { onImport(e.target.files?.[0]); e.target.value = ''; }} />
         </div>
       )}
 

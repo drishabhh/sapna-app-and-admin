@@ -1,4 +1,4 @@
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import { Share } from '@capacitor/share';
@@ -19,44 +19,54 @@ export const haptic = {
   },
 };
 
-/* ---------- Files: share / save ---------- */
+/* ---------- Files: save to Downloads / share as .txt ---------- */
+// .txt (text/plain) is accepted by every app — WhatsApp, Telegram, Gmail, Drive, My Files.
+// The content is still JSON, and Restore reads it whatever the file is called.
 
-async function shareJsonFile(fileName: string, json: unknown, title: string, text?: string): Promise<boolean> {
-  const body = JSON.stringify(json, null, 1);
-  if (native()) {
-    const w = await Filesystem.writeFile({ path: fileName, directory: Directory.Cache, encoding: Encoding.UTF8, data: body });
-    try {
-      await Share.share({ title, text, files: [w.uri], dialogTitle: title });
-      return true;
-    } catch {
-      return false; // user closed the share sheet
-    }
-  }
-  const blob = new Blob([body], { type: 'application/json' });
+interface FileSaverPlugin { saveToDownloads(o: { fileName: string; text: string; mime: string }): Promise<{ path: string }> }
+const FileSaver = registerPlugin<FileSaverPlugin>('FileSaver');
+
+function webDownload(fileName: string, text: string) {
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
   a.download = fileName;
   document.body.appendChild(a);
   a.click();
-  setTimeout(() => {
-    URL.revokeObjectURL(a.href);
-    a.remove();
-  }, 500);
-  return true;
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
 }
 
-export function exportBackup(d: AppData): Promise<boolean> {
-  return shareJsonFile(
-    `sapna-health-backup-${today()}.json`,
-    { type: 'sapna-health-backup', exportedAt: new Date().toISOString(), data: d },
-    'Save Sapna Health backup',
-    'Keep this file safe — it restores all your logs.',
-  );
+/** Writes straight into Downloads/Sapna Health. Returns where it went, or null if it failed. */
+export async function saveTextFile(fileName: string, text: string): Promise<string | null> {
+  if (!native()) { webDownload(fileName, text); return `Downloads/${fileName}`; }
+  try {
+    return (await FileSaver.saveToDownloads({ fileName, text, mime: 'text/plain' })).path;
+  } catch {
+    return null;
+  }
 }
+
+/** Opens the share sheet with the file attached (no message text, so WhatsApp/Telegram send it as a document). */
+export async function shareTextFile(fileName: string, text: string, title: string): Promise<boolean> {
+  if (!native()) { webDownload(fileName, text); return true; }
+  try {
+    const w = await Filesystem.writeFile({ path: fileName, directory: Directory.Cache, encoding: Encoding.UTF8, data: text });
+    await Share.share({ title, files: [w.uri], dialogTitle: title });
+    return true;
+  } catch {
+    return false; // closed the share sheet
+  }
+}
+
+const backupText = (d: AppData) => JSON.stringify({ type: 'sapna-health-backup', exportedAt: new Date().toISOString(), data: d }, null, 1);
+const backupName = () => `sapna-health-backup-${today()}.txt`;
+export const saveBackup = (d: AppData) => saveTextFile(backupName(), backupText(d));
+export const shareBackup = (d: AppData) => shareTextFile(backupName(), backupText(d), 'Save Sapna Health backup');
 
 export function readBackupFile(text: string): AppData | null {
   try {
-    const j = JSON.parse(text);
+    // Tolerate files that picked up a BOM or stray text from a messenger.
+    const t = text.replace(/^\uFEFF/, '');
+    const j = JSON.parse(t.slice(Math.max(0, t.indexOf('{')), t.lastIndexOf('}') + 1));
     if (j && j.type === 'sapna-health-backup' && j.data && typeof j.data === 'object') return j.data as AppData;
     if (j && j.v === 1 && Array.isArray(j.food)) return j as AppData;
     return null;
@@ -143,7 +153,8 @@ export function shareReport(d: AppData, c: Content): Promise<boolean> {
   const avgK = logged.length ? Math.round(logged.reduce((s, x) => s + x.kcal, 0) / logged.length) : 0;
   const avgP = logged.length ? Math.round(logged.reduce((s, x) => s + x.protein, 0) / logged.length) : 0;
   const text = `My week: ${avgK} kcal and ${avgP} g protein a day on average, ${r.workouts.length} workout${r.workouts.length === 1 ? '' : 's'}. Open the file in Admin for my full dashboard.`;
-  return shareJsonFile(`sapna-dashboard-${today()}.json`, r, 'Send Rishu my dashboard', text);
+  void text;
+  return shareTextFile(`sapna-dashboard-${today()}.txt`, JSON.stringify(r), 'Send Rishu my dashboard');
 }
 
 /* ---------- Reminders: see notify.ts ---------- */
