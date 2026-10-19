@@ -1,127 +1,13 @@
 {
- "version": 6,
- "updatedAt": "2026-10-19T18:06:48.473Z",
+ "version": 7,
+ "updatedAt": "2026-10-19T19:36:47.000Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
   "water": 8
  },
- "plans": [
-  {
-   "id": "plan-mvf7ovd6",
-   "title": "test2",
-   "note": "Rest 1–1.5 min between sets.",
-   "moves": [
-    {
-     "exId": "leg-curl",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "local-lat-pulldown",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "local-cable-row",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    }
-   ],
-   "days": [
-    1
-   ]
-  },
-  {
-   "id": "plan-mvfja8r4",
-   "title": "test 3",
-   "note": "Rest 1–1.5 min between sets.",
-   "moves": [
-    {
-     "exId": "quads-dumbbell-goblet-squat",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps",
-     "yt": "https://youtube.com/shorts/7-80HiXX1K8?si=OdaNIiwh8ZQD4TH7"
-    },
-    {
-     "exId": "glutes-barbell-clean-grip-front-squat",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "glutes-one-leg-squat",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    }
-   ],
-   "focus": "legs",
-   "days": [
-    2
-   ]
-  }
- ],
- "exercises": [
-  {
-   "name": "Seated leg curl",
-   "group": "exercises",
-   "part": "legs",
-   "equipment": "machine",
-   "gif": "media/leg-curl.gif",
-   "cue": "Control the way back up.",
-   "id": "leg-curl"
-  },
-  {
-   "id": "local-lat-pulldown",
-   "name": "Lat pulldown",
-   "group": "exercises",
-   "part": "back",
-   "equipment": "local",
-   "gif": "media/lat-pulldown.gif",
-   "cue": ""
-  },
-  {
-   "id": "local-cable-row",
-   "name": "Seated cable row",
-   "group": "exercises",
-   "part": "back",
-   "equipment": "local",
-   "gif": "media/cable-row.gif",
-   "cue": ""
-  },
-  {
-   "id": "quads-dumbbell-goblet-squat",
-   "name": "Dumbbell Goblet Squat",
-   "group": "exercises",
-   "part": "legs",
-   "equipment": "dumbbell",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/quads/dumbbell-goblet-squat.gif",
-   "cue": ""
-  },
-  {
-   "id": "glutes-barbell-clean-grip-front-squat",
-   "name": "Barbell Clean Grip Front Squat",
-   "group": "exercises",
-   "part": "legs",
-   "equipment": "barbell",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/barbell-clean-grip-front-squat.gif",
-   "cue": ""
-  },
-  {
-   "id": "glutes-one-leg-squat",
-   "name": "One Leg Squat",
-   "group": "exercises",
-   "part": "legs",
-   "equipment": "bodyweight",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/one-leg-squat.gif",
-   "cue": ""
-  }
- ],
+ "plans": [],
+ "exercises": [],
  "foods": [
   {
    "id": "pkg-thf-zero-maida-ww-bread",
