@@ -394,3 +394,4 @@ p { margin: 0; }
 @keyframes pop-b { from { transform: scale(0.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 @keyframes draw-a { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 @keyframes draw-b { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+.pill.warn { background: color-mix(in srgb, var(--danger) 18%, transparent); color: var(--danger); }

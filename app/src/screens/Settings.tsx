@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react';
 import { BUNDLED, refreshContent } from '../lib/content';
 import { DOW_FULL, DOW_LETTER, keyOf, shortLabel } from '../lib/dates';
-import { exportBackup, haptic, readBackupFile, shareReport, syncReminders } from '../lib/native';
+import { exportBackup, haptic, readBackupFile, syncReminders } from '../lib/native';
+import { SyncCard } from '../syncui';
 import { useStore } from '../lib/store';
 import { emptyData, Reminders, ShareCycle } from '../lib/types';
 import { FullSheet, Icon, Sheet, Stepper, toast, Toggle, TopBar } from '../ui';
@@ -59,7 +60,7 @@ export default function Settings({ open, onClose }: { open: boolean; onClose: ()
 
         <section className="card stack" style={{ gap: 14 }} aria-label="Backup">
           <div className="row"><span className="acc-t"><Icon name="lock" /></span><h2 className="h2" style={{ fontSize: 19 }}>Your data</h2></div>
-          <p className="small muted">Everything is stored only on this phone. Android's backup (Settings › Google › Backup) copies it to your Google account automatically, so reinstalling restores it. For extra safety, save a file now and then.</p>
+          <p className="small muted">Everything is stored on this phone. Android's backup (Settings › Google › Backup) copies it to your Google account automatically, so reinstalling restores it. For extra safety, save a file now and then.</p>
           <div className="grid2">
             <button type="button" className="btn" onClick={backup}><Icon name="share" size={18} /> Export</button>
             <button type="button" className="btn ghost" onClick={() => fileRef.current?.click()}>Restore</button>
@@ -68,11 +69,10 @@ export default function Settings({ open, onClose }: { open: boolean; onClose: ()
           <p className="small faint">{data.lastBackupAt ? `Last exported ${shortLabel(keyOf(new Date(data.lastBackupAt)))}` : 'Never exported'} · {data.food.length} food logs · {data.sessions.length} workout{data.sessions.length === 1 ? '' : 's'}</p>
         </section>
 
-        <section className="card stack" style={{ gap: 10 }} aria-label="Share with Rishu" data-acc="cycle">
-          <h2 className="h2" style={{ fontSize: 19 }}>Send Rishu my dashboard</h2>
-          <p className="small muted">One file with your full history, so Rishu sees your dashboard. Only sent when you tap — never automatic.</p>
-          <button type="button" className="btn" onClick={async () => { const ok = await shareReport(data, content); if (ok) update((d) => ({ ...d, lastReportAt: Date.now() })); }}><Icon name="share" size={18} /> Send my dashboard</button>
-          <span className="h3" style={{ marginTop: 6 }}>Cycle in the report</span>
+        <SyncCard />
+
+        <section className="card stack" style={{ gap: 10 }} aria-label="Cycle sharing" data-acc="cycle">
+          <span className="h3">Cycle in what Rishu sees</span>
           <div className="chips" role="group" aria-label="Cycle sharing">
             {([['phase', 'Phase only'], ['all', 'Everything'], ['none', 'Nothing']] as [ShareCycle, string][]).map(([k, l]) => (
               <button key={k} type="button" className="chip" aria-pressed={p.shareCycle === k} onClick={() => setProfile({ shareCycle: k })}>{l}</button>

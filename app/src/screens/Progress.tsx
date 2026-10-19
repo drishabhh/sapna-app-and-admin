@@ -1,12 +1,15 @@
 import { logStreak, totalsOn } from '../lib/calc';
-import { addDays, DOW_SHORT, keyOf, parseKey, shortLabel, today, weekOf } from '../lib/dates';
-import { haptic, shareReport } from '../lib/native';
+import { addDays, DOW_SHORT, parseKey, shortLabel, today, weekOf } from '../lib/dates';
+import { haptic } from '../lib/native';
 import { useStore } from '../lib/store';
 import { Icon, Seg, Sheet, Stepper, toast } from '../ui';
 import { Num } from '../anim';
 import { TTL, useDraft } from '../lib/drafts';
+import { SyncStatus } from '../syncui';
+import { useNav } from '../nav';
 
 export default function ProgressScreen() {
+  const nav = useNav();
   const { data, content, update } = useStore();
   const [metric, setMetric] = useDraft<'kcal' | 'protein'>('prog.metric', 'kcal');
   const [anchor, setAnchor] = useDraft('prog.anchor', today());
@@ -37,11 +40,6 @@ export default function ProgressScreen() {
   });
   const change = ws.length > 1 ? Number((ws[ws.length - 1].kg - ws[0].kg).toFixed(1)) : 0;
 
-  async function send() {
-    haptic.tap();
-    const ok = await shareReport(data, content);
-    if (ok) update((d) => ({ ...d, lastReportAt: Date.now() }));
-  }
 
   return (
     <div className="screen" data-acc="progress">
@@ -92,12 +90,7 @@ export default function ProgressScreen() {
           ) : <p className="small muted">Weigh in once a week, same morning — the trend line appears after two entries.</p>}
         </section>
 
-        <section className="card ink stack" style={{ gap: 10 }} aria-label="Send report" data-acc="cycle">
-          <p className="h2" style={{ fontSize: 20 }}>Send Rishu your dashboard</p>
-          <p className="small muted">Shares one file with your full history (every meal, workouts, steps, water, weight{data.profile.shareCycle !== 'none' && data.profile.cycleEnabled ? data.profile.shareCycle === 'phase' ? ', cycle phase' : ', cycle details' : ''}) via WhatsApp or anywhere you choose. Nothing is sent automatically.</p>
-          <button type="button" className="btn" onClick={send}><Icon name="share" size={18} /> Send my dashboard</button>
-          {data.lastReportAt ? <p className="small muted">Last shared {keyOf(new Date(data.lastReportAt)) === today() ? 'today' : shortLabel(keyOf(new Date(data.lastReportAt)))}</p> : null}
-        </section>
+        <SyncStatus onOpenSettings={nav.openSettings} />
       </div>
 
       <Sheet open={weighOpen} onClose={() => setWeighOpen(false)} label="Log weigh-in">

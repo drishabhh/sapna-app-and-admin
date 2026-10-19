@@ -19,6 +19,8 @@ import { Icon, popBack, ToastHost } from './ui';
 import { syncNightSteps, syncWidget } from './streak';
 import { requestSteps } from './lib/intents';
 import { clearDrafts, getDraft, setDraft, useDraft } from './lib/drafts';
+import { pushReport } from './lib/sync';
+import { buildReport } from './lib/native';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'today', label: 'Today', icon: 'home' },
@@ -52,6 +54,25 @@ function Shell() {
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remKey]);
+
+  // Live sync with Rishu's dashboard: shortly after changes, when she leaves the app, and on launch.
+  const { content } = useStore();
+  const latest = useRef({ data, content });
+  latest.current = { data, content };
+  useEffect(() => {
+    if (!ready || !data.onboarded) return;
+    const t = window.setTimeout(() => { pushReport(buildReport(data, content), { minGapMs: 90_000 }).catch(() => {}); }, 20_000);
+    return () => window.clearTimeout(t);
+  }, [ready, data, content]);
+  useEffect(() => {
+    if (!ready || !data.onboarded) return;
+    const now = () => { const { data: d, content: c } = latest.current; pushReport(buildReport(d, c)).catch(() => {}); };
+    const first = window.setTimeout(now, 3000);
+    const onHide = () => { if (document.visibilityState === 'hidden') now(); };
+    document.addEventListener('visibilitychange', onHide);
+    const sub = CapApp.addListener('appStateChange', ({ isActive }) => { if (!isActive) now(); });
+    return () => { window.clearTimeout(first); document.removeEventListener('visibilitychange', onHide); sub.then((x) => x.remove()).catch(() => {}); };
+  }, [ready, data.onboarded]);
 
   // Keep the home-screen streak widget in step with her logs.
   useEffect(() => {

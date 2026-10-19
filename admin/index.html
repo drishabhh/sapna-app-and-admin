@@ -84,6 +84,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;colo
 .ok{color:var(--ok);font-weight:700}.bad{color:var(--danger);font-weight:700}
 .trow{cursor:pointer}.trow:hover td{background:var(--card2)}
 .ib:disabled{opacity:.35}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}.steps a{color:var(--acc)}
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px;min-height:96px;word-break:break-all}
+.live{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:6px;box-shadow:0 0 8px var(--ok);vertical-align:1px}
 
 </style>
 </head>
@@ -281,10 +284,88 @@ function weightChart(m) {
   </svg>`;
 }
 
+/* --- Live sync: her app writes an encrypted dashboard to a PRIVATE repo; we decrypt it here --- */
+const LS_SYNC = 'sapna_admin_sync_v1';
+const SYNC_FILE = 'dashboard.enc.json';
+if (!S.sync) S.sync = { status: 'idle' };
+const b64u = (bytes) => { let s = ''; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+const unb64u = (s) => { const bin = atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)); const o = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) o[i] = bin.charCodeAt(i); return o; };
+function syncCfg() { try { return JSON.parse(localStorage.getItem(LS_SYNC) || 'null'); } catch { return null; } }
+function pairingCode(c) { return 'SAPNA-SYNC-1:' + b64u(new TextEncoder().encode(JSON.stringify({ o: c.o, r: c.r, b: c.b, t: c.t, k: c.k }))); }
+function parsePairing(code) { const m = String(code).trim().match(/SAPNA-SYNC-1:([A-Za-z0-9_-]+)/); if (!m) return null; try { const j = JSON.parse(new TextDecoder().decode(unb64u(m[1]))); return j.o && j.r && j.t && j.k ? { o: j.o, r: j.r, b: j.b || 'main', t: j.t, k: j.k } : null; } catch { return null; } }
+async function syncGh(c, path, accept = 'application/vnd.github+json') {
+  return fetch(`https://api.github.com/repos/${c.o}/${c.r}${path}`, { headers: { Authorization: `Bearer ${c.t}`, Accept: accept, 'X-GitHub-Api-Version': '2022-11-28' }, cache: 'no-store' });
+}
+async function fetchSync() {
+  const c = syncCfg(); if (!c) return;
+  S.sync = { ...S.sync, status: 'loading' };
+  try {
+    const res = await syncGh(c, `/contents/${SYNC_FILE}?ref=${encodeURIComponent(c.b)}&t=${Date.now()}`, 'application/vnd.github.raw');
+    if (res.status === 404) { S.sync = { status: 'empty', fetchedAt: Date.now() }; return; }
+    if (res.status === 401) throw new Error('The sync token expired or was revoked — make a new one and a new pairing code.');
+    if (!res.ok) throw new Error(`GitHub ${res.status}`);
+    const env = JSON.parse(await res.text());
+    if (env.type !== 'sapna-sync') throw new Error('Unexpected file in the sync repo.');
+    const key = await crypto.subtle.importKey('raw', unb64u(c.k), 'AES-GCM', false, ['decrypt']);
+    let bytes;
+    try { bytes = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64u(env.iv) }, key, unb64u(env.ct))); }
+    catch { throw new Error('Can’t unlock her data with this browser’s key. Paste the pairing code she is using (Live sync → Use an existing code).'); }
+    if (env.z) bytes = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer());
+    const rep = JSON.parse(new TextDecoder().decode(bytes));
+    S.syncReport = rep; S.sync = { status: 'ok', fetchedAt: Date.now(), at: env.at };
+  } catch (e) {
+    S.sync = { status: 'error', msg: e.message || 'Could not reach GitHub', fetchedAt: Date.now() };
+  }
+}
+function currentReport() {
+  const a = S.syncReport, b = S.report;
+  if (a && b) return new Date(b.generatedAt) > new Date(a.generatedAt) ? b : a;
+  return a || b || null;
+}
+
+function vSyncSetup() {
+  return `<div class="card stack" id="syncsetup"><p class="eyebrow">One-time setup · 3 minutes</p><h2>Live sync with her phone</h2>
+    <p class="small muted">Her app encrypts her dashboard on her phone and saves it to a <b>private</b> repo of yours; this page unlocks it. No more files.</p>
+    <ol class="small steps">
+      <li><a href="https://github.com/new" target="_blank" rel="noopener">github.com/new</a> → name it <b>sapna-sync</b> → choose <b>Private</b> → Create.</li>
+      <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">New fine-grained token</a> → Expiration: the longest offered → Repository access: <b>Only select repositories → sapna-sync</b> → Permissions: <b>Contents: Read and write</b> → Generate.</li>
+      <li>Paste both below, then send Sapna the pairing code.</li>
+    </ol>
+    <div class="g2"><label class="f">Private repo<input class="input" id="sr" value="drishabhh/sapna-sync" autocapitalize="off" spellcheck="false"></label>
+      <label class="f">Token (github_pat_…)<input class="input" id="st" type="password" autocomplete="off" spellcheck="false"></label></div>
+    <button class="btn" type="button" id="smake">Create pairing code</button>
+    <details><summary class="small muted" style="cursor:pointer">Use an existing code (e.g. on a new phone)</summary><div class="stack" style="margin-top:8px"><textarea class="input" id="scode" placeholder="SAPNA-SYNC-1:…"></textarea><button class="btn ghost sm" type="button" id="suse">Use this code</button></div></details>
+  </div>`;
+}
+function vSyncCard(c) {
+  const code = pairingCode(c);
+  return `<div class="card stack"><div class="between"><h2>Live sync</h2><span class="pill">${esc(c.o)}/${esc(c.r)}</span></div>
+    ${S.showPair ? `<p class="small muted">Send this to Sapna. In her app: <b>Settings → Live sync with Rishu → paste → Connect</b>. It contains the key to her data — share it only with her.</p>
+      <textarea class="input mono" id="pcode" readonly>${esc(code)}</textarea>
+      <div class="row wrapr"><button class="btn sm" type="button" id="pcopy">Copy code</button>${navigator.share ? '<button class="btn ghost sm" type="button" id="pshare">Share…</button>' : ''}<button class="btn ghost sm" type="button" id="phide">Hide</button></div>`
+      : `<div class="row wrapr"><button class="btn ghost sm" type="button" id="pshow">Show pairing code</button><button class="btn danger sm" type="button" id="soff">Disconnect this browser</button></div>`}
+  </div>`;
+}
+const emergencyFile = () => `<details class="card"><summary><strong>Emergency: open a file</strong> <span class="small muted">only if sync isn’t working</span></summary><div class="stack" style="margin-top:10px"><p class="small muted">If she taps “Send my dashboard file” in her app’s Settings and sends it on WhatsApp, open it here. It stays in this browser.</p><label class="btn ghost sm" style="cursor:pointer;align-self:flex-start">Open file<input id="rep" type="file" accept="application/json,.json" class="sr"></label></div></details>`;
+
 function vStatus() {
-  const open = `<label class="btn ${S.report ? 'ghost sm' : ''}" style="cursor:pointer">${S.report ? 'Open newer file' : 'Open her dashboard file'}<input id="rep" type="file" accept="application/json,.json" class="sr"></label>`;
-  if (!S.report) return `<div class="stack" style="gap:16px"><p class="muted">When Sapna taps <b>Send my dashboard</b> (Progress tab or Settings) and sends you the file on WhatsApp, open it here. It stays in this browser — nothing is uploaded.</p>${open}</div>`;
-  const m = normReport(S.report);
+  const c = syncCfg();
+  const rep = currentReport();
+  const tail = (c ? vSyncCard(c) : '') + emergencyFile();
+  if (!rep) {
+    const st = S.sync;
+    const msg = !c ? '' : st.status === 'error' ? `<div class="card warn"><strong>Sync problem</strong><p class="small muted">${esc(st.msg)}</p><button class="btn ghost sm" type="button" id="srefresh">Try again</button></div>`
+      : st.status === 'empty' ? `<div class="card"><strong>Waiting for her phone</strong><p class="small muted">Once she pastes the pairing code in her app (Settings → Live sync with Rishu), her dashboard appears here.</p><button class="btn ghost sm" type="button" id="srefresh">Check again</button></div>`
+      : `<p class="muted">Loading her dashboard…</p>`;
+    if (c && !S.showPairOnce) { S.showPair = true; S.showPairOnce = true; }
+    return `<div class="stack" style="gap:16px">${c ? msg + vSyncCard(c) : vSyncSetup()}${emergencyFile()}</div>`;
+  }
+  return vDash(rep, c) + `<div class="stack" style="gap:16px;margin-top:16px">${tail}</div>`;
+}
+
+function vDash(rep, c) {
+  const fromSync = rep === S.syncReport;
+  const m = normReport(rep);
   const T = m.T;
   if (!S.dash.day || S.dash.day > m.last || S.dash.day < m.first) S.dash.day = m.last;
   const days = rangeDays(m);
@@ -297,7 +378,7 @@ function vStatus() {
   const wNow = m.weighIns.at(-1), wStart = m.r.profile?.startKg ?? m.weighIns[0]?.kg;
   const ageH = (Date.now() - new Date(m.r.generatedAt).getTime()) / 3600000;
   const fresh = ageH < 1 ? 'just now' : ageH < 24 ? `${Math.round(ageH)} h ago` : `${Math.round(ageH / 24)} days ago`;
-  const stale = ageH > 48 ? `<div class="card warn"><strong>This is ${Math.round(ageH / 24)} days old.</strong><p class="small muted">Ask her to tap “Send my dashboard” for the latest.</p></div>` : '';
+  const stale = ageH > 48 ? `<div class="card warn"><strong>Last update ${Math.round(ageH / 24)} days ago.</strong><p class="small muted">${fromSync ? 'Her phone syncs whenever she opens the app — she may not have opened it.' : 'This is an old file.'}${S.sync.status === 'error' ? ' Sync error: ' + esc(S.sync.msg) : ''}</p></div>` : (S.sync.status === 'error' && c ? `<div class="card warn small"><strong>Sync problem:</strong> ${esc(S.sync.msg)}</div>` : '');
   const v1 = (m.r.v || 1) < 2 ? `<div class="card warn small">Older 7-day file — calories per food item and full history need her app updated to 1.5.3+.</div>` : '';
 
   // --- day detail
@@ -350,7 +431,7 @@ function vStatus() {
   const cyc = m.r.cycle ? `<div class="card" style="--acc:var(--pink)"><p class="eyebrow" style="color:var(--pink)">Cycle · shared by her</p><p class="big" style="font-size:24px;margin-top:6px">${esc(m.r.cycle.phase)} · day ${esc(m.r.cycle.day)}</p><p class="small muted">${m.r.cycle.daysToNext >= 0 ? `Next period in about ${m.r.cycle.daysToNext} days` : `Period ${-m.r.cycle.daysToNext} days late`}</p></div>` : '';
 
   return `<div class="stack dash" style="gap:16px">
-    <div class="between wrapr"><p class="muted small">From her phone · ${fresh}${m.r.streaks ? ` · logging streak <b>${m.r.streaks.logging}</b> · workout streak <b>${m.r.streaks.workout}</b>` : ''}</p>${open}</div>
+    <div class="between wrapr"><p class="muted small">${fromSync ? '<span class="live"></span>Live from her phone' : 'From a file'} · updated ${fresh}${m.r.streaks ? ` · logging streak <b>${m.r.streaks.logging}</b> · workout streak <b>${m.r.streaks.workout}</b>` : ''}</p>${c ? `<button class="btn ghost sm" type="button" id="srefresh">${S.sync.status === 'loading' ? 'Refreshing…' : 'Refresh'}</button>` : ''}</div>
     ${stale}${v1}
     <div class="chips" role="group" aria-label="Range">${[['7', '7 days'], ['30', '30 days'], ['all', 'All time']].map(([v, l]) => `<button class="chip" type="button" data-range="${v}" aria-pressed="${S.dash.range === v}">${l}</button>`).join('')}</div>
     <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
@@ -386,6 +467,41 @@ function sessBody(s) {
 }
 
 function wireStatus() {
+  const c = syncCfg();
+  const refresh = async () => { await fetchSync(); if (S.tab === 'status') { const y = scrollY; render(); scrollTo(0, y); } };
+  if (c && S.sync.status !== 'loading' && (!S.sync.fetchedAt || Date.now() - S.sync.fetchedAt > 60000)) refresh();
+  const rb = $('#srefresh'); if (rb) rb.onclick = () => { S.sync.fetchedAt = 0; rb.textContent = 'Refreshing…'; refresh(); };
+  const mk = $('#smake');
+  if (mk) mk.onclick = async () => {
+    const [o, r] = $('#sr').value.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\.git$/, '').split('/');
+    const t = $('#st').value.trim();
+    if (!o || !r) return toast('Repo should look like drishabhh/sapna-sync');
+    if (!/^(github_pat_|ghp_)/.test(t)) return toast('Paste the token that starts with github_pat_');
+    mk.disabled = true; mk.textContent = 'Checking…';
+    try {
+      const res = await syncGh({ o, r, t }, '');
+      const j = await res.json().catch(() => ({}));
+      if (res.status === 401) throw new Error('GitHub rejected that token.');
+      if (res.status === 404) throw new Error('Repo not found, or the token was not given access to it.');
+      if (!res.ok) throw new Error(j.message || `GitHub ${res.status}`);
+      if (!j.private) throw new Error('That repo is PUBLIC. Her data must go to a private repo — make it private first.');
+      const k = b64u(crypto.getRandomValues(new Uint8Array(32)));
+      localStorage.setItem(LS_SYNC, JSON.stringify({ o, r, b: j.default_branch || 'main', t, k }));
+      S.showPair = true; S.showPairOnce = true; S.sync = { status: 'idle' }; S.syncReport = null;
+      render(); toast('Pairing code ready — send it to Sapna');
+    } catch (e) { toast(e.message); mk.disabled = false; mk.textContent = 'Create pairing code'; }
+  };
+  const use = $('#suse');
+  if (use) use.onclick = () => {
+    const pc = parsePairing($('#scode').value);
+    if (!pc) return toast('That is not a SAPNA-SYNC-1 code');
+    localStorage.setItem(LS_SYNC, JSON.stringify(pc)); S.sync = { status: 'idle' }; S.syncReport = null; S.showPair = false; render();
+  };
+  const cp = $('#pcopy'); if (cp) cp.onclick = async () => { try { await navigator.clipboard.writeText($('#pcode').value); toast('Copied — paste it to Sapna on WhatsApp'); } catch { $('#pcode').select(); toast('Select all and copy'); } };
+  const sh = $('#pshare'); if (sh) sh.onclick = () => navigator.share({ text: `Paste this in Sapna Health → Settings → Live sync with Rishu:\n\n${$('#pcode').value}` }).catch(() => {});
+  const hd = $('#phide'); if (hd) hd.onclick = () => { S.showPair = false; render(); };
+  const sw = $('#pshow'); if (sw) sw.onclick = () => { S.showPair = true; render(); };
+  const off = $('#soff'); if (off) off.onclick = () => { if (!confirm('Disconnect this browser from live sync? Her phone keeps syncing; you can reconnect with the pairing code.')) return; localStorage.removeItem(LS_SYNC); S.syncReport = null; S.sync = { status: 'idle' }; render(); };
   const inp = $('#rep');
   if (inp) inp.onchange = async () => {
     const f = inp.files[0]; if (!f) return;
@@ -555,6 +671,7 @@ function wireSettings() {
   $('#logout').onclick = () => { localStorage.removeItem(LS_TOKEN); S.token = ''; viewSetup(); };
 }
 
+document.addEventListener('visibilitychange', () => { if (!document.hidden && S.tab === 'status' && syncCfg() && S.content) { S.sync.fetchedAt = 0; render(); } });
 window.addEventListener('beforeunload', (e) => { if (S.dirty) { e.preventDefault(); e.returnValue = ''; } });
 
 async function boot() {

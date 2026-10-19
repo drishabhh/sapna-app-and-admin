@@ -261,7 +261,7 @@ export default function Onboarding() {
           </div>
           <div className="row small muted" style={{ alignItems: 'flex-start' }}>
             <Icon name="lock" size={18} />
-            <p>Your logs never leave this phone. Android backs them up to your Google account, so reinstalling brings everything back.</p>
+            <p>Your logs live on this phone (Android backs them up to your Google account). Rishu sees them only if you connect live sync in Settings — encrypted first.</p>
           </div>
           <span className="spacer" />
           <button type="button" className="btn lg block" onClick={finish}>Go to Today</button>
