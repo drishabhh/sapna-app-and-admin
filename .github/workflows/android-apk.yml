@@ -1,4 +1,5 @@
 name: Build Sapna Health APK
+# Firebase config + push key come from repository secrets (GOOGLE_SERVICES_JSON, FCM_SERVICE_ACCOUNT).
 
 on:
   push:
