@@ -69,9 +69,9 @@ export default function Settings({ open, onClose }: { open: boolean; onClose: ()
         </section>
 
         <section className="card stack" style={{ gap: 10 }} aria-label="Share with Rishu" data-acc="cycle">
-          <h2 className="h2" style={{ fontSize: 19 }}>Send Rishu my week</h2>
-          <p className="small muted">A summary file you choose to share — never automatic.</p>
-          <button type="button" className="btn" onClick={async () => { const ok = await shareReport(data, content); if (ok) update((d) => ({ ...d, lastReportAt: Date.now() })); }}><Icon name="share" size={18} /> Share my week</button>
+          <h2 className="h2" style={{ fontSize: 19 }}>Send Rishu my dashboard</h2>
+          <p className="small muted">One file with your full history, so Rishu sees your dashboard. Only sent when you tap — never automatic.</p>
+          <button type="button" className="btn" onClick={async () => { const ok = await shareReport(data, content); if (ok) update((d) => ({ ...d, lastReportAt: Date.now() })); }}><Icon name="share" size={18} /> Send my dashboard</button>
           <span className="h3" style={{ marginTop: 6 }}>Cycle in the report</span>
           <div className="chips" role="group" aria-label="Cycle sharing">
             {([['phase', 'Phase only'], ['all', 'Everything'], ['none', 'Nothing']] as [ShareCycle, string][]).map(([k, l]) => (

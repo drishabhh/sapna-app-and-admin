@@ -2,7 +2,9 @@ import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import { Share } from '@capacitor/share';
-import { cycleInfo, last7, PHASE_COPY, totalsOn } from './calc';
+import { activeDays, bestStreak, cycleInfo, last7, logStreak, PHASE_COPY, totalsOn } from './calc';
+import { burnedOn, latestWeight, sessionKcal } from './burn';
+import { workoutDays, workoutState } from './workoutStreak';
 import { today } from './dates';
 import { AppData, Content, MEALS } from './types';
 
@@ -63,9 +65,16 @@ export function readBackupFile(text: string): AppData | null {
   }
 }
 
-/* ---------- Weekly report for Rishu (only leaves the phone when she shares it) ---------- */
+/* ---------- Dashboard file for Rishu (only leaves the phone when she shares it) ---------- */
 
+/**
+ * v2 = her whole history, so the admin page can show a full dashboard:
+ * every food item, water, steps, weigh-ins, workout sessions (moves + sets) and burn.
+ * `days` (last 7) is kept so older admin pages still open it.
+ */
 export function buildReport(d: AppData, c: Content) {
+  const exName = (id: string) => c.exercises.find((e) => e.id === id)?.name || id;
+  const kg = latestWeight(d);
   const days = last7().map((date) => {
     const t = totalsOn(d, date);
     const meals: Record<string, string[]> = {};
@@ -75,38 +84,55 @@ export function buildReport(d: AppData, c: Content) {
     return { date, kcal: t.kcal, protein: t.protein, water: d.water[date] || 0, steps: d.steps[date] || 0, meals };
   });
   const from = days[0].date;
-  const workouts = d.sessions
-    .filter((s) => s.date >= from && s.sets.length)
+  const finished = d.sessions.filter((s) => s.sets.length && s.endedAt);
+  const workouts = finished
+    .filter((s) => s.date >= from)
     .map((s) => ({
       date: s.date,
       title: s.title,
       minutes: s.endedAt ? Math.round((s.endedAt - s.startedAt) / 60000) : null,
-      sets: s.sets.map((x) => ({ exId: x.exId, name: c.exercises.find((e) => e.id === x.exId)?.name || x.exId, kg: x.kg, reps: x.reps })),
+      sets: s.sets.map((x) => ({ exId: x.exId, name: exName(x.exId), kg: x.kg, reps: x.reps })),
     }));
+  const activity = new Set<string>([...Object.keys(d.steps), ...finished.map((s) => s.date)]);
+  const burned: Record<string, number> = {};
+  activity.forEach((k) => { const b = burnedOn(d, k); if (b > 0) burned[k] = b; });
+
   let cycle: unknown = undefined;
   if (d.profile.cycleEnabled && d.profile.shareCycle !== 'none') {
     const info = cycleInfo(d);
     if (info) {
-      cycle = { phase: PHASE_COPY[info.phase].label, day: info.day, daysToNext: info.daysToNext };
-      if (d.profile.shareCycle === 'all') {
-        const recent: Record<string, unknown> = {};
-        Object.keys(d.cycle)
-          .filter((k) => k >= from)
-          .forEach((k) => (recent[k] = d.cycle[k]));
-        (cycle as Record<string, unknown>).days = recent;
-      }
+      cycle = { phase: PHASE_COPY[info.phase].label, day: info.day, length: info.length, daysToNext: info.daysToNext };
+      if (d.profile.shareCycle === 'all') (cycle as Record<string, unknown>).days = d.cycle;
     }
   }
+  const wd = workoutDays(d.sessions);
+  const ws = workoutState(wd, d.profile.gymDays, today());
   return {
     type: 'sapna-health-report',
-    v: 1,
+    v: 2,
     generatedAt: new Date().toISOString(),
     name: d.profile.name,
     goal: d.profile.goal,
+    profile: { heightCm: d.profile.heightCm, startKg: d.profile.weightKg, gymDays: d.profile.gymDays, diet: d.profile.diet, activity: d.profile.activity, since: d.createdAt },
     targets: c.targets,
+    weightKg: kg,
+    streaks: { logging: logStreak(d), bestLogging: bestStreak(activeDays(d)), workout: ws.streak },
+    food: d.food.map((f) => ({ date: f.date, meal: f.meal, name: f.name, portion: f.portion, mult: f.mult, kcal: f.kcal, protein: f.protein, at: f.at })),
+    water: d.water,
+    steps: d.steps,
+    burned,
+    weighIns: d.weighIns,
+    sessions: finished.map((s) => ({
+      date: s.date,
+      title: s.title,
+      startedAt: s.startedAt,
+      minutes: Math.max(1, Math.round(((s.endedAt as number) - s.startedAt) / 60000)),
+      kcal: s.kcal ?? sessionKcal(s, kg),
+      done: (s.completed || []).map(exName),
+      sets: s.sets.map((x) => ({ name: exName(x.exId), kg: x.kg, reps: x.reps })),
+    })),
     days,
     workouts,
-    weighIns: d.weighIns.slice(-8),
     cycle,
   };
 }
@@ -116,8 +142,8 @@ export function shareReport(d: AppData, c: Content): Promise<boolean> {
   const logged = r.days.filter((x) => x.kcal > 0);
   const avgK = logged.length ? Math.round(logged.reduce((s, x) => s + x.kcal, 0) / logged.length) : 0;
   const avgP = logged.length ? Math.round(logged.reduce((s, x) => s + x.protein, 0) / logged.length) : 0;
-  const text = `My week: ${avgK} kcal and ${avgP} g protein a day on average, ${r.workouts.length} workout${r.workouts.length === 1 ? '' : 's'}. Open the file in Admin for the full picture.`;
-  return shareJsonFile(`sapna-week-${today()}.json`, r, 'Send Rishu my week', text);
+  const text = `My week: ${avgK} kcal and ${avgP} g protein a day on average, ${r.workouts.length} workout${r.workouts.length === 1 ? '' : 's'}. Open the file in Admin for my full dashboard.`;
+  return shareJsonFile(`sapna-dashboard-${today()}.json`, r, 'Send Rishu my dashboard', text);
 }
 
 /* ---------- Reminders: see notify.ts ---------- */

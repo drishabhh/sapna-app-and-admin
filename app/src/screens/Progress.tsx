@@ -93,9 +93,9 @@ export default function ProgressScreen() {
         </section>
 
         <section className="card ink stack" style={{ gap: 10 }} aria-label="Send report" data-acc="cycle">
-          <p className="h2" style={{ fontSize: 20 }}>Send Rishu your week</p>
-          <p className="small muted">Shares a summary file (food, workouts, weight{data.profile.shareCycle !== 'none' && data.profile.cycleEnabled ? data.profile.shareCycle === 'phase' ? ', cycle phase' : ', cycle details' : ''}) via WhatsApp or anywhere you choose. Nothing is sent automatically.</p>
-          <button type="button" className="btn" onClick={send}><Icon name="share" size={18} /> Share my week</button>
+          <p className="h2" style={{ fontSize: 20 }}>Send Rishu your dashboard</p>
+          <p className="small muted">Shares one file with your full history (every meal, workouts, steps, water, weight{data.profile.shareCycle !== 'none' && data.profile.cycleEnabled ? data.profile.shareCycle === 'phase' ? ', cycle phase' : ', cycle details' : ''}) via WhatsApp or anywhere you choose. Nothing is sent automatically.</p>
+          <button type="button" className="btn" onClick={send}><Icon name="share" size={18} /> Send my dashboard</button>
           {data.lastReportAt ? <p className="small muted">Last shared {keyOf(new Date(data.lastReportAt)) === today() ? 'today' : shortLabel(keyOf(new Date(data.lastReportAt)))}</p> : null}
         </section>
       </div>
