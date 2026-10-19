@@ -22,13 +22,15 @@ export function SyncCard() {
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [confirmOff, setConfirmOff] = useState(false);
+  const [replacing, setReplacing] = useState(false);
+  const tokenProblem = !!cfg?.error && /code|key|access|expired|removed/i.test(cfg.error);
   const report = () => buildReport(data, content) as unknown as Record<string, unknown>;
 
   async function connect() {
     setBusy(true);
     const r = await connectSync(code, report());
     setBusy(false);
-    if (r.ok) { haptic.success(); setCode(''); toast('Connected — Rishu now sees your dashboard live'); }
+    if (r.ok) { haptic.success(); setCode(''); setReplacing(false); toast('Connected — Rishu now sees your dashboard live'); }
     else toast(r.error || 'Could not connect');
   }
   async function now() {
@@ -49,8 +51,19 @@ export function SyncCard() {
           <p className="small muted">Your dashboard (meals, workouts, steps, water, weight{data.profile.cycleEnabled && data.profile.shareCycle !== 'none' ? ', cycle as chosen below' : ''}) is encrypted on this phone and updates for Rishu whenever you use the app.</p>
           <p className="small"><strong>Last synced:</strong> {ago(cfg.lastAt)}</p>
           {cfg.error ? <p className="small" style={{ color: 'var(--danger)' }}>{cfg.error}</p> : null}
+          {replacing || tokenProblem ? (
+            <div className="stack" style={{ gap: 8 }}>
+              <p className="small muted">Paste the new code Rishu sent. Your data stays as it is.</p>
+              <textarea className="input" rows={3} value={code} onChange={(e) => setCode(e.target.value)} placeholder="SAPNA-SYNC-1:…" aria-label="New sync code from Rishu" style={{ minHeight: 84, padding: 12, fontSize: 13, fontFamily: 'ui-monospace, monospace' }} />
+              <div className="row" style={{ gap: 8 }}>
+                <button type="button" className="btn sm" disabled={busy || !code.trim()} onClick={connect}>{busy ? 'Connecting…' : 'Use new code'}</button>
+                {replacing && !tokenProblem ? <button type="button" className="btn sm quiet" onClick={() => { setReplacing(false); setCode(''); }}>Cancel</button> : null}
+              </div>
+            </div>
+          ) : null}
           <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
             <button type="button" className="btn sm" disabled={busy} onClick={now}><Icon name="history" size={16} /> {busy ? 'Syncing…' : 'Sync now'}</button>
+            {!replacing && !tokenProblem ? <button type="button" className="btn sm ghost" onClick={() => setReplacing(true)}>Paste new code</button> : null}
             {confirmOff ? (
               <button type="button" className="btn sm ghost" onClick={async () => { await disconnectSync(); setConfirmOff(false); toast('Live sync turned off'); }}>Tap again to turn off</button>
             ) : (

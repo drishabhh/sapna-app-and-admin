@@ -339,9 +339,15 @@ async function fetchSync() {
   const c = syncCfg(); if (!c) return;
   S.sync = { ...S.sync, status: 'loading' };
   try {
-    const res = await syncGh(c, `/contents/${SYNC_FILE}?ref=${encodeURIComponent(c.b)}&t=${Date.now()}`, 'application/vnd.github.raw');
+    const path = `/contents/${SYNC_FILE}?ref=${encodeURIComponent(c.b)}&t=${Date.now()}`;
+    let res = await syncGh(c, path, 'application/vnd.github.raw');
+    // Sync token dead? Reading also works with Rishu's main admin token if it covers the sync repo.
+    if ((res.status === 401 || res.status === 404) && S.token && S.token !== c.t) {
+      const alt = await syncGh({ ...c, t: S.token }, path, 'application/vnd.github.raw');
+      if (alt.ok) { res = alt; S.syncTokenDead = true; }
+    } else if (res.ok) S.syncTokenDead = false;
     if (res.status === 404) { S.sync = { status: 'empty', fetchedAt: Date.now() }; return; }
-    if (res.status === 401) throw new Error('The sync token expired or was revoked — make a new one and a new pairing code.');
+    if (res.status === 401) { S.syncTokenDead = true; throw new Error('The sync token stopped working (expired, deleted or regenerated). Tap “Update token”, paste the current token, and send Sapna the new code.'); }
     if (!res.ok) throw new Error(`GitHub ${res.status}`);
     const env = JSON.parse(await res.text());
     if (env.type !== 'sapna-sync') throw new Error('Unexpected file in the sync repo.');
@@ -382,7 +388,11 @@ function vSyncCard(c) {
     ${S.showPair ? `<p class="small muted">Send this to Sapna. In her app: <b>Settings → Live sync with Rishu → paste → Connect</b>. It contains the key to her data — share it only with her.</p>
       <textarea class="input mono" id="pcode" readonly>${esc(code)}</textarea>
       <div class="row wrapr"><button class="btn sm" type="button" id="pcopy">Copy code</button>${navigator.share ? '<button class="btn ghost sm" type="button" id="pshare">Share…</button>' : ''}<button class="btn ghost sm" type="button" id="phide">Hide</button></div>`
-      : `<div class="row wrapr"><button class="btn ghost sm" type="button" id="pshow">Show pairing code</button><button class="btn danger sm" type="button" id="soff">Disconnect this browser</button></div>`}
+      : `<div class="row wrapr"><button class="btn ghost sm" type="button" id="pshow">Show pairing code</button><button class="btn ghost sm" type="button" id="supd">Update token</button><button class="btn danger sm" type="button" id="soff">Disconnect this browser</button></div>`}
+    ${S.syncTokenDead || S.showUpd ? `<div class="card warn stack" style="gap:8px"><strong>Update the sync token</strong>
+      <p class="small muted">Paste the current value of your token that has <b>sapna-sync</b> with Contents: Read and write. Her encryption key stays the same — she just pastes the new code (Settings → Live sync → Paste new code).</p>
+      <input class="input" id="sutok" type="password" autocomplete="off" placeholder="github_pat_…">
+      <button class="btn sm" type="button" id="susave" style="align-self:flex-start">Check & make new code</button></div>` : ''}
   </div>`;
 }
 const emergencyFile = () => `<details class="card"><summary><strong>Emergency: open a file</strong> <span class="small muted">only if sync isn’t working</span></summary><div class="stack" style="margin-top:10px"><p class="small muted">If she taps “Send my dashboard file” in her app’s Settings and sends it on WhatsApp, open it here. It stays in this browser.</p><label class="btn ghost sm" style="cursor:pointer;align-self:flex-start">Open file<input id="rep" type="file" accept="application/json,text/plain,.json,.txt" class="sr"></label></div></details>`;
@@ -540,6 +550,24 @@ function wireStatus() {
   const sh = $('#pshare'); if (sh) sh.onclick = () => navigator.share({ text: `Paste this in Sapna Health → Settings → Live sync with Rishu:\n\n${$('#pcode').value}` }).catch(() => {});
   const hd = $('#phide'); if (hd) hd.onclick = () => { S.showPair = false; render(); };
   const sw = $('#pshow'); if (sw) sw.onclick = () => { S.showPair = true; render(); };
+  const up = $('#supd'); if (up) up.onclick = () => { S.showUpd = true; render(); $('#sutok')?.focus(); };
+  const us = $('#susave');
+  if (us) us.onclick = async () => {
+    const t = $('#sutok').value.trim(); const cfg = syncCfg(); if (!cfg) return;
+    if (!/^(github_pat_|ghp_)/.test(t)) return toast('Paste the token that starts with github_pat_');
+    us.disabled = true; us.textContent = 'Checking…';
+    try {
+      const res = await syncGh({ ...cfg, t }, '');
+      if (res.status === 401) throw new Error('GitHub rejected that token.');
+      if (res.status === 404) throw new Error('That token has no access to ' + cfg.o + '/' + cfg.r + '.');
+      const j = await res.json(); if (!j.private) throw new Error('The sync repo is public — make it private first.');
+      const w = await fetch(`https://api.github.com/repos/${cfg.o}/${cfg.r}/git/blobs`, { method: 'POST', headers: { Authorization: `Bearer ${t}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify({ content: 'write-check', encoding: 'utf-8' }) });
+      if (w.status !== 201 && w.status !== 409) throw new Error('That token can read sapna-sync but not write it — set Contents: Read and write.');
+      localStorage.setItem(LS_SYNC, JSON.stringify({ ...cfg, t }));
+      S.showUpd = false; S.syncTokenDead = false; S.showPair = true; S.sync = { status: 'idle' };
+      render(); toast('New pairing code ready — send it to Sapna');
+    } catch (e) { toast(e.message); us.disabled = false; us.textContent = 'Check & make new code'; }
+  };
   const off = $('#soff'); if (off) off.onclick = () => { if (!confirm('Disconnect this browser from live sync? Her phone keeps syncing; you can reconnect with the pairing code.')) return; localStorage.removeItem(LS_SYNC); S.syncReport = null; S.sync = { status: 'idle' }; render(); };
   const inp = $('#rep');
   if (inp) inp.onchange = async () => {
