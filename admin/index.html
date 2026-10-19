@@ -143,6 +143,35 @@ async function loadContent() {
     S.sha = null;
   }
 }
+/** Harmless write test: an unreferenced git blob. 201 = token can write this repo. */
+async function canWrite(token) {
+  const res = await fetch(`https://api.github.com/repos/${REPO.owner}/${REPO.name}/git/blobs`, { method: 'POST', headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${String(token).trim()}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ content: 'write-check', encoding: 'utf-8' }) });
+  return res.status === 201;
+}
+const WRITE_HELP = 'On GitHub open the token → Edit → Repository access: include <b>sapna-app-and-admin</b> (you can keep sapna-sync too) → Permissions: <b>Contents: Read and write</b> → Update.';
+/** Swap the saved token without reloading — unpublished changes stay. */
+function askToken(reason, then) {
+  document.getElementById('tokfix')?.remove();
+  const m = document.createElement('div'); m.className = 'modal'; m.id = 'tokfix';
+  m.innerHTML = `<div class="sheet stack" role="dialog" aria-label="Token">
+    <div class="between"><h2>Token can’t publish</h2><button class="ib" type="button" id="tfx">✕</button></div>
+    <p class="small muted">${reason}</p><p class="small">${WRITE_HELP}</p>
+    <p class="small muted">Then press Check again — or paste a different token that has that access. Your unpublished changes stay.</p>
+    <label class="f">Token<input class="input" id="tfv" type="password" autocomplete="off" placeholder="leave empty to re-check the saved one"></label>
+    <p class="small" id="tfe" style="color:var(--danger)"></p>
+    <button class="btn" type="button" id="tfs">Check again & publish</button></div>`;
+  document.body.appendChild(m);
+  const close = () => m.remove();
+  $('#tfx').onclick = close; m.onclick = (e) => { if (e.target === m) close(); };
+  $('#tfs').onclick = async () => {
+    const t = ($('#tfv').value || S.token).trim(); const b = $('#tfs'); b.disabled = true; b.textContent = 'Checking…';
+    let ok = false; try { ok = await canWrite(t); } catch {}
+    if (!ok) { $('#tfe').textContent = 'Still can’t write to sapna-app-and-admin with this token. GitHub changes apply instantly — check the repo is selected and Contents is “Read and write”.'; b.disabled = false; b.textContent = 'Check again & publish'; return; }
+    S.token = t; try { localStorage.setItem(LS_TOKEN, t); } catch {}
+    close(); toast('Token works'); then && then();
+  };
+}
+
 async function publish() {
   const btn = $('#pubBtn'); btn.disabled = true; btn.textContent = 'Publishing…';
   try {
@@ -159,9 +188,9 @@ async function publish() {
   } catch (e) {
     const m = String(e.message || '');
     if (/not accessible by personal access token|Resource not accessible|403/i.test(m)) {
-      toastLong('This token can read the repo but not write it. On GitHub: Settings → Developer settings → Fine-grained tokens → your token → Repository permissions → Contents: Read and write → Save. Then tap Publish again — your changes are still here.');
+      askToken('The token saved on this device can read the app repo but isn’t allowed to change it.', publish);
     } else if (/Bad credentials|401/i.test(m)) {
-      toastLong('GitHub rejected the token (expired or deleted). Make a new one, then “Forget token on this device” in Targets and paste it. Copy your plan changes first.');
+      askToken('GitHub rejected the token saved on this device (expired or deleted). Paste a new one.', publish);
     } else if (/sha|conflict|409/i.test(m)) {
       toastLong('The file changed on GitHub since this page loaded. Reload the page and redo the last change.');
     } else toast('Publish failed: ' + m);
@@ -194,7 +223,7 @@ function viewSetup(err = '') {
     <button class="btn" id="save" type="button">Connect</button></div>`);
   $('#save').onclick = async () => {
     S.token = $('#tok').value.trim();
-    try { const r = await gh(''); if (!r || !r.permissions?.push) throw new Error("This token can't write to sapna-app-and-admin."); localStorage.setItem(LS_TOKEN, S.token); await boot(); }
+    try { const r = await gh(''); if (!r) throw new Error("This token can't see sapna-app-and-admin."); if (!(await canWrite(S.token))) throw new Error("This token can read sapna-app-and-admin but can't write it. Edit the token: add sapna-app-and-admin under Repository access and set Contents: Read and write."); localStorage.setItem(LS_TOKEN, S.token); await boot(); }
     catch (e) { viewSetup(e.message); }
   };
 }
@@ -670,7 +699,7 @@ function vSettings() {
       <label class="f">Water (glasses)<input class="input" id="tw" inputmode="numeric" value="${t.water ?? 8}"></label></div></div>
     <div class="card stack"><h2>Note on her Today screen</h2><textarea class="input" id="msg" placeholder="e.g. Proud of you this week! Try paneer at dinner.">${esc(S.content.message || '')}</textarea><p class="small muted">Leave empty to hide it.</p></div>
     <div class="card stack small muted"><strong style="color:var(--text)">Published</strong><span>Version ${S.content.version || 0} · ${S.content.updatedAt ? new Date(S.content.updatedAt).toLocaleString() : 'never'}</span>
-      <button class="btn ghost sm" type="button" id="logout" style="align-self:flex-start">Forget token on this device</button></div></div>`;
+      <div class="row wrapr"><button class="btn ghost sm" type="button" id="chtok">Change token (keeps changes)</button><button class="btn ghost sm" type="button" id="logout">Forget token on this device</button></div></div></div>`;
 }
 function wireSettings() {
   const t = S.content.targets;
@@ -678,6 +707,7 @@ function wireSettings() {
   $('#tp').oninput = (e) => { t.protein = Math.max(20, parseInt(e.target.value) || 0); markDirty(); };
   $('#tw').oninput = (e) => { t.water = Math.max(1, parseInt(e.target.value) || 8); markDirty(); };
   $('#msg').oninput = (e) => { S.content.message = e.target.value.slice(0, 220); markDirty(); };
+  $('#chtok').onclick = () => askToken('Paste a token with write access to sapna-app-and-admin.', null);
   $('#logout').onclick = () => { localStorage.removeItem(LS_TOKEN); S.token = ''; viewSetup(); };
 }
 
