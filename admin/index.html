@@ -115,6 +115,7 @@ let S = { token: '', content: null, sha: null, dirty: false, tab: 'status', lib:
 try { S.token = localStorage.getItem(LS_TOKEN) || ''; } catch {}
 try { S.report = JSON.parse(localStorage.getItem(LS_REPORT) || 'null'); } catch {}
 
+function toastLong(m) { const t = document.createElement('div'); t.className = 'toast'; t.role = 'alert'; t.style.maxWidth = '520px'; t.textContent = m; t.onclick = () => t.remove(); document.body.appendChild(t); setTimeout(() => t.remove(), 14000); }
 function toast(m) { const t = document.createElement('div'); t.className = 'toast'; t.role = 'status'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); }
 function b64(str) { return btoa(unescape(encodeURIComponent(str))); }
 function unb64(s) { return decodeURIComponent(escape(atob(s.replace(/\n/g, '')))); }
@@ -155,7 +156,16 @@ async function publish() {
     const r = await gh(`contents/${CONTENT_PATH}`, { method: 'PUT', body: JSON.stringify(body) });
     S.content = c; S.sha = r.content.sha; S.dirty = false; renderPub();
     toast('Published — live for Sapna in about a minute');
-  } catch (e) { toast('Publish failed: ' + e.message); }
+  } catch (e) {
+    const m = String(e.message || '');
+    if (/not accessible by personal access token|Resource not accessible|403/i.test(m)) {
+      toastLong('This token can read the repo but not write it. On GitHub: Settings → Developer settings → Fine-grained tokens → your token → Repository permissions → Contents: Read and write → Save. Then tap Publish again — your changes are still here.');
+    } else if (/Bad credentials|401/i.test(m)) {
+      toastLong('GitHub rejected the token (expired or deleted). Make a new one, then “Forget token on this device” in Targets and paste it. Copy your plan changes first.');
+    } else if (/sha|conflict|409/i.test(m)) {
+      toastLong('The file changed on GitHub since this page loaded. Reload the page and redo the last change.');
+    } else toast('Publish failed: ' + m);
+  }
   btn.disabled = false; btn.textContent = 'Publish';
 }
 $('#pubBtn').onclick = publish;
