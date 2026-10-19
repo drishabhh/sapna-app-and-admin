@@ -12,6 +12,7 @@ import { burnedOn, latestWeight, stepsKcal } from '../lib/burn';
 import { takeStepsRequest } from '../lib/intents';
 import { Num } from '../anim';
 import { TTL, useDraft } from '../lib/drafts';
+import { InstantNudge } from '../power';
 
 export default function Today() {
   const { data, content, foods, update, exById, contentFresh } = useStore();
@@ -89,6 +90,7 @@ export default function Today() {
           </div>
         </section>
 
+        <InstantNudge />
         <WeighCard />
 
         <StreakCard s={streak} onLog={() => nav.openLogger(mealFor())} />

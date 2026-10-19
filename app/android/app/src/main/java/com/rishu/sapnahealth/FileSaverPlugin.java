@@ -30,6 +30,46 @@ public class FileSaverPlugin extends Plugin {
         call.resolve(r);
     }
 
+    /** Is the app exempt from battery optimisation (so pushes and the 11:30 pm alarm arrive on time)? */
+    @PluginMethod
+    public void batteryStatus(PluginCall call) {
+        android.os.PowerManager pm = (android.os.PowerManager) getContext().getSystemService(android.content.Context.POWER_SERVICE);
+        JSObject r = new JSObject();
+        r.put("unrestricted", pm != null && pm.isIgnoringBatteryOptimizations(getContext().getPackageName()));
+        r.put("maker", Build.MANUFACTURER == null ? "" : Build.MANUFACTURER.toLowerCase());
+        call.resolve(r);
+    }
+
+    /** Shows Android's own "Let app always run in background?" dialog (one tap: Allow). */
+    @PluginMethod
+    public void requestUnrestricted(PluginCall call) {
+        try {
+            android.content.Intent i = new android.content.Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+            i.setData(android.net.Uri.parse("package:" + getContext().getPackageName()));
+            i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(i);
+        } catch (Exception e) {
+            openAppSettingsInternal();
+        }
+        call.resolve();
+    }
+
+    /** App info page (Battery, Notifications, Autostart on Xiaomi live there). */
+    @PluginMethod
+    public void openAppSettings(PluginCall call) {
+        openAppSettingsInternal();
+        call.resolve();
+    }
+
+    private void openAppSettingsInternal() {
+        try {
+            android.content.Intent i = new android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            i.setData(android.net.Uri.parse("package:" + getContext().getPackageName()));
+            i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(i);
+        } catch (Exception ignored) {}
+    }
+
     @PluginMethod
     public void saveToDownloads(PluginCall call) {
         String name = call.getString("fileName", "sapna-health.txt");

@@ -3,6 +3,7 @@ import { BUNDLED, refreshContent } from '../lib/content';
 import { DOW_FULL, DOW_LETTER, keyOf, shortLabel } from '../lib/dates';
 import { haptic, readBackupFile, saveBackup, shareBackup, syncReminders } from '../lib/native';
 import { SyncCard } from '../syncui';
+import { InstantCard } from '../power';
 import { useStore } from '../lib/store';
 import { emptyData, Reminders, ShareCycle } from '../lib/types';
 import { FullSheet, Icon, Sheet, Stepper, toast, Toggle, TopBar } from '../ui';
@@ -79,6 +80,8 @@ export default function Settings({ open, onClose }: { open: boolean; onClose: ()
         </section>
 
         <SyncCard />
+
+        <InstantCard />
 
         <section className="card stack" style={{ gap: 10 }} aria-label="Cycle sharing" data-acc="cycle">
           <span className="h3">Cycle in what Rishu sees</span>
