@@ -2,7 +2,8 @@ import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
 import { App as CapApp } from '@capacitor/app';
 import { Capacitor, SystemBars, SystemBarsStyle } from '@capacitor/core';
 import { Launch } from './launch';
-import { haptic } from './lib/native';
+import { haptic, syncReminders } from './lib/native';
+import { today } from './lib/dates';
 import { StoreProvider, useStore } from './lib/store';
 import { Meal } from './lib/types';
 import { Nav, NavCtx, Tab } from './nav';
@@ -32,6 +33,16 @@ function Shell() {
   const [logger, setLogger] = useState<{ open: boolean; meal: Meal; date?: string }>({ open: false, meal: 'breakfast' });
   const [settings, setSettings] = useState(false);
   const [autoStart, setAutoStart] = useState(false);
+
+  // Re-plan the rolling notification window whenever something that changes it moves
+  // (and on every launch), so tomorrow's punch line and the Monday weigh-in nudge stay correct.
+  const remKey = ready && data.onboarded ? JSON.stringify([data.reminders, data.profile.gymDays, data.profile.name, data.weighIns.length && data.weighIns[data.weighIns.length - 1].date, today()]) : '';
+  useEffect(() => {
+    if (!remKey) return;
+    const t = window.setTimeout(() => { syncReminders(data, { ask: false }).catch(() => {}); }, 1500);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remKey]);
 
   // Keep the home-screen streak widget in step with her logs.
   useEffect(() => {

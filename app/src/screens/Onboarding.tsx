@@ -69,7 +69,7 @@ export default function Onboarding() {
       const weighIns = d.weighIns.some((w) => w.date === today()) ? d.weighIns : [...d.weighIns, { date: today(), kg: p.weightKg }];
       return { ...d, onboarded: true, profile: { ...p, favFoods }, reminders: rem, cycle, weighIns };
     });
-    const r = await syncReminders(rem, p.gymDays, p.name || 'Sapna');
+    const r = await syncReminders({ ...data, onboarded: true, profile: { ...p }, reminders: rem, weighIns: [...data.weighIns, { date: today(), kg: p.weightKg }] });
     if (r === 'denied') toast('Reminders are off — allow notifications in Settings to turn them on.');
   }
 
@@ -242,11 +242,12 @@ export default function Onboarding() {
           <p className="muted">Little nudges, never spam. Change them anytime in Settings.</p>
           <div className="card" style={{ padding: '4px 16px' }}>
             {([
+              ['punch', 'Daily gym punch line', '7:10 am — a two-line kick with a doodle'],
               ['meals', 'Log meals', '1:30 pm and 8:30 pm'],
-              ['water', 'Water', 'Every 2 hours, 9 am – 7 pm'],
+              ['water', 'Water', 'Every 2 hours, 9 am – 7 pm, with a little quote'],
               ['gym', 'Workout days', `${p.gymDays.map((d) => DOW_FULL[d].slice(0, 3)).join(' · ') || 'No days picked'} at 6:30 pm`],
-              ['weigh', 'Weekly weigh-in', 'Sunday 8 am'],
-            ] as [keyof Reminders, string, string][]).map(([k, l, w], i, a) => (
+              ['weigh', 'Weekly weigh-in', 'Friday 8 am · Monday nudge if missed'],
+            ] as [Exclude<keyof Reminders, 'punchTime'>, string, string][]).map(([k, l, w], i, a) => (
               <div key={k} className="between" style={{ padding: '14px 0', borderBottom: i < a.length - 1 ? '1px solid var(--line)' : 'none' }}>
                 <div><strong>{l}</strong><p className="small muted">{w}</p></div>
                 <Toggle label={l} on={rem[k]} onChange={(v) => setRem((r) => ({ ...r, [k]: v }))} />

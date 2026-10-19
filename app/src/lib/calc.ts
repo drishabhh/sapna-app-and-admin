@@ -271,3 +271,25 @@ export function monthGrid(year: number, month: number): (string | null)[] {
 export function weekdayOf(k: string) {
   return parseKey(k).getDay();
 }
+
+/* ---------- Weekly weigh-in: Friday, with a Monday catch-up ---------- */
+
+/** most recent Friday on/before `t` */
+export function lastFriday(t: string): string {
+  const dw = dow(t);
+  return addDays(t, -((dw - 5 + 7) % 7));
+}
+
+/**
+ * 'friday'  — it is Friday and she has not weighed in yet today/this week
+ * 'missed'  — Monday–Thursday and nothing since last Friday
+ * null      — nothing to ask
+ */
+export function weighStatus(d: AppData, t = today()): 'friday' | 'missed' | null {
+  const fri = lastFriday(t);
+  if (d.weighIns.some((w) => w.date >= fri)) return null;
+  const dw = dow(t);
+  if (dw === 5) return 'friday';
+  if (dw >= 1 && dw <= 4) return 'missed';
+  return null;
+}

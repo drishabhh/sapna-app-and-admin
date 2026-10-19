@@ -83,6 +83,11 @@ export interface Session {
   startedAt: number;
   endedAt?: number;
   sets: SetEntry[];
+  kind?: 'gym' | 'home';
+  /** estimated kcal burned */
+  kcal?: number;
+  programId?: string;
+  day?: number;
 }
 
 export type Flow = 'none' | 'light' | 'medium' | 'heavy';
@@ -117,6 +122,18 @@ export interface Reminders {
   water: boolean;
   gym: boolean;
   weigh: boolean;
+  /** daily punch-line nudge with a doodle */
+  punch: boolean;
+  /** "HH:MM", 24h */
+  punchTime: string;
+}
+
+export interface ProgramProgress {
+  /** completed day numbers (1-based), incl. rest days */
+  done: number[];
+  /** difficulty multiplier from "how did it feel?" (0.7–1.4) */
+  adjust: number;
+  startedOn: string;
 }
 
 export interface AppData {
@@ -132,6 +149,9 @@ export interface AppData {
   sessions: Session[];
   cycle: Record<string, CycleDay>;
   customFoods: Food[];
+  programs: Record<string, ProgramProgress>;
+  /** reminders schema version — lets us switch on new nudges once */
+  remV?: number;
   lastBackupAt?: number;
   lastReportAt?: number;
 }
@@ -158,7 +178,9 @@ export function emptyData(): AppData {
     onboarded: false,
     createdAt: Date.now(),
     profile: { ...DEFAULT_PROFILE },
-    reminders: { meals: true, water: true, gym: true, weigh: false },
+    reminders: { meals: true, water: true, gym: true, weigh: true, punch: true, punchTime: '07:10' },
+    programs: {},
+    remV: 2,
     food: [],
     water: {},
     steps: {},

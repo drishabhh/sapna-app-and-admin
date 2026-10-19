@@ -1,4 +1,5 @@
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { haptic } from './lib/native';
 
 /* ---------- Android back button: last opened layer closes first ---------- */
@@ -40,6 +41,9 @@ const P: Record<string, ReactNode> = {
   search: <><circle cx="11" cy="11" r="7" /><path d="M16.5 16.5 21 21" /></>,
   user: <><circle cx="12" cy="8" r="4" /><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" /></>,
   spark: <path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6" />,
+  pause: <path d="M8 5v14M16 5v14" strokeWidth={3} />,
+  prev: <path d="M15 6l-6 6 6 6M6 6v12" />,
+  skip: <path d="M9 6l6 6-6 6M18 6v12" />,
   play: <path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor" stroke="none" />,
   glass: <><path d="M7 3h10l-1.5 17a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1z" /><path d="M7.5 8h9" /></>,
   steps: <path d="M5 16c0-3 1-6 3-6s2 3 2 5-1 3-2.5 3S5 17 5 16zM14 10c0-3 1-6 3-6s2 3 2 5-1 3-2.5 3S14 11 14 10z" />,
@@ -100,23 +104,27 @@ export function Bar({ value, max, label, color }: { value: number; max: number; 
 export function Sheet({ open, onClose, children, label }: { open: boolean; onClose: () => void; children: ReactNode; label: string }) {
   useBack(open, onClose);
   if (!open) return null;
-  return (
+  // Portalled to <body>: a sheet opened from inside a screen must not inherit that screen's stacking context
+  // (otherwise the tab bar can sit on top of it).
+  return createPortal(
     <div className="overlay" onClick={onClose}>
       <div className="sheet" role="dialog" aria-modal="true" aria-label={label} onClick={(e) => e.stopPropagation()}>
         <div className="handle" />
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
 export function FullSheet({ open, onClose, children, label, acc }: { open: boolean; onClose: () => void; children: ReactNode; label: string; acc?: string }) {
   useBack(open, onClose);
   if (!open) return null;
-  return (
+  return createPortal(
     <div className="fullsheet" role="dialog" aria-modal="true" aria-label={label} data-acc={acc}>
       {children}
-    </div>
+    </div>,
+    document.body,
   );
 }
 

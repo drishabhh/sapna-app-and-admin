@@ -8,13 +8,18 @@ import { Food, MEALS } from '../lib/types';
 import { useNav } from '../nav';
 import { Bar, Gif, Icon, Ring, Sheet, toast } from '../ui';
 import { StreakCard } from '../streak';
+import { WeighCard } from '../congrats';
+import { burnedOn } from '../lib/home';
 
 export default function Today() {
   const { data, content, foods, update, exById, contentFresh } = useStore();
   const nav = useNav();
   const d = today();
   const t = totalsOn(data, d);
-  const left = content.targets.kcal - t.kcal;
+  const burned = burnedOn(data, d);
+  // Exercise earns back half of what it burned — enough to fuel her, not enough to stall fat loss.
+  const earned = Math.round(burned / 2);
+  const left = content.targets.kcal + earned - t.kcal;
   const protLeft = Math.max(0, Math.round(content.targets.protein - t.protein));
   const water = data.water[d] || 0;
   const steps = data.steps[d] || 0;
@@ -57,13 +62,14 @@ export default function Today() {
 
         <section className="card hero" aria-label="Calories and protein">
           <div className="row" style={{ gap: 18 }}>
-            <Ring value={t.kcal} max={content.targets.kcal} label={`${t.kcal} of ${content.targets.kcal} kcal eaten`} color={left < 0 ? 'var(--danger)' : 'var(--acc)'}>
+            <Ring value={t.kcal} max={content.targets.kcal + earned} label={`${t.kcal} of ${content.targets.kcal} kcal eaten`} color={left < 0 ? 'var(--danger)' : 'var(--acc)'}>
               <span className="big" style={{ fontSize: 40 }}>{Math.abs(left)}</span>
               <span className="small muted">{left >= 0 ? 'kcal left' : 'kcal over'}</span>
             </Ring>
             <div className="stack" style={{ gap: 12, minWidth: 0 }}>
               <div><p className="eyebrow">Eaten</p><p className="big" style={{ fontSize: 26 }}>{t.kcal.toLocaleString('en-IN')}</p></div>
               <div><p className="eyebrow">Target</p><p className="big" style={{ fontSize: 26 }}>{content.targets.kcal.toLocaleString('en-IN')}</p></div>
+              {burned ? <div data-acc="workout"><p className="eyebrow acc-t">Burned</p><p className="big" style={{ fontSize: 22 }}>{burned}<span className="small muted" style={{ fontFamily: 'var(--body)', fontWeight: 600 }}> · +{earned} to eat</span></p></div> : null}
             </div>
           </div>
           <div className="stack" style={{ gap: 8, marginTop: 18 }} data-acc="food">
@@ -71,6 +77,8 @@ export default function Today() {
             <Bar value={t.protein} max={content.targets.protein} label={`Protein ${t.protein} of ${content.targets.protein} grams`} />
           </div>
         </section>
+
+        <WeighCard />
 
         <StreakCard s={streak} onLog={() => nav.openLogger(mealFor())} />
 

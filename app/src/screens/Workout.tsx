@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { exerciseHistory, lastWeight, nextPlan, sessionsPerWeek, uid } from '../lib/calc';
+import { exerciseHistory, isGymDay, lastWeight, nextPlan, sessionsPerWeek, uid } from '../lib/calc';
+import { latestWeight, sessionKcal } from '../lib/home';
+import { Congrats } from '../congrats';
+import { HomeTab } from './Home';
 import { gifSrc } from '../lib/content';
 import { parseKey, shortLabel, today, DOW_SHORT } from '../lib/dates';
 import { haptic } from '../lib/native';
@@ -8,18 +11,21 @@ import { Exercise, Plan, PlanMove, Session } from '../lib/types';
 import { FullSheet, Gif, Icon, Seg, Sheet, Stepper, toast } from '../ui';
 import { Doodle } from '../streak';
 
+const active0 = (d: { sessions: Session[] }) => d.sessions.some((s) => !s.endedAt && s.date === today() && s.kind !== 'home');
+
 export default function WorkoutScreen({ autoStart, onAutoStartHandled }: { autoStart: boolean; onAutoStartHandled: () => void }) {
   const { data, content, exById } = useStore();
   const suggested = nextPlan(data, content);
   const [planId, setPlanId] = useState<string | null>(null);
   const plan = content.plans.find((p) => p.id === planId) || suggested;
-  const [view, setView] = useState<'plan' | 'history'>('plan');
+  const [view, setView] = useState<'home' | 'plan' | 'history'>(() => (isGymDay(data) || active0(data) ? 'plan' : 'home'));
   const [detail, setDetail] = useState<{ ex: Exercise; move: PlanMove } | null>(null);
   const active = data.sessions.find((s) => !s.endedAt && s.date === today());
   const [sessionOpen, setSessionOpen] = useState(false);
 
   useEffect(() => {
     if (autoStart) {
+      setView('plan');
       setSessionOpen(true);
       onAutoStartHandled();
     }
@@ -34,11 +40,11 @@ export default function WorkoutScreen({ autoStart, onAutoStartHandled }: { autoS
       <div className="stack" style={{ gap: 16 }}>
         <header className="stack" style={{ gap: 4 }}>
           <p className="eyebrow">Workout</p>
-          <h1 className="h1">{view === 'plan' ? plan?.title || 'No plan yet' : 'Your lifts'}</h1>
+          <h1 className="h1">{view === 'home' ? 'Home workouts' : view === 'plan' ? plan?.title || 'No plan yet' : 'Your progress'}</h1>
         </header>
-        <Seg<'plan' | 'history'> label="View" value={view} onChange={setView} options={[{ v: 'plan', l: 'Plan' }, { v: 'history', l: 'History' }]} />
+        <Seg<'home' | 'plan' | 'history'> label="View" value={view} onChange={setView} options={[{ v: 'home', l: 'Home' }, { v: 'plan', l: 'Gym' }, { v: 'history', l: 'History' }]} />
 
-        {view === 'plan' ? (
+        {view === 'home' ? <HomeTab /> : view === 'plan' ? (
           plan ? (
             <>
               {content.plans.length > 1 ? (
@@ -180,7 +186,8 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
   }
   function finish() {
     if (!session) return;
-    const ended = { ...session, endedAt: Date.now() };
+    const ended: Session = { ...session, endedAt: Date.now(), kind: 'gym' };
+    ended.kcal = sessionKcal({ ...ended, kcal: undefined }, latestWeight(data));
     if (!session.sets.length) {
       update((x) => ({ ...x, sessions: x.sessions.filter((s) => s.id !== session.id) }));
       onClose();
@@ -270,7 +277,6 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
 function SessionSummary({ s, onClose }: { s: Session; onClose: () => void }) {
   const { data, exById } = useStore();
   const minutes = s.endedAt ? Math.max(1, Math.round((s.endedAt - s.startedAt) / 60000)) : 0;
-  const volume = Math.round(s.sets.reduce((a, x) => a + x.kg * x.reps, 0));
   const prs = useMemo(() => {
     const ids = [...new Set(s.sets.map((x) => x.exId))];
     return ids
@@ -282,27 +288,23 @@ function SessionSummary({ s, onClose }: { s: Session; onClose: () => void }) {
       .filter(Boolean) as { name: string; kg: number; prev?: number }[];
   }, [s, data, exById]);
   return (
-    <div className="screen no-nav" data-acc="workout" style={{ display: 'flex', flexDirection: 'column' }}>
-      <div className="glow" />
-      <div className="stack" style={{ gap: 16, flex: 1 }}>
-        <div className="doodle-hero"><Doodle name="celebrate" size={200} /></div>
-        <p className="eyebrow">Workout done</p>
-        <h1 className="h1" style={{ fontSize: 44 }}>Strong work, {data.profile.name}.</h1>
-        <div className="grid3">
-          <div className="card tight"><p className="eyebrow">Time</p><p className="big" style={{ fontSize: 28 }}>{minutes}<span className="small"> min</span></p></div>
-          <div className="card tight"><p className="eyebrow">Sets</p><p className="big" style={{ fontSize: 28 }}>{s.sets.length}</p></div>
-          <div className="card tight"><p className="eyebrow">Volume</p><p className="big" style={{ fontSize: 28 }}>{volume.toLocaleString('en-IN')}<span className="small"> kg</span></p></div>
+    <Congrats
+      title={`Strong work, ${data.profile.name}!`}
+      sub={s.title}
+      stats={[
+        { label: 'Minutes', value: minutes },
+        { label: 'Sets', value: s.sets.length },
+        { label: 'Kcal', value: s.kcal ?? 0 },
+      ]}
+      doodle={prs.length ? 'celebrate' : 'flex'}
+      extra={prs.length ? (
+        <div className="card hero stack" style={{ gap: 8 }}>
+          <p className="eyebrow acc-t">New personal bests</p>
+          {prs.map((p) => <p key={p.name}><strong>{p.name}</strong> — {p.kg} kg{p.prev ? <span className="muted"> (was {p.prev} kg)</span> : null}</p>)}
         </div>
-        {prs.length ? (
-          <div className="card hero stack" style={{ gap: 8 }}>
-            <p className="eyebrow acc-t">New personal bests</p>
-            {prs.map((p) => <p key={p.name}><strong>{p.name}</strong> — {p.kg} kg{p.prev ? <span className="muted"> (was {p.prev} kg)</span> : null}</p>)}
-          </div>
-        ) : null}
-        <span className="spacer" />
-        <button type="button" className="btn lg block" onClick={onClose}>Done</button>
-      </div>
-    </div>
+      ) : null}
+      onDone={onClose}
+    />
   );
 }
 
@@ -312,7 +314,7 @@ function History() {
   const { data, exById } = useStore();
   const perWeek = sessionsPerWeek(data, 4);
   const max = Math.max(3, ...perWeek);
-  const exIds = [...new Set(data.sessions.flatMap((s) => s.sets.map((x) => x.exId)))].filter((id) => exById[id]?.group !== 'stretching');
+  const exIds = [...new Set(data.sessions.filter((s) => s.kind !== 'home').flatMap((s) => s.sets.map((x) => x.exId)))].filter((id) => exById[id] && exById[id].group !== 'stretching');
   const recent = [...data.sessions].filter((s) => s.sets.length).sort((a, b) => b.startedAt - a.startedAt).slice(0, 12);
   const [tab, setTab] = useState<'ex' | 'sessions'>('ex');
 
@@ -357,7 +359,7 @@ function History() {
               <div className="small muted" style={{ fontWeight: 700 }}>{DOW_SHORT[dd.getDay()]}</div>
               <div className="big" style={{ fontSize: 24 }}>{dd.getDate()}</div>
             </div>
-            <span style={{ flex: 1 }}><strong>{s.title}</strong><span className="small muted" style={{ display: 'block' }}>{new Set(s.sets.map((x) => x.exId)).size} moves · {s.sets.length} sets{s.endedAt ? ` · ${Math.max(1, Math.round((s.endedAt - s.startedAt) / 60000))} min` : ' · in progress'}</span></span>
+            <span style={{ flex: 1 }}><strong>{s.title}</strong><span className="small muted" style={{ display: 'block' }}>{s.kind === 'home' ? `${s.sets.length} moves` : `${new Set(s.sets.map((x) => x.exId)).size} moves · ${s.sets.length} sets`}{s.endedAt ? ` · ${Math.max(1, Math.round((s.endedAt - s.startedAt) / 60000))} min` : ' · in progress'}{s.endedAt ? ` · ${sessionKcal(s, latestWeight(data))} kcal` : ''}</span></span>
           </div>
         );
       }) : <div className="empty"><Doodle name="sleep" size={120} style={{ margin: '0 auto 8px' }} />No sessions yet — your first one shows up here.</div>}

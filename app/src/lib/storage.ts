@@ -52,6 +52,9 @@ export function migrate(raw: unknown): AppData {
     sessions: Array.isArray(d.sessions) ? d.sessions : [],
     cycle: d.cycle && typeof d.cycle === 'object' ? d.cycle : {},
     customFoods: Array.isArray(d.customFoods) ? d.customFoods : [],
+    programs: d.programs && typeof d.programs === 'object' ? d.programs : {},
+    // v2 reminders: Friday weigh-ins and the daily punch line are on for everyone once.
+    ...((d.remV ?? 1) < 2 ? { reminders: { ...base.reminders, ...(d.reminders || {}), weigh: true, punch: true, punchTime: '07:10' }, remV: 2 } : {}),
   };
 }
 

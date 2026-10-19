@@ -9,6 +9,9 @@ import { Doodle, pinWidget } from '../streak';
 
 export const APP_VERSION = '1.0.0';
 
+type BoolRem = Exclude<keyof Reminders, 'punchTime'>;
+const fmt12 = (hm: string) => { const [h, m] = hm.split(':').map(Number); return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`; };
+
 export default function Settings({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { data, content, update, replaceAll } = useStore();
   const p = data.profile;
@@ -19,15 +22,15 @@ export default function Settings({ open, onClose }: { open: boolean; onClose: ()
 
   const setProfile = (patch: Partial<typeof p>) => update((d) => ({ ...d, profile: { ...d.profile, ...patch } }));
 
-  async function setRem(k: keyof Reminders, v: boolean) {
-    const rem = { ...data.reminders, [k]: v };
-    update((d) => ({ ...d, reminders: rem }));
-    const r = await syncReminders(rem, p.gymDays, p.name);
+  async function setRem<K extends keyof Reminders>(k: K, v: Reminders[K]) {
+    const next = { ...data, reminders: { ...data.reminders, [k]: v } };
+    update((d) => ({ ...d, reminders: { ...d.reminders, [k]: v } }));
+    const r = await syncReminders(next);
     if (r === 'denied') toast('Allow notifications for Sapna Health in phone Settings.');
   }
   async function setGymDays(days: number[]) {
     setProfile({ gymDays: days });
-    await syncReminders(data.reminders, days, p.name);
+    await syncReminders({ ...data, profile: { ...data.profile, gymDays: days } }, { ask: false });
   }
   async function backup() {
     const ok = await exportBackup(data);
@@ -92,16 +95,23 @@ export default function Settings({ open, onClose }: { open: boolean; onClose: ()
         <section className="card" style={{ padding: '6px 16px' }} aria-label="Reminders">
           <h2 className="h2" style={{ fontSize: 19, padding: '10px 0 4px' }}>Reminders</h2>
           {([
+            ['punch', 'Daily gym punch line', `Every day at ${fmt12(data.reminders.punchTime)} — with a doodle`],
             ['meals', 'Log meals', '1:30 pm and 8:30 pm'],
-            ['water', 'Water', 'Every 2 hours, 9 am – 7 pm'],
+            ['water', 'Water', 'Every 2 hours, 9 am – 7 pm, with a little quote'],
             ['gym', 'Workout days', '6:30 pm on gym days'],
-            ['weigh', 'Weekly weigh-in', 'Sunday 8 am'],
-          ] as [keyof Reminders, string, string][]).map(([k, l, w], i, a) => (
+            ['weigh', 'Weekly weigh-in', 'Friday 8 am · Monday nudge if missed'],
+          ] as [BoolRem, string, string][]).map(([k, l, w], i, a) => (
             <div key={k} className="between" style={{ padding: '13px 0', borderBottom: i < a.length - 1 ? '1px solid var(--line)' : 'none' }}>
               <div><strong>{l}</strong><p className="small muted">{w}</p></div>
               <Toggle label={l} on={data.reminders[k]} onChange={(v) => setRem(k, v)} />
             </div>
           ))}
+          {data.reminders.punch ? (
+            <label className="between" style={{ padding: '4px 0 14px' }}>
+              <span className="small muted">Punch-line time</span>
+              <input className="input" type="time" style={{ width: 130 }} value={data.reminders.punchTime} onChange={(e) => e.target.value && setRem('punchTime', e.target.value)} />
+            </label>
+          ) : null}
         </section>
 
         <section className="card stack" style={{ gap: 14 }} aria-label="Profile" data-acc="workout">
