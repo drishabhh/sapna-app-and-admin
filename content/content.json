@@ -1,6 +1,6 @@
 {
- "version": 5,
- "updatedAt": "2026-10-19T18:05:11.163Z",
+ "version": 6,
+ "updatedAt": "2026-10-19T18:06:48.473Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -62,7 +62,7 @@
    ],
    "focus": "legs",
    "days": [
-    1
+    2
    ]
   }
  ],
