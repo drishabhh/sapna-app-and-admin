@@ -330,6 +330,13 @@ if (!S.sync) S.sync = { status: 'idle' };
 const b64u = (bytes) => { let s = ''; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
 const unb64u = (s) => { const bin = atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)); const o = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) o[i] = bin.charCodeAt(i); return o; };
 function syncCfg() { try { return JSON.parse(localStorage.getItem(LS_SYNC) || 'null'); } catch { return null; } }
+function tokenShapeError(t) {
+  if (!t) return 'Paste the token first.';
+  if (/\s/.test(t)) return 'The token has a space or line break in it — copy it again with GitHub’s copy button.';
+  if (t.startsWith('github_pat_') && t.length !== 93) return `That token is ${t.length} characters; GitHub tokens are 93. It was probably cut off — copy it again with GitHub’s copy button.`;
+  if (!/^(github_pat_|ghp_)/.test(t)) return 'Paste the token that starts with github_pat_';
+  return '';
+}
 function pairingCode(c) { return 'SAPNA-SYNC-1:' + b64u(new TextEncoder().encode(JSON.stringify({ o: c.o, r: c.r, b: c.b, t: c.t, k: c.k }))); }
 function parsePairing(code) { const m = String(code).trim().match(/SAPNA-SYNC-1:([A-Za-z0-9_-]+)/); if (!m) return null; try { const j = JSON.parse(new TextDecoder().decode(unb64u(m[1]))); return j.o && j.r && j.t && j.k ? { o: j.o, r: j.r, b: j.b || 'main', t: j.t, k: j.k } : null; } catch { return null; } }
 async function syncGh(c, path, accept = 'application/vnd.github+json') {
@@ -534,12 +541,12 @@ function wireStatus() {
     const [o, r] = $('#sr').value.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\.git$/, '').split('/');
     const t = $('#st').value.trim();
     if (!o || !r) return toast('Repo should look like drishabhh/sapna-sync');
-    if (!/^(github_pat_|ghp_)/.test(t)) return toast('Paste the token that starts with github_pat_');
+    { const bad = tokenShapeError(t); if (bad) return toast(bad); }
     mk.disabled = true; mk.textContent = 'Checking…';
     try {
       const res = await syncGh({ o, r, t }, '');
       const j = await res.json().catch(() => ({}));
-      if (res.status === 401) throw new Error('GitHub rejected that token.');
+      if (res.status === 401) throw new Error('GitHub doesn’t recognise that token — it was regenerated, expired or deleted. Regenerate it on GitHub and paste the new value right away.');
       if (res.status === 404) throw new Error('Repo not found, or the token was not given access to it.');
       if (!res.ok) throw new Error(j.message || `GitHub ${res.status}`);
       if (!j.private) throw new Error('That repo is PUBLIC. Her data must go to a private repo — make it private first.');
@@ -563,11 +570,11 @@ function wireStatus() {
   const us = $('#susave');
   if (us) us.onclick = async () => {
     const t = $('#sutok').value.trim(); const cfg = syncCfg(); if (!cfg) return;
-    if (!/^(github_pat_|ghp_)/.test(t)) return toast('Paste the token that starts with github_pat_');
+    { const bad = tokenShapeError(t); if (bad) return toast(bad); }
     us.disabled = true; us.textContent = 'Checking…';
     try {
       const res = await syncGh({ ...cfg, t }, '');
-      if (res.status === 401) throw new Error('GitHub rejected that token.');
+      if (res.status === 401) throw new Error('GitHub doesn’t recognise that token — it was regenerated, expired or deleted. Regenerate it on GitHub and paste the new value right away.');
       if (res.status === 404) throw new Error('That token has no access to ' + cfg.o + '/' + cfg.r + '.');
       const j = await res.json(); if (!j.private) throw new Error('The sync repo is public — make it private first.');
       const w = await fetch(`https://api.github.com/repos/${cfg.o}/${cfg.r}/git/blobs`, { method: 'POST', headers: { Authorization: `Bearer ${t}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify({ content: 'write-check', encoding: 'utf-8' }) });
