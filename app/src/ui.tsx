@@ -44,6 +44,8 @@ const P: Record<string, ReactNode> = {
   pause: <path d="M8 5v14M16 5v14" strokeWidth={3} />,
   prev: <path d="M15 6l-6 6 6 6M6 6v12" />,
   skip: <path d="M9 6l6 6-6 6M18 6v12" />,
+  list: <path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" strokeWidth={2.4} />,
+  video: <><rect x="2.5" y="5" width="19" height="14" rx="4" /><path d="M10 9.2v5.6l4.8-2.8z" fill="currentColor" /></>,
   play: <path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor" stroke="none" />,
   glass: <><path d="M7 3h10l-1.5 17a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1z" /><path d="M7.5 8h9" /></>,
   steps: <path d="M5 16c0-3 1-6 3-6s2 3 2 5-1 3-2.5 3S5 17 5 16zM14 10c0-3 1-6 3-6s2 3 2 5-1 3-2.5 3S14 11 14 10z" />,

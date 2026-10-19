@@ -27,6 +27,8 @@ export interface Exercise {
   equipment?: string;
   gif: string;
   cue?: string;
+  /** "how to do it" video Rishu picked */
+  yt?: string;
 }
 
 export interface PlanMove {
@@ -35,12 +37,18 @@ export interface PlanMove {
   reps: number;
   unit?: 'reps' | 'min' | 'sec';
   kg?: number;
+  /** YouTube link for this move (overrides the exercise's own link) */
+  yt?: string;
 }
 
 export interface Plan {
   id: string;
   title: string;
   note?: string;
+  /** one-line brief of what she hits today, e.g. "Glutes + hamstrings, light core" */
+  focus?: string;
+  /** weekdays (0 = Sun) this plan is for; empty/missing = rotates on any gym day */
+  days?: number[];
   moves: PlanMove[];
 }
 

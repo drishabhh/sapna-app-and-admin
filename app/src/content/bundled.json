@@ -1,105 +1,12 @@
 {
  "version": 1,
- "updatedAt": "2026-10-18T12:00:00Z",
+ "updatedAt": "2026-10-19T08:30:00Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
   "water": 8
  },
- "plans": [
-  {
-   "id": "upper-a",
-   "title": "Upper body A",
-   "note": "Rest 1–1.5 min between sets. Sip warm water.",
-   "moves": [
-    {
-     "exId": "arm-circles",
-     "sets": 1,
-     "reps": 10,
-     "unit": "reps"
-    },
-    {
-     "exId": "torso-rotations",
-     "sets": 1,
-     "reps": 10,
-     "unit": "reps"
-    },
-    {
-     "exId": "spine-stretch",
-     "sets": 1,
-     "reps": 10,
-     "unit": "reps"
-    },
-    {
-     "exId": "chest-press",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "lat-pulldown",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "cable-row",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "shoulder-press",
-     "sets": 3,
-     "reps": 10,
-     "unit": "reps"
-    }
-   ]
-  },
-  {
-   "id": "lower-a",
-   "title": "Lower body",
-   "note": "Go easy on the knees — slow and controlled beats heavy.",
-   "moves": [
-    {
-     "exId": "leg-swings",
-     "sets": 1,
-     "reps": 10,
-     "unit": "reps"
-    },
-    {
-     "exId": "bodyweight-squats",
-     "sets": 1,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "baby-sit",
-     "sets": 1,
-     "reps": 10,
-     "unit": "reps"
-    },
-    {
-     "exId": "db-squats",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "leg-curl",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "cycle-walk",
-     "sets": 1,
-     "reps": 10,
-     "unit": "min"
-    }
-   ]
-  }
- ],
+ "plans": [],
  "exercises": [
   {
    "name": "Arm circles",

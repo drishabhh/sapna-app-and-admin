@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import { cycleInfo, isGymDay, mealFor, streakInfo, mealTotals, nextPlan, PHASE_COPY, sessionsOn, totalsOn } from '../lib/calc';
-import { gifSrc } from '../lib/content';
+import { cycleInfo, isGymDay, mealFor, streakInfo, mealTotals, planBrief, todayPlan, PHASE_COPY, sessionsOn, totalsOn } from '../lib/calc';
 import { greeting, longLabel, today } from '../lib/dates';
 import { haptic } from '../lib/native';
 import { useStore } from '../lib/store';
 import { Food, MEALS } from '../lib/types';
 import { useNav } from '../nav';
-import { Bar, Gif, Icon, Ring, Sheet, toast } from '../ui';
+import { Bar, Icon, Ring, Sheet, toast } from '../ui';
 import { StreakCard } from '../streak';
 import { WeighCard } from '../congrats';
 import { burnedOn, latestWeight, stepsKcal } from '../lib/burn';
@@ -25,7 +24,7 @@ export default function Today() {
   const water = data.water[d] || 0;
   const steps = data.steps[d] || 0;
   const streak = streakInfo(data);
-  const plan = nextPlan(data, content);
+  const plan = todayPlan(data, content);
   const done = sessionsOn(data, d).some((s) => s.endedAt && s.sets.length);
   const gym = isGymDay(data);
   const cyc = data.profile.cycleEnabled ? cycleInfo(data) : null;
@@ -145,16 +144,12 @@ export default function Today() {
           {plan ? (
             <>
               <p className="h2" style={{ marginTop: 6 }}>{plan.title}</p>
-              <div className="row" style={{ gap: 6, marginTop: 12, overflow: 'hidden' }}>
-                {plan.moves.slice(0, 5).map((m) => (
-                  <Gif key={m.exId} src={gifSrc(exById[m.exId])} alt="" style={{ width: 52, height: 52, borderRadius: 12, objectFit: 'cover', background: '#fff', flex: 'none' }} />
-                ))}
-              </div>
+              <p className="muted" style={{ marginTop: 4 }}>{planBrief(plan, exById)}</p>
               <button type="button" className="btn block" style={{ marginTop: 14 }} onClick={() => (done ? nav.go('workout') : nav.startWorkout())}>
                 {done ? 'See what you lifted' : <><Icon name="play" size={18} /> {gym ? 'Start workout' : 'Train anyway'}</>}
               </button>
             </>
-          ) : <p className="muted" style={{ marginTop: 6 }}>No plan yet — Rishu will send one.</p>}
+          ) : <p className="muted" style={{ marginTop: 6 }}>Rishu is designing today’s plan — it shows up here once he publishes it.</p>}
         </section>
 
         {cyc ? (

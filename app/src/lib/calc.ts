@@ -125,6 +125,30 @@ export function nextPlan(d: AppData, c: Content): Plan | null {
   return c.plans[(i + 1) % c.plans.length] || c.plans[0];
 }
 
+/** Today's plan: one Rishu pinned to this weekday, else the next undated plan in rotation, else none. */
+export function todayPlan(d: AppData, c: Content, date = today()): Plan | null {
+  const active = d.sessions.find((s) => !s.endedAt && s.date === date);
+  const act = active && c.plans.find((p) => p.id === active.planId);
+  if (act) return act;
+  const doneToday = [...d.sessions].filter((s) => s.date === date && s.sets.length).sort((a, b) => b.startedAt - a.startedAt)[0];
+  const did = doneToday && c.plans.find((p) => p.id === doneToday.planId);
+  if (did) return did;
+  const pinned = c.plans.filter((p) => p.days?.includes(dow(date)));
+  if (pinned.length) return pinned[0];
+  const floating = c.plans.filter((p) => !p.days || !p.days.length);
+  return floating.length ? nextPlan(d, { ...c, plans: floating }) : null;
+}
+
+/** "Warm-up stretches, then chest · back · shoulders" — used when Rishu didn't write a brief. */
+export function planBrief(p: Plan, exById: Record<string, { group: string; part: string } | undefined>): string {
+  if (p.focus?.trim()) return p.focus.trim();
+  const ex = p.moves.map((m) => exById[m.exId]).filter(Boolean) as { group: string; part: string }[];
+  const parts = [...new Set(ex.filter((e) => e.group !== 'stretching').map((e) => e.part).filter(Boolean))];
+  const warm = ex.some((e) => e.group === 'stretching');
+  const hit = parts.length ? parts.slice(0, 4).join(' · ') : 'a full session';
+  return warm ? `Warm-up stretches, then ${hit}` : hit[0].toUpperCase() + hit.slice(1);
+}
+
 export function isGymDay(d: AppData, date = today()): boolean {
   return d.profile.gymDays.includes(dow(date));
 }

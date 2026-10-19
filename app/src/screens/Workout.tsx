@@ -1,35 +1,28 @@
 import { useEffect, useMemo, useState } from 'react';
-import { exerciseHistory, lastWeight, nextPlan, sessionsPerWeek, uid } from '../lib/calc';
+import { exerciseHistory, isGymDay, lastWeight, planBrief, sessionsPerWeek, todayPlan, uid } from '../lib/calc';
 import { latestWeight, sessionKcal } from '../lib/burn';
 import { Congrats } from '../congrats';
-import { gifSrc } from '../lib/content';
-import { parseKey, shortLabel, today, DOW_SHORT } from '../lib/dates';
+import { gifSrc, ytLink } from '../lib/content';
+import { dow, parseKey, shortLabel, today, DOW_FULL, DOW_SHORT } from '../lib/dates';
 import { haptic } from '../lib/native';
 import { useStore } from '../lib/store';
-import { Exercise, Plan, PlanMove, Session } from '../lib/types';
+import { Plan, PlanMove, Session } from '../lib/types';
 import { FullSheet, Gif, Icon, Seg, Sheet, Stepper, toast } from '../ui';
 import { Doodle } from '../streak';
 
 export default function WorkoutScreen({ autoStart, onAutoStartHandled }: { autoStart: boolean; onAutoStartHandled: () => void }) {
-  const { data, content, exById } = useStore();
-  const suggested = nextPlan(data, content);
-  const [planId, setPlanId] = useState<string | null>(null);
-  const plan = content.plans.find((p) => p.id === planId) || suggested;
+  const { data, content } = useStore();
+  const plan = todayPlan(data, content);
   const [view, setView] = useState<'plan' | 'history'>('plan');
-  const [detail, setDetail] = useState<{ ex: Exercise; move: PlanMove } | null>(null);
-  const active = data.sessions.find((s) => !s.endedAt && s.date === today());
   const [sessionOpen, setSessionOpen] = useState(false);
 
   useEffect(() => {
     if (autoStart) {
       setView('plan');
-      setSessionOpen(true);
+      if (plan) setSessionOpen(true);
       onAutoStartHandled();
     }
-  }, [autoStart, onAutoStartHandled]);
-
-  const stretches = plan ? plan.moves.filter((m) => exById[m.exId]?.group === 'stretching') : [];
-  const lifts = plan ? plan.moves.filter((m) => exById[m.exId]?.group !== 'stretching') : [];
+  }, [autoStart, onAutoStartHandled, plan]);
 
   return (
     <div className="screen" data-acc="workout">
@@ -37,76 +30,68 @@ export default function WorkoutScreen({ autoStart, onAutoStartHandled }: { autoS
       <div className="stack" style={{ gap: 16 }}>
         <header className="stack" style={{ gap: 4 }}>
           <p className="eyebrow">Workout</p>
-          <h1 className="h1">{view === 'plan' ? plan?.title || 'No plan yet' : 'Your progress'}</h1>
+          <h1 className="h1">{view === 'plan' ? 'Today' : 'Your progress'}</h1>
         </header>
         <Seg<'plan' | 'history'> label="View" value={view} onChange={setView} options={[{ v: 'plan', l: 'Gym' }, { v: 'history', l: 'History' }]} />
-
-        {view === 'plan' ? (
-          plan ? (
-            <>
-              {content.plans.length > 1 ? (
-                <div className="chips" role="group" aria-label="Choose plan">
-                  {content.plans.map((p) => (
-                    <button key={p.id} type="button" className="chip" aria-pressed={p.id === plan.id} onClick={() => setPlanId(p.id)}>{p.title}{p.id === suggested?.id ? ' · up next' : ''}</button>
-                  ))}
-                </div>
-              ) : null}
-
-              <button type="button" className="btn lg block" onClick={() => setSessionOpen(true)}>
-                <Icon name="play" size={18} /> {active ? 'Resume session' : 'Start session'}
-              </button>
-
-              {stretches.length ? <MoveSection title="Stretching" sub="Warm-up" moves={stretches} onOpen={(ex, move) => setDetail({ ex, move })} /> : null}
-              {lifts.length ? <MoveSection title="Exercises" sub={`${lifts.length} moves`} moves={lifts} onOpen={(ex, move) => setDetail({ ex, move })} /> : null}
-
-              {plan.note ? (
-                <div className="card tight row" style={{ alignItems: 'flex-start' }}>
-                  <span className="acc-t"><Icon name="glass" size={20} /></span><p>{plan.note}</p>
-                </div>
-              ) : null}
-            </>
-          ) : <div className="empty">Rishu hasn't published a plan yet.</div>
-        ) : (
-          <History />
-        )}
+        {view === 'plan' ? <TodayTile plan={plan} onStart={() => setSessionOpen(true)} /> : <History />}
       </div>
-
-      <Sheet open={!!detail} onClose={() => setDetail(null)} label="Exercise">
-        {detail ? (
-          <div className="stack" style={{ gap: 14 }} data-acc="workout">
-            <Gif src={gifSrc(detail.ex)} alt={`${detail.ex.name} demonstration`} style={{ width: '100%', height: 260, objectFit: 'contain', background: '#fff', borderRadius: 20 }} />
-            <h2 className="h1" style={{ fontSize: 30 }}>{detail.ex.name}</h2>
-            <p className="pill" style={{ alignSelf: 'flex-start' }}>{detail.move.sets} × {detail.move.reps} {detail.move.unit === 'min' ? 'min' : detail.move.unit === 'sec' ? 'sec' : 'reps'}</p>
-            {detail.ex.cue ? <p className="muted" style={{ fontSize: 17 }}>{detail.ex.cue}</p> : null}
-          </div>
-        ) : null}
-      </Sheet>
-
-      {plan ? <SessionView open={sessionOpen} plan={active ? content.plans.find((p) => p.id === active.planId) || plan : plan} onClose={() => setSessionOpen(false)} /> : null}
+      {plan ? <SessionView open={sessionOpen} plan={plan} onClose={() => setSessionOpen(false)} /> : null}
     </div>
   );
 }
 
-function MoveSection({ title, sub, moves, onOpen }: { title: string; sub: string; moves: PlanMove[]; onOpen: (ex: Exercise, m: PlanMove) => void }) {
+/** The one tile she sees: what today is, not the whole exercise list. */
+function TodayTile({ plan, onStart }: { plan: Plan | null; onStart: () => void }) {
   const { data, exById } = useStore();
+  const d = today();
+  const gym = isGymDay(data, d) || data.profile.gymDays.length === 0;
+  const active = data.sessions.find((s) => !s.endedAt && s.date === d);
+  const done = data.sessions.some((s) => s.endedAt && s.date === d && s.sets.length);
+  const dayLabel = `${DOW_FULL[dow(d)]}`;
+
+  if (!plan) {
+    return (
+      <section className="card hero today-plan" aria-label="Today's workout plan">
+        <div className="between"><p className="eyebrow acc-t">Today · {dayLabel}</p><span className="pill neutral">Coming soon</span></div>
+        <div className="row" style={{ alignItems: 'center', gap: 6, marginTop: 6 }}>
+          <div className="stack" style={{ flex: 1, gap: 6 }}>
+            <h2 className="h2">Rishu is designing today’s plan</h2>
+            <p className="muted">It shows up right here as soon as he publishes it.{gym ? '' : ' Today is a rest day anyway.'}</p>
+          </div>
+          <Doodle name="laptop" size={110} style={{ flex: 'none', marginRight: -8 }} />
+        </div>
+      </section>
+    );
+  }
+
+  const moves = plan.moves.filter((m) => exById[m.exId]);
+  const stretches = moves.filter((m) => exById[m.exId]?.group === 'stretching').length;
+  const lifts = moves.length - stretches;
+  const mins = Math.max(10, Math.round((stretches * 1.5 + moves.filter((m) => exById[m.exId]?.group !== 'stretching').reduce((a, m) => a + m.sets * 2.5, 0)) / 5) * 5);
+  const doneCount = active?.completed?.length ?? 0;
+
   return (
-    <section className="stack" style={{ gap: 10 }} aria-label={title}>
-      <div className="between"><h2 className="h2">{title}</h2><span className="small muted">{sub}</span></div>
-      {moves.map((m) => {
-        const ex = exById[m.exId];
-        if (!ex) return null;
-        const last = lastWeight(data, m.exId);
-        return (
-          <button key={m.exId} type="button" className="list-row" style={{ padding: 10 }} onClick={() => onOpen(ex, m)}>
-            <Gif className="thumb" src={gifSrc(ex)} alt="" style={{ width: 84, height: 84 }} />
-            <span style={{ flex: 1, minWidth: 0 }} className="stack">
-              <strong style={{ fontSize: 16, lineHeight: 1.25 }}>{ex.name}</strong>
-              <span className="small muted">{m.sets} × {m.reps} {m.unit === 'min' ? 'min' : m.unit === 'sec' ? 'sec' : 'reps'}{m.kg ? ` · ${m.kg} kg` : ''}</span>
-              {ex.group !== 'stretching' ? <span className={last ? 'pill' : 'pill neutral'} style={{ alignSelf: 'flex-start', marginTop: 4 }}>{last ? `Last time ${last.kg} kg` : 'First time'}</span> : null}
-            </span>
-          </button>
-        );
-      })}
+    <section className="card hero today-plan" aria-label="Today's workout plan">
+      <div className="between">
+        <p className="eyebrow acc-t">{done ? 'Done today' : gym ? `Today · ${dayLabel}` : `Rest day · bonus session`}</p>
+        <span className="pill">by Rishu</span>
+      </div>
+      <h2 className="h1" style={{ fontSize: 30, marginTop: 6 }}>{plan.title}</h2>
+      <p style={{ fontSize: 17, marginTop: 6 }}><span className="muted">You’re hitting:</span> <strong>{planBrief(plan, exById)}</strong></p>
+      <div className="chips" style={{ marginTop: 12 }} aria-label="Plan size">
+        {lifts ? <span className="chip static">{lifts} exercise{lifts === 1 ? '' : 's'}</span> : null}
+        {stretches ? <span className="chip static">{stretches} stretch{stretches === 1 ? '' : 'es'}</span> : null}
+        <span className="chip static">~{mins} min</span>
+      </div>
+      {plan.note ? <p className="small muted row" style={{ marginTop: 12, alignItems: 'flex-start' }}><Icon name="glass" size={18} /> {plan.note}</p> : null}
+      {done && !active ? (
+        <p className="ok-t" style={{ fontWeight: 700, marginTop: 14 }}><Icon name="check" size={16} stroke={3} /> Workout logged. Rest up.</p>
+      ) : (
+        <button type="button" className="btn lg block" style={{ marginTop: 16 }} onClick={onStart}>
+          <Icon name="play" size={18} /> {active ? `Resume · ${doneCount}/${moves.length} done` : 'Start session'}
+        </button>
+      )}
+      <p className="small muted" style={{ marginTop: 10, textAlign: 'center' }}>Moves show one by one once you start.</p>
     </section>
   );
 }
@@ -128,6 +113,8 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
   const sets = session ? session.sets.filter((x) => x.exId === move?.exId) : [];
   const doneMove = (m: PlanMove) => !!session?.completed?.includes(m.exId);
   const [logOpen, setLogOpen] = useState(false);
+  const [listOpen, setListOpen] = useState(false);
+  const yt = ex ? ytLink(ex, move) : null;
 
   // Create (or resume) the session when opened.
   useEffect(() => {
@@ -212,12 +199,19 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
                 ))}
               </div>
             </div>
+            <button type="button" className="icon-btn" aria-label="All moves" onClick={() => setListOpen(true)}><Icon name="list" /></button>
             <button type="button" className="btn sm ghost" onClick={finish}>Finish</button>
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', padding: '8px 18px 12px' }} className="stack">
             <Gif src={gifSrc(ex)} alt={`${ex.name} demonstration`} style={{ width: '100%', height: '46vh', minHeight: 240, objectFit: 'contain', background: '#fff', borderRadius: 24 }} />
             <h1 className="h1" style={{ fontSize: 30, textAlign: 'center', marginTop: 6 }}>{ex.name}</h1>
+            <p className="muted" style={{ textAlign: 'center', fontWeight: 600 }}>{move.sets} × {move.reps} {move.unit === 'min' ? 'min' : move.unit === 'sec' ? 'sec' : 'reps'}</p>
+            {yt ? (
+              <a className="btn ghost yt-btn" href={yt} target="_blank" rel="noopener noreferrer" style={{ alignSelf: 'center' }}>
+                <Icon name="video" size={20} /> Watch how on YouTube
+              </a>
+            ) : null}
             {sets.length ? (
               <div className="chips" style={{ justifyContent: 'center' }} aria-label="Logged sets">
                 {sets.map((s) => <span key={s.at} className="chip" aria-pressed="true">{isStretch || !s.kg ? `${s.reps}` : `${s.kg} kg × ${s.reps}`}</span>)}
@@ -255,6 +249,25 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
           </div>
         </>
       ) : null}
+      <Sheet open={listOpen} onClose={() => setListOpen(false)} label="Today's moves">
+        <div className="stack" style={{ gap: 8 }} data-acc="workout">
+          <h2 className="h2">Today’s moves</h2>
+          {moves.map((m, i) => {
+            const e = exById[m.exId];
+            const dn = doneMove(m);
+            return (
+              <button key={m.exId} type="button" className="list-row" style={{ padding: 10 }} aria-current={i === idx ? 'step' : undefined} onClick={() => { setIdx(i); setListOpen(false); }}>
+                <span className={`move-num${dn ? ' done' : i === idx ? ' now' : ''}`}>{dn ? <Icon name="check" size={14} stroke={3} /> : i + 1}</span>
+                <span style={{ flex: 1, minWidth: 0 }} className="stack">
+                  <strong style={{ fontSize: 16 }}>{e?.name}</strong>
+                  <span className="small muted">{m.sets} × {m.reps} {m.unit === 'min' ? 'min' : m.unit === 'sec' ? 'sec' : 'reps'}{e?.group === 'stretching' ? ' · stretch' : ''}</span>
+                </span>
+                {i === idx ? <span className="pill">Now</span> : null}
+              </button>
+            );
+          })}
+        </div>
+      </Sheet>
     </FullSheet>
   );
 }

@@ -61,3 +61,9 @@ export function gifSrc(ex: Exercise | undefined): string {
   if (BUNDLED_MEDIA.has(g)) return `./${g}`;
   return SITE_BASE + g.replace(/^\.?\//, '');
 }
+
+/** Only real YouTube links are shown (they open in the YouTube app). */
+export function ytLink(ex: Exercise | undefined, move?: { yt?: string }): string | null {
+  const u = (move?.yt || ex?.yt || '').trim();
+  return /^https:\/\/(www\.|m\.)?(youtube\.com|youtu\.be)\//i.test(u) ? u : null;
+}
