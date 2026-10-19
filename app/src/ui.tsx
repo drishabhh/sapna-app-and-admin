@@ -1,6 +1,7 @@
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { haptic } from './lib/native';
+import { useCountUp } from './anim';
 
 /* ---------- Android back button: last opened layer closes first ---------- */
 const backStack: { id: number; fn: () => void }[] = [];
@@ -75,15 +76,16 @@ export function Ring({ value, max, size = 168, stroke = 14, color = 'var(--acc)'
 }) {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
-  const pct = max > 0 ? Math.min(1, Math.max(0, value / max)) : 0;
+  const target = max > 0 ? Math.min(1, Math.max(0, value / max)) : 0;
+  const pct = useCountUp(target, 1100);
   return (
     <div style={{ position: 'relative', width: size, height: size, flex: 'none' }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={label}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={label} style={{ overflow: 'visible' }}>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={track} strokeWidth={stroke} />
-        {pct > 0 ? <circle
+        {pct > 0.001 ? <circle
           cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round"
           strokeDasharray={`${c * pct} ${c}`} transform={`rotate(-90 ${size / 2} ${size / 2})`}
-          style={{ transition: 'stroke-dasharray 0.6s cubic-bezier(.2,.9,.3,1)', filter: `drop-shadow(0 0 8px ${color})` }}
+          style={{ filter: `drop-shadow(0 0 8px ${color})` }}
         /> : null}
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
@@ -94,7 +96,7 @@ export function Ring({ value, max, size = 168, stroke = 14, color = 'var(--acc)'
 }
 
 export function Bar({ value, max, label, color }: { value: number; max: number; label: string; color?: string }) {
-  const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+  const pct = useCountUp(max > 0 ? Math.min(100, (value / max) * 100) : 0, 1000, 120);
   return (
     <div className="bar" role="img" aria-label={label}>
       <i style={{ width: `${pct}%`, ...(color ? { background: color } : {}) }} />

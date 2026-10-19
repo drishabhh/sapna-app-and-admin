@@ -5,6 +5,7 @@ import type { AppData } from './lib/types';
 import { StreakInfo } from './lib/calc';
 import type { DoodleName } from './lib/mood';
 import { Icon } from './ui';
+import { Num } from './anim';
 
 export type { DoodleName };
 
@@ -20,7 +21,7 @@ export function StreakCard({ s, onLog }: { s: StreakInfo; onLog: () => void }) {
         <div className="stack" style={{ gap: 2, minWidth: 0, flex: 1 }}>
           <div className="row" style={{ gap: 6, alignItems: 'flex-end' }}>
             <span className={`streak-flame${mood.lit ? '' : ' out'}`} aria-hidden="true"><Icon name="flame" size={30} stroke={2.2} /></span>
-            <span className="big" style={{ fontSize: 46 }}>{s.streak}</span>
+            <span className="big" style={{ fontSize: 46 }}><Num value={s.streak} duration={800} /></span>
           </div>
           <p className="eyebrow" style={{ color: 'var(--acc-t)' }}>day streak{s.best > s.streak ? ` · best ${s.best}` : ''}</p>
           <p className="h3" style={{ marginTop: 8 }}>{mood.title}</p>

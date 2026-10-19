@@ -10,6 +10,7 @@ import { StreakCard } from '../streak';
 import { WeighCard } from '../congrats';
 import { burnedOn, latestWeight, stepsKcal } from '../lib/burn';
 import { takeStepsRequest } from '../lib/intents';
+import { Num } from '../anim';
 
 export default function Today() {
   const { data, content, foods, update, exById, contentFresh } = useStore();
@@ -72,13 +73,13 @@ export default function Today() {
         <section className="card hero" aria-label="Calories and protein">
           <div className="row" style={{ gap: 18 }}>
             <Ring value={t.kcal} max={content.targets.kcal + earned} label={`${t.kcal} of ${content.targets.kcal} kcal eaten`} color={left < 0 ? 'var(--danger)' : 'var(--acc)'}>
-              <span className="big" style={{ fontSize: 40 }}>{Math.abs(left)}</span>
+              <span className="big" style={{ fontSize: 40 }}><Num value={Math.abs(left)} duration={1100} /></span>
               <span className="small muted">{left >= 0 ? 'kcal left' : 'kcal over'}</span>
             </Ring>
             <div className="stack" style={{ gap: 12, minWidth: 0 }}>
-              <div><p className="eyebrow">Eaten</p><p className="big" style={{ fontSize: 26 }}>{t.kcal.toLocaleString('en-IN')}</p></div>
-              <div><p className="eyebrow">Target</p><p className="big" style={{ fontSize: 26 }}>{content.targets.kcal.toLocaleString('en-IN')}</p></div>
-              {burned ? <div data-acc="workout"><p className="eyebrow acc-t">Burned</p><p className="big" style={{ fontSize: 22 }}>{burned}<span className="small muted" style={{ fontFamily: 'var(--body)', fontWeight: 600 }}> · +{earned} to eat</span></p></div> : null}
+              <div><p className="eyebrow">Eaten</p><p className="big" style={{ fontSize: 26 }}><Num value={t.kcal} /></p></div>
+              <div><p className="eyebrow">Target</p><p className="big" style={{ fontSize: 26 }}><Num value={content.targets.kcal} /></p></div>
+              {burned ? <div data-acc="workout"><p className="eyebrow acc-t">Burned</p><p className="big" style={{ fontSize: 22 }}><Num value={burned} /><span className="small muted" style={{ fontFamily: 'var(--body)', fontWeight: 600 }}> · +{earned} to eat</span></p></div> : null}
             </div>
           </div>
           <div className="stack" style={{ gap: 8, marginTop: 18 }} data-acc="food">
@@ -121,7 +122,7 @@ export default function Today() {
         <section className="grid2" aria-label="Water and steps">
           <div className="card tight stack" style={{ gap: 10 }} data-acc="progress">
             <div className="between"><strong className="row" style={{ gap: 6 }}><Icon name="glass" size={18} /> Water</strong></div>
-            <p className="big" style={{ fontSize: 30 }}>{water}<span className="small muted" style={{ fontFamily: 'var(--body)', fontWeight: 500 }}> / {content.targets.water}</span></p>
+            <p className="big" style={{ fontSize: 30 }}><Num value={water} /><span className="small muted" style={{ fontFamily: 'var(--body)', fontWeight: 500 }}> / {content.targets.water}</span></p>
             <div role="img" aria-label={`${water} of ${content.targets.water} glasses`} style={{ display: 'grid', gridTemplateColumns: `repeat(${content.targets.water}, minmax(0,1fr))`, gap: 3 }}>
               {Array.from({ length: content.targets.water }, (_, i) => (
                 <span key={i} style={{ height: 16, borderRadius: 4, background: i < water ? 'var(--acc)' : 'var(--card-2)', boxShadow: i < water ? '0 0 8px var(--acc)' : 'none' }} />
@@ -134,7 +135,7 @@ export default function Today() {
           </div>
           <button type="button" className="card tight stack" style={{ gap: 10, textAlign: 'left', color: 'var(--text)' }} data-acc="today" onClick={() => { setStepsVal(steps ? String(steps) : ''); setStepsOpen(true); }}>
             <strong className="row" style={{ gap: 6 }}><Icon name="steps" size={18} /> Steps</strong>
-            <p className="big" style={{ fontSize: 30 }}>{steps.toLocaleString('en-IN')}</p>
+            <p className="big" style={{ fontSize: 30 }}><Num value={steps} /></p>
             <p className="small muted">{steps ? `≈ ${stepsKcal(steps, kg)} kcal burned` : 'Log tonight at 11:30 pm'}</p>
           </button>
         </section>

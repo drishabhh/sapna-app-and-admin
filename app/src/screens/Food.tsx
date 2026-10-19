@@ -6,6 +6,7 @@ import { useStore } from '../lib/store';
 import { FoodEntry, MEALS } from '../lib/types';
 import { useNav } from '../nav';
 import { Bar, Icon, Sheet, Stepper, toast } from '../ui';
+import { Num } from '../anim';
 
 export default function FoodScreen() {
   const { data, content, update } = useStore();
@@ -52,7 +53,7 @@ export default function FoodScreen() {
         <section className="card hero grid2" aria-label="Day totals">
           <div className="stack" style={{ gap: 6 }}>
             <p className="eyebrow">Calories</p>
-            <p className="big" style={{ fontSize: 32 }}>{t.kcal.toLocaleString('en-IN')}</p>
+            <p className="big" style={{ fontSize: 32 }}><Num value={t.kcal} /></p>
             <Bar value={t.kcal} max={content.targets.kcal} label={`${t.kcal} of ${content.targets.kcal} kcal`} color={t.kcal > content.targets.kcal ? 'var(--danger)' : 'var(--coral)'} />
             <p className="small muted">of {content.targets.kcal.toLocaleString('en-IN')}</p>
           </div>

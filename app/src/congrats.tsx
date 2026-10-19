@@ -6,6 +6,7 @@ import { useStore } from './lib/store';
 import { today } from './lib/dates';
 import { Doodle, type DoodleName } from './streak';
 import { Icon, Stepper, toast } from './ui';
+import { Num } from './anim';
 
 export type Feel = 'easy' | 'right' | 'hard';
 
@@ -92,7 +93,7 @@ export function Congrats({ title, sub, stats, extra, onFeel, onDone, doodle = 'c
         <div className="grid3">
           {stats.map((x) => (
             <div key={x.label} className="card tight" style={{ textAlign: 'center' }}>
-              <p className="big" style={{ fontSize: 28 }}>{x.value}{x.unit ? <span className="small"> {x.unit}</span> : null}</p>
+              <p className="big" style={{ fontSize: 28 }}>{typeof x.value === 'number' ? <Num value={x.value} duration={1300} delay={250} /> : x.value}{x.unit ? <span className="small"> {x.unit}</span> : null}</p>
               <p className="eyebrow" style={{ marginTop: 4 }}>{x.label}</p>
             </div>
           ))}

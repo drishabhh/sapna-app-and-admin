@@ -9,6 +9,7 @@ import { useStore } from '../lib/store';
 import { Plan, PlanMove, Session } from '../lib/types';
 import { FullSheet, Gif, Icon, Seg, Sheet, Stepper, toast } from '../ui';
 import { Doodle } from '../streak';
+import { Num } from '../anim';
 
 export default function WorkoutScreen({ autoStart, onAutoStartHandled }: { autoStart: boolean; onAutoStartHandled: () => void }) {
   const { data, content } = useStore();
@@ -321,7 +322,7 @@ function History() {
       <section className="card between" aria-label="Sessions per week">
         <div>
           <p className="eyebrow">Sessions per week</p>
-          <p className="big" style={{ fontSize: 34 }}>{perWeek[3]}<span className="small muted" style={{ fontFamily: 'var(--body)', fontWeight: 500 }}> this week</span></p>
+          <p className="big" style={{ fontSize: 34 }}><Num value={perWeek[3]} /><span className="small muted" style={{ fontFamily: 'var(--body)', fontWeight: 500 }}> this week</span></p>
           <p className="small muted">{perWeek.reduce((a, b) => a + b, 0)} in the last 4 weeks</p>
         </div>
         <div className="chart" role="img" aria-label={`Sessions per week: ${perWeek.join(', ')}`} style={{ height: 70, width: 120, borderBottom: 'none', gap: 8 }}>

@@ -5,6 +5,7 @@ import { haptic } from '../lib/native';
 import { useStore } from '../lib/store';
 import { Flow } from '../lib/types';
 import { Icon, Ring, toast } from '../ui';
+import { Num } from '../anim';
 
 const SYMPTOMS = ['Cramps', 'Bloating', 'Headache', 'Low energy', 'Mood swings', 'Cravings', 'Acne', 'Back pain', 'Tender breasts'];
 const FLOWS: { v: Flow; l: string }[] = [{ v: 'none', l: 'None' }, { v: 'light', l: 'Light' }, { v: 'medium', l: 'Medium' }, { v: 'heavy', l: 'Heavy' }];
@@ -67,7 +68,7 @@ export default function CycleScreen() {
           <section className="card hero row" style={{ gap: 18 }} aria-label="Cycle summary">
             <Ring value={info.day} max={info.length} size={124} stroke={11} label={`Day ${info.day} of a ${info.length} day cycle`}>
               <span className="small muted">Day</span>
-              <span className="big" style={{ fontSize: 38 }}>{info.day}</span>
+              <span className="big" style={{ fontSize: 38 }}><Num value={info.day} /></span>
             </Ring>
             <div className="stack" style={{ gap: 6, minWidth: 0 }}>
               <span className="pill" style={{ alignSelf: 'flex-start' }}>{PHASE_COPY[info.phase].label} phase</span>

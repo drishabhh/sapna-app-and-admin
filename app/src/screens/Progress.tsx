@@ -4,6 +4,7 @@ import { addDays, DOW_SHORT, keyOf, parseKey, shortLabel, today, weekOf } from '
 import { haptic, shareReport } from '../lib/native';
 import { useStore } from '../lib/store';
 import { Icon, Seg, Sheet, Stepper, toast } from '../ui';
+import { Num } from '../anim';
 
 export default function ProgressScreen() {
   const { data, content, update } = useStore();
@@ -58,7 +59,7 @@ export default function ProgressScreen() {
             <button type="button" className="icon-btn" aria-label="Next week" disabled={isThisWeek} style={isThisWeek ? { opacity: 0.35 } : undefined} onClick={() => setAnchor(addDays(anchor, 7))}><Icon name="next" /></button>
           </div>
           <div className="between" style={{ alignItems: 'baseline' }}>
-            <span className="big" style={{ fontSize: 30 }}>{logged.length ? (metric === 'kcal' ? Math.round(avg).toLocaleString('en-IN') + ' kcal' : Math.round(avg) + ' g') : '—'}</span>
+            <span className="big" style={{ fontSize: 30 }}>{logged.length ? <><Num key={metric} value={Math.round(avg)} />{metric === 'kcal' ? ' kcal' : ' g'}</> : '—'}</span>
             <span className="small muted">daily average</span>
           </div>
           <div className="chart" role="img" aria-label={`${metric === 'kcal' ? 'Calories' : 'Protein'} per day: ${vals.map((v) => `${DOW_SHORT[parseKey(v.k).getDay()]} ${metric === 'kcal' ? v.kcal : v.protein}`).join(', ')}`} style={{ height: H }}>
@@ -73,19 +74,19 @@ export default function ProgressScreen() {
         </section>
 
         <section className="grid3" aria-label="Week summary">
-          <div className="card tight"><p className="eyebrow">On target</p><p className="big" style={{ fontSize: 28 }}>{onTarget}<span className="small muted">/{logged.length || 0}</span></p><p className="small muted">kcal ±10%</p></div>
-          <div className="card tight"><p className="eyebrow">Protein</p><p className="big" style={{ fontSize: 28 }}>{proteinHit}<span className="small muted">/{logged.length || 0}</span></p><p className="small muted">days 90%+</p></div>
-          <div className="card tight"><p className="eyebrow">Streak</p><p className="big" style={{ fontSize: 28 }}>{logStreak(data)}</p><p className="small muted">days logged</p></div>
+          <div className="card tight"><p className="eyebrow">On target</p><p className="big" style={{ fontSize: 28 }}><Num value={onTarget} /><span className="small muted">/{logged.length || 0}</span></p><p className="small muted">kcal ±10%</p></div>
+          <div className="card tight"><p className="eyebrow">Protein</p><p className="big" style={{ fontSize: 28 }}><Num value={proteinHit} /><span className="small muted">/{logged.length || 0}</span></p><p className="small muted">days 90%+</p></div>
+          <div className="card tight"><p className="eyebrow">Streak</p><p className="big" style={{ fontSize: 28 }}><Num value={logStreak(data)} /></p><p className="small muted">days logged</p></div>
         </section>
 
         <section className="card stack" style={{ gap: 12 }} aria-label="Body weight" data-acc="today">
           <div className="between">
-            <div><p className="eyebrow">Body weight</p><p className="big" style={{ fontSize: 30 }}>{lastW ? `${lastW.kg} kg` : '—'}</p>{ws.length > 1 ? <p className="small muted">{change > 0 ? '+' : ''}{change} kg since {shortLabel(ws[0].date)}</p> : null}</div>
+            <div><p className="eyebrow">Body weight</p><p className="big" style={{ fontSize: 30 }}>{lastW ? <><Num value={lastW.kg} from={ws.length > 1 ? ws[ws.length - 2].kg : lastW.kg * 0.9} decimals={1} duration={1400} /> kg</> : '—'}</p>{ws.length > 1 ? <p className="small muted">{change > 0 ? '+' : ''}{change} kg since {shortLabel(ws[0].date)}</p> : null}</div>
             <button type="button" className="btn sm" onClick={() => { setKg(lastW?.kg || data.profile.weightKg); setWeighOpen(true); }}><Icon name="plus" size={16} /> Weigh-in</button>
           </div>
           {ws.length > 1 ? (
             <svg viewBox="-8 -8 316 116" style={{ width: '100%', height: 120 }} role="img" aria-label={`Weight trend: ${ws.map((w) => `${shortLabel(w.date)} ${w.kg} kg`).join(', ')}`}>
-              <polyline points={pts.join(' ')} fill="none" stroke="var(--acc)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 6px var(--acc))' }} />
+              <polyline className="draw" pathLength={1} points={pts.join(' ')} fill="none" stroke="var(--acc)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 6px var(--acc))' }} />
               {pts.map((p, i) => { const [x, y] = p.split(',').map(Number); return <circle key={i} cx={x} cy={y} r={i === pts.length - 1 ? 5 : 3} fill="var(--acc)" />; })}
             </svg>
           ) : <p className="small muted">Weigh in once a week, same morning — the trend line appears after two entries.</p>}
