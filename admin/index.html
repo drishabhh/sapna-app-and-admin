@@ -64,6 +64,39 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;colo
 .pill{display:inline-flex;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700;background:color-mix(in srgb,var(--acc) 18%,transparent);color:var(--acc)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+/* ---------- Phone layout ---------- */
+@media (max-width: 640px) {
+  .wrap { padding-left: 14px; padding-right: 14px; }
+  h1 { font-size: 32px; }
+  .tabs { margin: 0 -14px 12px; padding-left: 14px; padding-right: 14px; gap: 4px; }
+  .tabs button { font-size: 13px; min-height: 40px; padding: 0 4px; }
+  .card { padding: 14px; border-radius: 18px; }
+  .dash .grid .card .big { font-size: 26px !important; }
+  .dash .grid .card { padding: 12px 14px; }
+  .dash .grid .card p + .big { margin-top: 6px; }
+  /* iOS zooms into inputs smaller than 16px — keep them 16px */
+  .input, select.input, textarea.input { font-size: 16px; }
+  .mono { font-size: 13px !important; }
+  /* Food library: each food becomes a small card */
+  .ftwrap { padding: 6px; overflow: visible !important; }
+  .ftable thead { display: none; }
+  .ftable, .ftable tbody { display: block; }
+  .ftable tr { display: grid; grid-template-columns: 1fr 1fr 44px; gap: 6px 8px; padding: 10px 8px; border-top: 1px solid var(--line); align-items: end; }
+  .ftable tr:first-child { border-top: none; }
+  .ftable td { display: block; padding: 0; border: none; min-width: 0; }
+  .ftable td::before { content: attr(data-l); display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
+  .ftable td.fdel::before { content: none; }
+  .ftable td:nth-child(1) { grid-column: 1 / 3; }
+  .ftable td:nth-child(2) { grid-column: 1 / 3; grid-row: 2; }
+  .ftable td:nth-child(3) { grid-column: 1; grid-row: 3; }
+  .ftable td:nth-child(4) { grid-column: 2; grid-row: 3; }
+  .ftable td.fdel { grid-column: 3; grid-row: 1; align-self: end; }
+  .ftable input { min-width: 0 !important; width: 100% !important; }
+  .pub { left: 8px; right: 8px; padding: 10px 10px 10px 14px; }
+  .pub #pubSub { display: none; }
+  .modal .sheet { max-height: 92vh; }
+}
+
 .warn{border-color:color-mix(in srgb,var(--amber) 45%,transparent);background:color-mix(in srgb,var(--amber) 8%,var(--card))}
 .chart{display:flex;flex-direction:column;gap:6px}.ctip{margin:0;min-height:19px}.ctip.on{color:var(--text);font-weight:700}
 .cplot{position:relative;height:150px;border-bottom:1px solid var(--line2)}
@@ -85,6 +118,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;colo
 .trow{cursor:pointer}.trow:hover td{background:var(--card2)}
 .ib:disabled{opacity:.35}
 .steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}.steps a{color:var(--acc)}
+.qr{background:#fff;border-radius:16px;padding:10px;align-self:center;width:min(300px,100%)}.qr svg{display:block;width:100%;height:auto}
 .mono{font-family:ui-monospace,Menlo,monospace;font-size:12px;min-height:96px;word-break:break-all}
 .live{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:6px;box-shadow:0 0 8px var(--ok);vertical-align:1px}
 
@@ -112,6 +146,20 @@ const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
 const gif = (g) => (!g ? '' : /^https:/.test(g) ? g : SITE + g.replace(/^\.?\//, ''));
 
 let S = { token: '', content: null, sha: null, dirty: false, tab: 'status', lib: null, report: null, editing: null, picker: null, libQ: '', libPart: 'all', libGroup: 'exercises', foodQ: '' };
+// "Link another device": #link=<base64url {v,t,s}> carries the admin token + sync settings.
+// It's in the #fragment, so it never leaves this browser (not sent to GitHub Pages).
+(() => {
+  const m = location.hash.match(/^#link=([A-Za-z0-9_-]+)/);
+  if (!m) return;
+  try {
+    const bin = atob(m[1].replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((m[1].length + 3) % 4));
+    const j = JSON.parse(decodeURIComponent(escape(bin)));
+    if (j.t) localStorage.setItem('sapna_admin_gh_token', j.t);
+    if (j.s && j.s.k) localStorage.setItem('sapna_admin_sync_v1', JSON.stringify(j.s));
+    sessionStorage.setItem('sapna_admin_linked', '1');
+  } catch { sessionStorage.setItem('sapna_admin_linked', 'bad'); }
+  history.replaceState(null, '', location.pathname + location.search);
+})();
 try { S.token = localStorage.getItem(LS_TOKEN) || ''; } catch {}
 try { S.report = JSON.parse(localStorage.getItem(LS_REPORT) || 'null'); } catch {}
 
@@ -213,7 +261,8 @@ function app(html) { $('#app').innerHTML = html; }
 function viewSetup(err = '') {
   app(`<div class="stack" style="gap:18px;max-width:520px">
     <p class="eyebrow">Sapna Health</p><h1>Admin</h1>
-    <p class="muted">Paste a GitHub token so this page can publish plans to Sapna's app. It's saved only in this browser.</p>
+    <div class="card stack" style="border-color:color-mix(in srgb,var(--acc) 45%,transparent)"><strong>Already using the admin on another device?</strong><p class="small muted">There: <b>Targets → Link another device</b>, then scan the QR with this device’s camera. Everything is set up — skip the rest of this page.</p></div>
+    <p class="muted">First time? Paste a GitHub token so this page can publish plans to Sapna's app. It's saved only in this browser.</p>
     <div class="card stack small muted"><strong style="color:var(--text)">Make the token once (2 min)</strong>
       <span>GitHub → Settings → Developer settings → <b>Fine-grained tokens</b> → Generate.</span>
       <span>Repository access: <b>Only select repositories → sapna-app-and-admin</b>.</span>
@@ -375,19 +424,60 @@ function currentReport() {
   return a || b || null;
 }
 
+function deviceLink() {
+  const payload = JSON.stringify({ v: 1, t: S.token, s: syncCfg() });
+  const b = btoa(unescape(encodeURIComponent(payload))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return location.origin + location.pathname + '#link=' + b;
+}
+function loadQr() {
+  if (window.qrcode) return Promise.resolve(window.qrcode);
+  return new Promise((res) => { const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js'; sc.onload = () => res(window.qrcode || null); sc.onerror = () => res(null); document.head.appendChild(sc); });
+}
+async function showLink() {
+  document.getElementById('linkm')?.remove();
+  const url = deviceLink();
+  const m = document.createElement('div'); m.className = 'modal'; m.id = 'linkm';
+  m.innerHTML = `<div class="sheet stack" role="dialog" aria-label="Link another device" style="max-width:520px">
+    <div class="between"><h2>Link another device</h2><button class="ib" type="button" id="lmx">✕</button></div>
+    <p class="small muted">Scan with your phone’s camera — the admin opens fully set up (publishing + her live dashboard). Nothing to paste.</p>
+    <div id="qr" class="qr"><p class="small muted">Making QR…</p></div>
+    <div class="row wrapr"><button class="btn sm" type="button" id="lcopy">Copy link</button>${navigator.share ? '<button class="btn ghost sm" type="button" id="lshare">Send to myself…</button>' : ''}</div>
+    <p class="small faint">This link contains your token and the key to her data. Open it only on your own devices — don’t forward it.</p></div>`;
+  document.body.appendChild(m);
+  $('#lmx').onclick = () => m.remove(); m.onclick = (e) => { if (e.target === m) m.remove(); };
+  $('#lcopy').onclick = async () => { try { await navigator.clipboard.writeText(url); toast('Link copied'); } catch { prompt('Copy this link', url); } };
+  const sh = $('#lshare'); if (sh) sh.onclick = () => navigator.share({ title: 'Sapna admin', url }).catch(() => {});
+  const q = await loadQr();
+  const box = $('#qr'); if (!box) return;
+  if (!q) { box.innerHTML = '<p class="small muted">Couldn’t draw the QR offline — use Copy link and open it on your phone.</p>'; return; }
+  const code = q(0, 'L'); code.addData(url); code.make();
+  box.innerHTML = code.createSvgTag({ cellSize: 4, margin: 3, scalable: true });
+}
+
 function vSyncSetup() {
+  if (S.syncExists) return `<div class="card stack" id="syncsetup"><p class="eyebrow">Her phone is already syncing</p><h2>Link this device</h2>
+    <p class="small muted">This device just needs the key to her data. The easiest way:</p>
+    <ol class="small steps"><li>On the device where her dashboard already shows: <b>Targets → Link another device</b>.</li><li>Scan the QR with this phone’s camera. Done — nothing to paste.</li></ol>
+    <details open><summary class="small muted" style="cursor:pointer">Or paste the pairing code you sent Sapna</summary><div class="stack" style="margin-top:8px"><textarea class="input mono" id="scode" placeholder="SAPNA-SYNC-1:…"></textarea><button class="btn sm" type="button" id="suse" style="align-self:flex-start">Use this code</button></div></details>
+    <details><summary class="small" style="cursor:pointer;color:var(--danger)">Start over with a new key</summary><div class="stack" style="margin-top:8px">
+      <p class="small muted">Only if the old key is lost. Sapna must paste the new code in her app, otherwise her dashboard stops updating.</p>
+      ${syncForm()}</div></details>
+  </div>`;
   return `<div class="card stack" id="syncsetup"><p class="eyebrow">One-time setup · 3 minutes</p><h2>Live sync with her phone</h2>
     <p class="small muted">Her app encrypts her dashboard on her phone and saves it to a <b>private</b> repo of yours; this page unlocks it. No more files.</p>
     <ol class="small steps">
       <li><a href="https://github.com/new" target="_blank" rel="noopener">github.com/new</a> → name it <b>sapna-sync</b> → choose <b>Private</b> → Create.</li>
-      <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">New fine-grained token</a> → Expiration: the longest offered → Repository access: <b>Only select repositories → sapna-sync</b> → Permissions: <b>Contents: Read and write</b> → Generate.</li>
-      <li>Paste both below, then send Sapna the pairing code.</li>
+      <li>Give your admin token access to it: GitHub → Fine-grained tokens → your token → Edit → add <b>sapna-sync</b> (Contents: Read and write).</li>
+      <li>Tap Create pairing code, then send Sapna the code.</li>
     </ol>
-    <div class="g2"><label class="f">Private repo<input class="input" id="sr" value="drishabhh/sapna-sync" autocapitalize="off" spellcheck="false"></label>
-      <label class="f">Token (github_pat_…)<input class="input" id="st" type="password" autocomplete="off" spellcheck="false"></label></div>
-    <button class="btn" type="button" id="smake">Create pairing code</button>
-    <details><summary class="small muted" style="cursor:pointer">Use an existing code (e.g. on a new phone)</summary><div class="stack" style="margin-top:8px"><textarea class="input" id="scode" placeholder="SAPNA-SYNC-1:…"></textarea><button class="btn ghost sm" type="button" id="suse">Use this code</button></div></details>
+    ${syncForm()}
+    <details><summary class="small muted" style="cursor:pointer">Use an existing code</summary><div class="stack" style="margin-top:8px"><textarea class="input mono" id="scode" placeholder="SAPNA-SYNC-1:…"></textarea><button class="btn ghost sm" type="button" id="suse">Use this code</button></div></details>
   </div>`;
+}
+function syncForm() {
+  return `<div class="g2"><label class="f">Private repo<input class="input" id="sr" value="drishabhh/sapna-sync" autocapitalize="off" spellcheck="false"></label>
+      <label class="f">Token <span class="faint">(empty = use this page’s token)</span><input class="input" id="st" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…"></label></div>
+    <button class="btn" type="button" id="smake">Create pairing code</button>`;
 }
 function vSyncCard(c) {
   const code = pairingCode(c);
@@ -395,7 +485,7 @@ function vSyncCard(c) {
     ${S.showPair ? `<p class="small muted">Send this to Sapna. In her app: <b>Settings → Live sync with Rishu → paste → Connect</b>. It contains the key to her data — share it only with her.</p>
       <textarea class="input mono" id="pcode" readonly>${esc(code)}</textarea>
       <div class="row wrapr"><button class="btn sm" type="button" id="pcopy">Copy code</button>${navigator.share ? '<button class="btn ghost sm" type="button" id="pshare">Share…</button>' : ''}<button class="btn ghost sm" type="button" id="phide">Hide</button></div>`
-      : `<div class="row wrapr"><button class="btn ghost sm" type="button" id="pshow">Show pairing code</button><button class="btn ghost sm" type="button" id="supd">Update token</button><button class="btn danger sm" type="button" id="soff">Disconnect this browser</button></div>`}
+      : `<div class="row wrapr"><button class="btn sm" type="button" data-link>Link another device</button><button class="btn ghost sm" type="button" id="pshow">Show pairing code</button><button class="btn ghost sm" type="button" id="supd">Update token</button><button class="btn danger sm" type="button" id="soff">Disconnect this browser</button></div>`}
     ${S.syncTokenDead || S.showUpd ? `<div class="card warn stack" style="gap:8px"><strong>Update the sync token</strong>
       <p class="small muted">Paste the current value of your token that has <b>sapna-sync</b> with Contents: Read and write. Her encryption key stays the same — she just pastes the new code (Settings → Live sync → Paste new code).</p>
       <input class="input" id="sutok" type="password" autocomplete="off" placeholder="github_pat_…">
@@ -533,13 +623,19 @@ function sessBody(s) {
 
 function wireStatus() {
   const c = syncCfg();
+  if (!c && S.token && S.syncExists === undefined) {
+    S.syncExists = null; // checking
+    fetch('https://api.github.com/repos/drishabhh/sapna-sync/contents/dashboard.enc.json', { headers: { Authorization: `Bearer ${S.token}`, Accept: 'application/vnd.github+json' }, cache: 'no-store' })
+      .then((r) => { S.syncExists = r.ok; if (r.ok && S.tab === 'status') render(); }).catch(() => { S.syncExists = false; });
+  }
+  document.querySelectorAll('[data-link]').forEach((b) => (b.onclick = showLink));
   const refresh = async () => { await fetchSync(); if (S.tab === 'status') { const y = scrollY; render(); scrollTo(0, y); } };
   if (c && S.sync.status !== 'loading' && (!S.sync.fetchedAt || Date.now() - S.sync.fetchedAt > 60000)) refresh();
   const rb = $('#srefresh'); if (rb) rb.onclick = () => { S.sync.fetchedAt = 0; rb.textContent = 'Refreshing…'; refresh(); };
   const mk = $('#smake');
   if (mk) mk.onclick = async () => {
     const [o, r] = $('#sr').value.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\.git$/, '').split('/');
-    const t = $('#st').value.trim();
+    const t = $('#st').value.trim() || S.token;
     if (!o || !r) return toast('Repo should look like drishabhh/sapna-sync');
     { const bad = tokenShapeError(t); if (bad) return toast(bad); }
     mk.disabled = true; mk.textContent = 'Checking…';
@@ -717,8 +813,8 @@ function vFoods() {
   return `<div class="stack" style="gap:12px">
     <p class="muted small">Every food Sapna can search in her app. Calories and protein are per portion.</p>
     <div class="row"><input class="input" id="fq" type="search" placeholder="Search ${S.content.foods.length} foods" value="${esc(S.foodQ)}"><button class="btn" type="button" id="fadd" style="flex:none">+ Food</button></div>
-    <div style="overflow-x:auto" class="card"><table><thead><tr><th>Food</th><th>Portion</th><th>kcal</th><th>Protein g</th><th></th></tr></thead><tbody>
-    ${list.map(({ f, i }) => `<tr><td><input class="input" data-fi="${i}" data-k="name" value="${esc(f.name)}" style="min-width:150px"></td><td><input class="input" data-fi="${i}" data-k="portion" value="${esc(f.portion)}" style="min-width:110px"></td><td><input class="input" inputmode="numeric" data-fi="${i}" data-k="kcal" value="${f.kcal}" style="width:76px"></td><td><input class="input" inputmode="decimal" data-fi="${i}" data-k="protein" value="${f.protein}" style="width:70px"></td><td><button class="ib" type="button" data-fdel="${i}" aria-label="Delete ${esc(f.name)}">✕</button></td></tr>`).join('')}
+    <div style="overflow-x:auto" class="card ftwrap"><table class="ftable"><thead><tr><th>Food</th><th>Portion</th><th>kcal</th><th>Protein g</th><th></th></tr></thead><tbody>
+    ${list.map(({ f, i }) => `<tr><td data-l="Food"><input class="input" data-fi="${i}" data-k="name" value="${esc(f.name)}" style="min-width:150px" aria-label="Food name"></td><td data-l="Portion"><input class="input" data-fi="${i}" data-k="portion" value="${esc(f.portion)}" style="min-width:110px" aria-label="Portion"></td><td data-l="kcal"><input class="input" inputmode="numeric" data-fi="${i}" data-k="kcal" value="${f.kcal}" style="width:76px" aria-label="kcal"></td><td data-l="Protein g"><input class="input" inputmode="decimal" data-fi="${i}" data-k="protein" value="${f.protein}" style="width:70px" aria-label="Protein g"></td><td class="fdel"><button class="ib" type="button" data-fdel="${i}" aria-label="Delete ${esc(f.name)}">✕</button></td></tr>`).join('')}
     </tbody></table></div></div>`;
 }
 function wireFoods() {
@@ -742,6 +838,7 @@ function vSettings() {
       <label class="f">Protein (g)<input class="input" id="tp" inputmode="numeric" value="${t.protein}"></label>
       <label class="f">Water (glasses)<input class="input" id="tw" inputmode="numeric" value="${t.water ?? 8}"></label></div></div>
     <div class="card stack"><h2>Note on her Today screen</h2><textarea class="input" id="msg" placeholder="e.g. Proud of you this week! Try paneer at dinner.">${esc(S.content.message || '')}</textarea><p class="small muted">Leave empty to hide it.</p></div>
+    <div class="card stack"><h2>Link another device</h2><p class="small muted">Open this admin on your phone (or any device) already set up — publishing and her live dashboard — by scanning a QR. No tokens or codes to paste.</p><button class="btn" type="button" data-link style="align-self:flex-start">Show QR & link</button></div>
     <div class="card stack small muted"><strong style="color:var(--text)">Published</strong><span>Version ${S.content.version || 0} · ${S.content.updatedAt ? new Date(S.content.updatedAt).toLocaleString() : 'never'}</span>
       <div class="row wrapr"><button class="btn ghost sm" type="button" id="chtok">Change token (keeps changes)</button><button class="btn ghost sm" type="button" id="logout">Forget token on this device</button></div></div></div>`;
 }
@@ -751,6 +848,7 @@ function wireSettings() {
   $('#tp').oninput = (e) => { t.protein = Math.max(20, parseInt(e.target.value) || 0); markDirty(); };
   $('#tw').oninput = (e) => { t.water = Math.max(1, parseInt(e.target.value) || 8); markDirty(); };
   $('#msg').oninput = (e) => { S.content.message = e.target.value.slice(0, 220); markDirty(); };
+  document.querySelectorAll('[data-link]').forEach((b) => (b.onclick = showLink));
   $('#chtok').onclick = () => askToken('Paste a token with write access to sapna-app-and-admin.', null);
   $('#logout').onclick = () => { localStorage.removeItem(LS_TOKEN); S.token = ''; viewSetup(); };
 }
@@ -767,6 +865,9 @@ setInterval(async () => {
 window.addEventListener('beforeunload', (e) => { if (S.dirty) { e.preventDefault(); e.returnValue = ''; } });
 
 async function boot() {
+  const linked = sessionStorage.getItem('sapna_admin_linked'); sessionStorage.removeItem('sapna_admin_linked');
+  if (linked === '1') setTimeout(() => toast('This device is linked — nothing to paste'), 400);
+  if (linked === 'bad') setTimeout(() => toast('That link was incomplete — copy it again'), 400);
   if (!S.token) return viewSetup();
   app('<p class="muted">Loading…</p>');
   try { await loadContent(); render(); }

@@ -20,6 +20,7 @@ import { syncNightSteps, syncWidget } from './streak';
 import { requestSteps } from './lib/intents';
 import { clearDrafts, getDraft, setDraft, useDraft } from './lib/drafts';
 import { pushReport, SYNC_EVERY_DEFAULT, useSyncCfg } from './lib/sync';
+import { PullToRefresh } from './pull';
 import { buildReport } from './lib/native';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
@@ -145,6 +146,7 @@ function Shell() {
   else view = (
     <NavCtx.Provider value={nav}>
       <div className="app">
+        <PullToRefresh key={tab} tab={tab} />
         {tab === 'today' && <Today />}
         {tab === 'food' && <FoodScreen />}
         {tab === 'workout' && <WorkoutScreen autoStart={autoStart} onAutoStartHandled={() => setAutoStart(false)} />}

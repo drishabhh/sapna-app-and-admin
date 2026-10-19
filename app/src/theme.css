@@ -395,3 +395,17 @@ p { margin: 0; }
 @keyframes draw-a { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 @keyframes draw-b { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 .pill.warn { background: color-mix(in srgb, var(--danger) 18%, transparent); color: var(--danger); }
+
+/* ---------- Pull to refresh ---------- */
+.screen { overscroll-behavior-y: contain; }
+.ptr {
+  position: fixed; left: 50%; top: calc(var(--st) + 6px); z-index: 30;
+  width: 40px; height: 40px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--card-solid, var(--bg-2)); color: var(--acc-t, var(--text));
+  border: 1px solid var(--line-2); box-shadow: 0 8px 24px -8px rgba(0,0,0,0.45);
+  opacity: 0; pointer-events: none; transition: opacity 0.15s ease;
+}
+.ptr.on { opacity: 1; }
+.ptr.busy span { animation: ptr-spin 0.8s linear infinite; }
+@keyframes ptr-spin { to { transform: rotate(360deg); } }

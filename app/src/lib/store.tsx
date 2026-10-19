@@ -16,6 +16,8 @@ interface Store {
   /** write to disk right now (use before clearing drafts that the data replaces) */
   saveNow: () => Promise<void>;
   contentFresh: boolean;
+  /** fetch Rishu's latest plans/foods now; true if something new arrived */
+  reloadContent: () => Promise<boolean>;
 }
 
 const Ctx = createContext<Store | null>(null);
@@ -96,9 +98,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const exById = useMemo(() => Object.fromEntries(content.exercises.map((e) => [e.id, e])), [content.exercises]);
 
+  const reloadContent = useCallback(async () => {
+    const fresh = await refreshContent(contentRef.current);
+    if (fresh) { setContent(fresh); setFresh(true); return true; }
+    return false;
+  }, []);
+
   const value = useMemo(
-    () => ({ ready, data, content, foods, exById, update, replaceAll, saveNow: flush, contentFresh }),
-    [ready, data, content, foods, exById, update, replaceAll, flush, contentFresh],
+    () => ({ ready, data, content, foods, exById, update, replaceAll, saveNow: flush, contentFresh, reloadContent }),
+    [ready, data, content, foods, exById, update, replaceAll, flush, contentFresh, reloadContent],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
