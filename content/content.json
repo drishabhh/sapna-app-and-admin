@@ -1,13 +1,101 @@
 {
- "version": 7,
- "updatedAt": "2026-10-19T19:36:47.000Z",
+ "version": 8,
+ "updatedAt": "2026-10-27T14:46:57.712Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
   "water": 8
  },
- "plans": [],
- "exercises": [],
+ "plans": [
+  {
+   "id": "plan-mvqspoos",
+   "title": "Chest triceps ",
+   "note": "Rest 1–1.5 min between sets.",
+   "moves": [
+    {
+     "exId": "local-chest-press",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "pectorals-dumbbell-incline-bench-press",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "pectorals-chest-dip",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "triceps-cable-overhead-triceps-extension-rope-attachment",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "triceps-dumbbell-one-arm-triceps-extension-on-bench",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    }
+   ],
+   "days": [
+    1,
+    2
+   ]
+  }
+ ],
+ "exercises": [
+  {
+   "id": "local-chest-press",
+   "name": "Chest press flat bench",
+   "group": "exercises",
+   "part": "chest",
+   "equipment": "local",
+   "gif": "media/chest-press.gif",
+   "cue": ""
+  },
+  {
+   "id": "pectorals-dumbbell-incline-bench-press",
+   "name": "Dumbbell Incline Bench Press",
+   "group": "exercises",
+   "part": "chest",
+   "equipment": "dumbbell",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/pectorals/dumbbell-incline-bench-press.gif",
+   "cue": ""
+  },
+  {
+   "id": "pectorals-chest-dip",
+   "name": "Chest Dip",
+   "group": "exercises",
+   "part": "chest",
+   "equipment": "bodyweight",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/pectorals/chest-dip.gif",
+   "cue": ""
+  },
+  {
+   "id": "triceps-cable-overhead-triceps-extension-rope-attachment",
+   "name": "Cable Overhead Triceps Extension Rope Attachment",
+   "group": "exercises",
+   "part": "arms",
+   "equipment": "cable",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/triceps/cable-overhead-triceps-extension-rope-attachment.gif",
+   "cue": ""
+  },
+  {
+   "id": "triceps-dumbbell-one-arm-triceps-extension-on-bench",
+   "name": "Dumbbell One Arm Triceps Extension On Bench",
+   "group": "exercises",
+   "part": "arms",
+   "equipment": "dumbbell",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/triceps/dumbbell-one-arm-triceps-extension-on-bench.gif",
+   "cue": ""
+  }
+ ],
  "foods": [
   {
    "id": "pkg-thf-zero-maida-ww-bread",
