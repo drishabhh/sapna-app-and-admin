@@ -67,10 +67,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;colo
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 /* ---------- Phone layout ---------- */
 @media (max-width: 640px) {
-  .wrap { padding-left: 14px; padding-right: 14px; }
   h1 { font-size: 32px; }
-  .tabs { margin: 0 -14px 12px; padding-left: 14px; padding-right: 14px; gap: 4px; }
-  .tabs button { font-size: 13px; min-height: 40px; padding: 0 4px; }
   .card { padding: 14px; border-radius: 18px; }
   .dash .grid .card .big { font-size: 26px !important; }
   .dash .grid .card { padding: 12px 14px; }
@@ -78,22 +75,6 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;colo
   /* iOS zooms into inputs smaller than 16px — keep them 16px */
   .input, select.input, textarea.input { font-size: 16px; }
   .mono { font-size: 13px !important; }
-  /* Food library: each food becomes a small card */
-  .ftwrap { padding: 6px; overflow: visible !important; }
-  .ftable thead { display: none; }
-  .ftable, .ftable tbody { display: block; }
-  .ftable tr { display: grid; grid-template-columns: 1fr 1fr 44px; gap: 6px 8px; padding: 10px 8px; border-top: 1px solid var(--line); align-items: end; }
-  .ftable tr:first-child { border-top: none; }
-  .ftable td { display: block; padding: 0; border: none; min-width: 0; }
-  .ftable td::before { content: attr(data-l); display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
-  .ftable td.fdel::before { content: none; }
-  .ftable td:nth-child(1) { grid-column: 1 / 3; }
-  .ftable td:nth-child(2) { grid-column: 1 / 3; grid-row: 2; }
-  .ftable td:nth-child(3) { grid-column: 1; grid-row: 3; }
-  .ftable td:nth-child(4) { grid-column: 2; grid-row: 3; }
-  .ftable td.fdel { grid-column: 3; grid-row: 1; align-self: end; }
-  .ftable input { min-width: 0 !important; width: 100% !important; }
-  .foodbar { flex-wrap: wrap; } .foodbar .input { flex: 1 1 100%; } .foodbar .btn { flex: 1 1 0 !important; }
   .pub { left: 8px; right: 8px; padding: 10px 10px 10px 14px; }
   .pub #pubSub { display: none; }
   .modal .sheet { max-height: 92vh; }
@@ -112,8 +93,6 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;colo
 .clabels{display:grid;gap:2px;font-size:11px;color:var(--faint);text-align:left;white-space:nowrap;overflow:visible}
 .clabels span{overflow:visible}
 .wchart{width:100%;height:auto}.wchart .grid{stroke:var(--line);stroke-width:1}.wchart .axis{fill:var(--muted);font-size:10px}
-.meal{border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px}
-.fi{display:flex;justify-content:space-between;gap:10px;align-items:baseline}.fi>span:first-child{min-width:0}.fi>span:last-child{white-space:nowrap}
 .sess{border-top:1px solid var(--line);padding:10px 0 2px}.sess summary{display:flex;justify-content:space-between;gap:10px;align-items:center;cursor:pointer;list-style:none}.sess summary::-webkit-details-marker{display:none}
 .mrow{display:grid;grid-template-columns:84px 1fr 38px;gap:10px;align-items:center}
 .ok{color:var(--ok);font-weight:700}.bad{color:var(--danger);font-weight:700}
@@ -123,7 +102,100 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;colo
 .qr{background:#fff;border-radius:16px;padding:10px;align-self:center;width:min(300px,100%)}.qr svg{display:block;width:100%;height:auto}
 .mono{font-family:ui-monospace,Menlo,monospace;font-size:12px;min-height:96px;word-break:break-all}
 .live{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:6px;box-shadow:0 0 8px var(--ok);vertical-align:1px}
-
+/* ---------- Layout v2: Today / Progress / Workouts / Foods / Settings ---------- */
+:root{--gut:16px}
+.wrap{padding-left:var(--gut);padding-right:var(--gut)}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.hdr{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:6px 0 14px}
+.hdr h1{font-size:clamp(30px,5vw,40px)}
+.hdr .eyebrow{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tabs{margin:0 calc(-1 * var(--gut)) 14px;padding-left:var(--gut);padding-right:var(--gut)}
+.tabs button{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.tabs .ti{display:inline-flex}.tabs svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.liveline{margin:-6px 0 0}
+.spin{width:16px;height:16px;border-radius:50%;border:2px solid var(--line2);border-top-color:var(--acc);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.v-day,.v-foods,.v-workouts{display:block;max-width:720px;margin:0 auto}
+/* date strip */
+.dstrip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0 4px}
+.dstrip::-webkit-scrollbar{display:none}
+.dchip{flex:none;width:50px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 8px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--muted);font-size:11px;font-weight:700}
+.dchip b{font-size:18px;line-height:1.05;color:var(--text);font-family:'Bricolage Grotesque',Figtree,sans-serif}
+.dchip i{display:block;width:26px;height:4px;border-radius:99px;background:var(--card2);position:relative;overflow:hidden}
+.dchip i::after{content:'';position:absolute;left:0;top:0;bottom:0;width:var(--p);background:var(--acc);border-radius:99px}
+.dchip i.over::after{background:var(--danger)}
+.dchip[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:#0c0c10}
+.dchip[aria-pressed=true] b{color:#0c0c10}.dchip[aria-pressed=true] i{background:rgba(0,0,0,.2)}.dchip[aria-pressed=true] i::after{background:#0c0c10}
+/* tiles */
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:760px){.tiles{grid-template-columns:repeat(4,minmax(0,1fr))}.tiles.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.tile{position:relative;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;text-align:left;color:var(--text);min-width:0}
+button.tile:hover{border-color:var(--line2)}
+.tile .v{font-family:'Bricolage Grotesque',Figtree,sans-serif;font-weight:800;font-size:28px;line-height:1;letter-spacing:-.03em}
+.tile .v small{font-size:13px;color:var(--muted);font-family:Figtree,sans-serif;font-weight:600;letter-spacing:0}
+.tile .bar{height:6px}
+.tedit{position:absolute;top:10px;right:12px;font-size:12px;font-weight:700;color:var(--acc)}
+/* meals */
+.meal{border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.fi{display:flex;align-items:center;gap:10px}
+.fi .fn{flex:1;min-width:0;display:flex;flex-direction:column}
+.fi .fn b{font-weight:600}
+.fi .fk{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap}
+.fi .fk b{font-weight:700}
+.fi .fa{display:flex;gap:4px}
+.ib.sm{width:34px;height:34px;border-radius:10px;font-size:14px}
+.addb{min-height:34px;padding:0 12px;border-radius:99px;border:1px solid color-mix(in srgb,var(--acc) 55%,transparent);background:color-mix(in srgb,var(--acc) 14%,transparent);color:var(--acc);font-weight:700;font-size:13px}
+/* segmented */
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;border-radius:14px;background:var(--card2);border:1px solid var(--line)}
+.seg button{min-height:40px;border:none;border-radius:10px;background:transparent;color:var(--muted);font-weight:700;font-size:14px}
+.seg button[aria-pressed=true]{background:var(--solid);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.22)}
+.seg .cnt{font-weight:600;color:var(--faint);margin-left:4px}
+/* food list */
+.searchbar{position:sticky;top:calc(var(--st) + 66px);z-index:6;background:var(--bg);padding:6px 0;margin:-6px 0}
+.list{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.lrow{display:flex;align-items:center;gap:12px;width:100%;padding:11px 14px;border:none;border-top:1px solid var(--line);background:transparent;color:var(--text);text-align:left;min-height:62px}
+.list>.lrow:first-child,.list>.letter:first-child{border-top:none}
+.lrow:hover{background:var(--card2)}.lrow:disabled{cursor:default}
+.lmain{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.lmain b{font-weight:600;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.lk{flex:none;display:flex;flex-direction:column;align-items:flex-end}
+.lk b{font-family:'Bricolage Grotesque',Figtree,sans-serif;font-size:20px;font-weight:800;line-height:1.05}
+.chev{flex:none;color:var(--faint);font-size:22px;line-height:1}
+.chg .lmain b::after{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber);margin-left:7px;vertical-align:2px}
+.letter{margin:0;padding:6px 14px;font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--muted);background:var(--card2);border-top:1px solid var(--line)}
+mark{background:color-mix(in srgb,var(--acc) 32%,transparent);color:inherit;border-radius:3px;padding:0 1px}
+.flash{animation:flash 2s ease}
+@keyframes flash{0%,45%{background:color-mix(in srgb,var(--acc) 24%,transparent)}100%{background:transparent}}
+.g3{display:grid;gap:10px;grid-template-columns:repeat(3,minmax(0,1fr))}
+/* workouts week */
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.wday{display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 3px;border-radius:13px;border:1px solid var(--line);background:var(--card);color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;min-height:78px;text-align:center}
+.wday b{font-size:11.5px;color:var(--text);font-weight:600;line-height:1.2;letter-spacing:0;text-transform:none;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;word-break:break-word}
+.wday.set{border-color:color-mix(in srgb,var(--acc) 55%,transparent);background:color-mix(in srgb,var(--acc) 9%,var(--card))}
+.wday.now{box-shadow:inset 0 0 0 2px var(--acc)}
+.wday:disabled{opacity:1;cursor:default}.wday:disabled b{color:var(--faint)}
+.plan{display:flex;align-items:center;gap:12px;text-align:left;width:100%}
+/* progress + settings grids */
+.pgrid{display:grid;gap:14px}
+.setgrid{display:grid;gap:22px}
+@media (min-width:900px){.pgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.pgrid .full{grid-column:1/-1}.setgrid{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}}
+.sec{margin:0}
+@media (max-width:640px){
+  :root{--gut:14px}
+  .tabs{position:fixed;top:auto;bottom:0;left:0;right:0;margin:0;z-index:30;gap:0;padding:6px 6px calc(var(--sb) + 6px);border-top:1px solid var(--line);background:color-mix(in srgb,var(--bg) 92%,transparent)}
+  .tabs button{flex-direction:column;gap:3px;font-size:11px;min-height:54px;background:transparent;padding:0;color:var(--muted)}
+  .tabs button[aria-pressed=true]{background:transparent;color:var(--text)}
+  .tabs .ti{padding:3px 16px;border-radius:99px}
+  .tabs button[aria-pressed=true] .ti{background:color-mix(in srgb,var(--acc) 26%,transparent);color:var(--acc)}
+  .wrap{padding-top:calc(var(--st) + 12px);padding-bottom:calc(var(--sb) + 160px)}
+  .pub{bottom:calc(var(--sb) + 76px)}
+  .searchbar{top:var(--st)}
+  .dstrip{margin:0 calc(-1 * var(--gut));padding:2px var(--gut) 4px}
+  .hdr h1{font-size:30px}
+  .tile .v{font-size:25px}
+  .g3 .f{font-size:12px}
+  .modal{z-index:50}
+}
 </style>
 </head>
 <body>
@@ -235,7 +307,7 @@ async function publish() {
     const body = { message: `Admin: publish plans & foods (${new Date().toISOString().slice(0, 10)})`, content: b64(JSON.stringify(c, null, 1) + '\n'), branch: REPO.branch };
     if (latest?.sha) body.sha = latest.sha;
     const r = await gh(`contents/${CONTENT_PATH}`, { method: 'PUT', body: JSON.stringify(body) });
-    S.content = c; S.sha = r.content.sha; S.dirty = false; renderPub();
+    S.content = c; S.sha = r.content.sha; S.dirty = false; S.foodChanged = new Set(); renderPub(); if (S.tab === 'foods') render();
     toast('Published');
     notifyPublished(c);
   } catch (e) {
@@ -282,17 +354,40 @@ function viewSetup(err = '') {
   };
 }
 
+/* ---------------- Navigation ---------------- */
+const LS_TAB = 'sapna_admin_tab';
+const TABS = [['day', 'Today'], ['progress', 'Progress'], ['workouts', 'Workouts'], ['foods', 'Foods'], ['settings', 'Settings']];
+const ICON = {
+  day: '<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+  progress: '<path d="M5 20v-7M12 20V5M19 20v-11"/>',
+  workouts: '<path d="M6.5 7v10M3.5 9.5v5M17.5 7v10M20.5 9.5v5M6.5 12h11"/>',
+  foods: '<path d="M3.5 11.5h17a8.5 8.5 0 0 1-17 0z"/><path d="M9 8c0-1.6 1.6-1.9 1.6-3.6M13.5 8c0-1.6 1.6-1.9 1.6-3.6"/>',
+  settings: '<path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/>',
+};
+const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+try { const t = localStorage.getItem(LS_TAB); S.tab = TABS.some(([k]) => k === t) ? t : 'day'; } catch { S.tab = 'day'; }
+
 function tabs() {
-  const t = [['status', 'Dashboard'], ['workouts', 'Workouts'], ['foods', 'Foods'], ['settings', 'Targets']];
-  return `<nav class="tabs" aria-label="Sections">${t.map(([k, l]) => `<button type="button" data-tab="${k}" aria-pressed="${S.tab === k}">${l}</button>`).join('')}</nav>`;
+  return `<nav class="tabs" aria-label="Sections">${TABS.map(([k, l]) => `<button type="button" data-tab="${k}" aria-pressed="${S.tab === k}"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg></span><span class="tl">${l}</span></button>`).join('')}</nav>`;
 }
+const hdr = (eyebrow, title, right = '') => `<header class="hdr"><div style="min-width:0"><p class="eyebrow">${eyebrow}</p><h1>${title}</h1></div>${right}</header>`;
+const refreshBtn = () => (syncCfg() ? `<button class="ib" type="button" id="srefresh" aria-label="Refresh her data" title="Refresh">${S.sync.status === 'loading' ? '<span class="spin"></span>' : '<svg viewBox="0 0 24 24" class="ic" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v5h-5"/></svg>'}</button>` : '');
 
 function render() {
-  const head = `<div class="between" style="margin-bottom:6px"><div><p class="eyebrow">Sapna Health · Admin</p><h1>${{ status: 'Her dashboard', workouts: 'Workout plans', foods: 'Food library', settings: 'Targets & note' }[S.tab]}</h1></div></div>`;
-  const body = { status: vStatus, workouts: vWorkouts, foods: vFoods, settings: vSettings }[S.tab]();
-  app(tabs() + head + body);
-  document.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => { S.tab = b.dataset.tab; S.editing = null; render(); scrollTo(0, 0); }));
-  ({ status: wireStatus, workouts: wireWorkouts, foods: wireFoods, settings: wireSettings })[S.tab]();
+  const views = { day: vDay, progress: vProgress, workouts: vWorkouts, foods: vFoods, settings: vSettings };
+  if (!views[S.tab]) S.tab = 'day';
+  S._m = null;
+  const open = [...document.querySelectorAll('details[open][data-k]')].map((d) => d.dataset.k); // keep expanded sections open across live refreshes
+  app(tabs() + `<main class="view v-${S.tab}">${views[S.tab]()}</main>`);
+  open.forEach((k) => document.querySelector(`details[data-k="${k}"]`)?.setAttribute('open', ''));
+  document.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => {
+    if (S.tab === b.dataset.tab) { if (S.tab === 'workouts' && S.editing != null) { S.editing = null; S.picker = null; render(); } scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    S.tab = b.dataset.tab; S.editing = null; S.picker = null; try { localStorage.setItem(LS_TAB, S.tab); } catch {}
+    render(); scrollTo(0, 0);
+  }));
+  ({ workouts: wireWorkouts, foods: wireFoods, settings: wireSettings })[S.tab]?.();
+  wireShared();
+  if (S._m) wireEdits(S._m);
   renderPub();
 }
 
@@ -848,30 +943,93 @@ function vSyncCard(c) {
       <button class="btn sm" type="button" id="susave" style="align-self:flex-start">Check & make new code</button></div>` : ''}
   </div>`;
 }
-const emergencyFile = () => `<details class="card"><summary><strong>Emergency: open a file</strong> <span class="small muted">only if sync isn’t working</span></summary><div class="stack" style="margin-top:10px"><p class="small muted">If she taps “Send my dashboard file” in her app’s Settings and sends it on WhatsApp, open it here. It stays in this browser.</p><label class="btn ghost sm" style="cursor:pointer;align-self:flex-start">Open file<input id="rep" type="file" accept="application/json,text/plain,.json,.txt" class="sr"></label></div></details>`;
+const emergencyFile = () => `<details class="card" data-k="emerg"><summary><strong>Emergency: open a file</strong> <span class="small muted">only if sync isn’t working</span></summary><div class="stack" style="margin-top:10px"><p class="small muted">If she taps “Send my dashboard file” in her app’s Settings and sends it on WhatsApp, open it here. It stays in this browser.</p><label class="btn ghost sm" style="cursor:pointer;align-self:flex-start">Open file<input id="rep" type="file" accept="application/json,text/plain,.json,.txt" class="sr"></label></div></details>`;
 
-function vStatus() {
-  const c = syncCfg();
-  const rep = currentReport();
-  const tail = (c ? vSyncCard(c) : '') + emergencyFile();
-  if (!rep) {
-    const st = S.sync;
-    const msg = !c ? '' : st.status === 'error' ? `<div class="card warn"><strong>Sync problem</strong><p class="small muted">${esc(st.msg)}</p><button class="btn ghost sm" type="button" id="srefresh">Try again</button></div>`
-      : st.status === 'empty' ? `<div class="card"><strong>Waiting for her phone</strong><p class="small muted">Once she pastes the pairing code in her app (Settings → Live sync with Rishu), her dashboard appears here.</p><button class="btn ghost sm" type="button" id="srefresh">Check again</button></div>`
-      : `<p class="muted">Loading her dashboard…</p>`;
-    if (c && !S.showPairOnce) { S.showPair = true; S.showPairOnce = true; }
-    return `<div class="stack" style="gap:16px">${c ? msg + vSyncCard(c) : vSyncSetup()}${emergencyFile()}</div>`;
-  }
-  return vDash(rep, c) + `<div class="stack" style="gap:16px;margin-top:16px">${tail}</div>`;
-}
-
-function vDash(rep, c) {
+/** Her report → everything the Today/Progress/Foods/Settings views need. */
+function model() {
+  const c = syncCfg(); const rep = currentReport();
+  if (!rep) return { c, rep: null };
   const fromSync = rep === S.syncReport;
   const editable = fromSync && !!c && (rep.v || 1) >= 2;
   const m = normReport(editable ? overlayReport(rep) : rep);
-  S._m = editable ? m : null;
-  const T = m.T;
+  const td = dkey(new Date()); if (editable && m.last < td) m.last = td; // you can always add to today
+  if (editable) S._m = m;
   if (!S.dash.day || S.dash.day > m.last || S.dash.day < m.first) S.dash.day = m.last;
+  return { c, rep, fromSync, editable, m };
+}
+function freshness(M) {
+  const ageH = (Date.now() - new Date(M.m.r.generatedAt).getTime()) / 3600000;
+  const fresh = ageH < 1 ? 'just now' : ageH < 24 ? `${Math.round(ageH)} h ago` : `${Math.round(ageH / 24)} days ago`;
+  const stale = ageH > 48 ? `<div class="card warn"><strong>Last update ${Math.round(ageH / 24)} days ago.</strong><p class="small muted">${M.fromSync ? 'Her phone syncs whenever she opens the app — she may not have opened it.' : 'This is an old file.'}${S.sync.status === 'error' ? ' Sync error: ' + esc(S.sync.msg) : ''}</p></div>` : (S.sync.status === 'error' && M.c ? `<div class="card warn small"><strong>Sync problem:</strong> ${esc(S.sync.msg)}</div>` : '');
+  const v1 = (M.m.r.v || 1) < 2 ? `<div class="card warn small">Older 7-day file — calories per food item and full history need her app updated to 1.5.3+.</div>` : '';
+  const line = `<p class="small muted liveline">${M.fromSync ? '<span class="live"></span>Live from her phone' : 'From a file'} · updated ${fresh}${M.m.r.streaks ? ` · <b>${M.m.r.streaks.logging}</b>-day logging streak` : ''}</p>`;
+  return { line, warn: stale + v1 };
+}
+/** No data yet: first-time setup, waiting for her phone, or a sync error. */
+function vNoReport(c) {
+  const st = S.sync;
+  const msg = !c ? '' : st.status === 'error' ? `<div class="card warn"><strong>Sync problem</strong><p class="small muted">${esc(st.msg)}</p><button class="btn ghost sm" type="button" id="sretry">Try again</button></div>`
+    : st.status === 'empty' ? `<div class="card"><strong>Waiting for her phone</strong><p class="small muted">Once she pastes the pairing code in her app (Settings → Live sync with Rishu), her day appears here.</p><button class="btn ghost sm" type="button" id="sretry">Check again</button></div>`
+    : `<p class="muted">Loading her day…</p>`;
+  if (c && st.status === 'empty' && !S.showPairOnce) { S.showPair = true; S.showPairOnce = true; }
+  return `<div class="stack" style="gap:16px">${c ? msg + vSyncCard(c) : vSyncSetup()}${emergencyFile()}</div>`;
+}
+
+/* --- Today: one day of hers, editable --- */
+function vDay() {
+  const M = model();
+  if (!M.rep) return hdr('Sapna Health', 'Her day', refreshBtn()) + vNoReport(M.c);
+  const { m, editable } = M; const T = m.T; const k = S.dash.day;
+  const F = freshness(M);
+  const dd = m.daily[k] || { kcal: 0, protein: 0, items: 0 };
+  const burnK = m.burned[k] || 0; const goalK = T.kcal + Math.round(burnK / 2);
+  const td = dkey(new Date());
+  const title = k === td ? 'Today' : k === dadd(td, -1) ? 'Yesterday' : esc(dlabel(k, { weekday: 'long' }));
+  const nav = `<div class="row" style="gap:6px"><button class="ib" type="button" data-dnav="-1" aria-label="Previous day" ${k <= m.first ? 'disabled' : ''}>‹</button>${k !== m.last ? `<button class="btn ghost sm" type="button" data-dpick="${m.last}">${m.last === td ? 'Today' : 'Latest'}</button>` : ''}<button class="ib" type="button" data-dnav="1" aria-label="Next day" ${k >= m.last ? 'disabled' : ''}>›</button>${refreshBtn()}</div>`;
+
+  // date strip: the last 30 days, each with a tiny calories bar
+  const from = m.first > dadd(m.last, -29) ? m.first : dadd(m.last, -29);
+  const strip = []; for (let d = from; d <= m.last; d = dadd(d, 1)) strip.push(d);
+  const stripHtml = `<div class="dstrip" id="dstrip" role="group" aria-label="Pick a day">${strip.map((d) => { const kc = m.daily[d]?.kcal || 0; const g = T.kcal + Math.round((m.burned[d] || 0) / 2); return `<button class="dchip" type="button" data-dpick="${d}" aria-pressed="${d === k}" aria-label="${esc(dlabel(d))}${kc ? ' · ' + n0(kc) + ' kcal' : ''}"><span>${d === td ? 'Today' : DOW[dparse(d).getDay()]}</span><b>${dparse(d).getDate()}</b><i class="${kc > g * 1.1 ? 'over' : ''}" style="--p:${Math.min(100, (kc / g) * 100)}%"></i></button>`; }).join('')}</div>`;
+
+  const pct = (v, g) => Math.min(100, g ? (v / g) * 100 : 0);
+  const wIn = m.weighIns.find((w) => w.date === k);
+  const tile = (label, val, unit, sub, bar, editAttr) => `<${editAttr ? `button type="button" ${editAttr}` : 'div'} class="tile"><span class="eyebrow">${label}</span><span class="v">${val}${unit ? ` <small>${unit}</small>` : ''}</span>${bar != null ? `<span class="bar"><i style="width:${bar}%;${bar >= 100 && label === 'Eaten' && dd.kcal > goalK * 1.1 ? 'background:var(--danger)' : ''}"></i></span>` : ''}<span class="small muted">${sub}</span>${editAttr ? '<span class="tedit">Edit</span>' : ''}</${editAttr ? 'button' : 'div'}>`;
+  const ed = editable ? `data-dayedit="${k}"` : '';
+  const tiles = `<div class="tiles">
+    ${tile('Eaten', n0(dd.kcal), 'kcal', `of ${n0(goalK)}${burnK ? ` (+${n0(Math.round(burnK / 2))} earned)` : ''}`, pct(dd.kcal, goalK))}
+    ${tile('Protein', r1(dd.protein), 'g', `goal ${T.protein} g`, pct(dd.protein, T.protein))}
+    ${tile('Water', m.water[k] || 0, 'glasses', `of ${T.water || 8}`, pct(m.water[k] || 0, T.water || 8), ed)}
+    ${tile('Steps', n0(m.steps[k]), '', `${burnK ? n0(burnK) + ' kcal burned' : 'no burn logged'}${wIn ? ` · ⚖ ${wIn.kg} kg` : ''}`, null, ed)}
+  </div>`;
+
+  const items = m.food.filter((f) => f.date === k).sort((a, b) => (a.at || 0) - (b.at || 0));
+  const meals = MEAL_ORDER.map((ml) => {
+    const its = items.filter((f) => f.meal === ml); if (!its.length && !editable) return '';
+    const sum = its.reduce((s, f) => s + (f.kcal || 0), 0);
+    return `<div class="meal"><div class="between"><span><strong>${MEAL_LABEL[ml]}</strong> <span class="small muted">${sum ? n0(sum) + ' kcal' : editable ? '· nothing yet' : ''}</span></span>${editable ? `<button class="addb" type="button" data-fadd="${k}" data-meal="${ml}" aria-label="Add to ${MEAL_LABEL[ml]}">+ Add</button>` : ''}</div>
+      ${its.map((f) => `<div class="fi"><span class="fn">${f._p ? '⏳ ' : ''}<b>${esc(f.name)}</b><span class="small muted">${f.mult && f.mult !== 1 ? `${f.mult}× ` : ''}${esc(f.portion || '')}${f.at ? ` · ${new Date(f.at).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })}` : ''}</span></span><span class="fk">${f.kcal != null ? `<b>${n0(f.kcal)}</b><span class="small muted">${r1(f.protein)} g</span>` : ''}</span>${editable && f.id ? `<span class="fa"><button class="ib sm" type="button" data-fedit="${esc(f.id)}" aria-label="Edit ${esc(f.name)}">✎</button><button class="ib sm" type="button" data-fdel="${esc(f.id)}" aria-label="Remove ${esc(f.name)}">🗑</button></span>` : ''}</div>`).join('')}</div>`;
+  }).join('');
+  const daySess = m.sessions.filter((s) => s.date === k);
+  const act = m.r.activeSession && m.r.activeSession.startedAt > Date.now() - 4 * 3600000 && k === td ? `<div class="card" style="border-color:color-mix(in srgb,var(--amber) 45%,transparent)"><p class="eyebrow" style="color:var(--amber)"><span class="live" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span>At the gym now</p><p class="big" style="font-size:22px;margin-top:6px">${esc(m.r.activeSession.title)}</p><p class="small muted">Started ${new Date(m.r.activeSession.startedAt).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })} · ${m.r.activeSession.done.length} moves done${m.r.activeSession.done.length ? ': ' + esc(m.r.activeSession.done.join(', ')) : ''}</p></div>` : '';
+
+  return hdr(`${esc(m.r.name || 'Sapna')} · ${esc(dlabel(k, { day: 'numeric', month: 'long' }))}`, title, nav) + `<div class="stack daycol" style="gap:14px">
+    ${F.line}${F.warn}
+    ${editable ? vPending() : ''}
+    ${act}
+    ${stripHtml}
+    ${tiles}
+    <div class="card stack" id="daycard" style="gap:10px"><div class="between"><h2>Food</h2><span class="small muted">${dd.items || 0} item${dd.items === 1 ? '' : 's'}</span></div>${meals || '<p class="muted">Nothing logged this day.</p>'}</div>
+    ${daySess.length ? `<div class="card stack" style="gap:10px"><h2>Workout</h2>${daySess.map((s) => `<div class="meal"><div class="between"><strong>🏋️ ${esc(s.title)}</strong><span class="small muted">${s.minutes || '?'} min${s.kcal ? ` · ${n0(s.kcal)} kcal` : ''}</span></div>${sessBody(s)}</div>`).join('')}</div>` : ''}
+    ${M.c ? vPushCard() : ''}
+  </div>`;
+}
+
+/* --- Progress: trends over a range --- */
+function vProgress() {
+  const M = model();
+  if (!M.rep) return hdr('Sapna Health', 'Progress', refreshBtn()) + vNoReport(M.c);
+  const { m, editable } = M; const T = m.T; const F = freshness(M);
   const days = rangeDays(m);
   const logged = days.filter((k) => m.daily[k]?.kcal > 0);
   const avg = (f) => (logged.length ? logged.reduce((s, k) => s + f(k), 0) / logged.length : 0);
@@ -880,104 +1038,53 @@ function vDash(rep, c) {
   const sess = m.sessions.filter((s) => s.date >= days[0] && s.date <= m.last).sort((a, b) => (a.date < b.date ? 1 : -1));
   const mins = sess.reduce((s, x) => s + (x.minutes || 0), 0);
   const wNow = m.weighIns.at(-1), wStart = m.r.profile?.startKg ?? m.weighIns[0]?.kg;
-  const ageH = (Date.now() - new Date(m.r.generatedAt).getTime()) / 3600000;
-  const fresh = ageH < 1 ? 'just now' : ageH < 24 ? `${Math.round(ageH)} h ago` : `${Math.round(ageH / 24)} days ago`;
-  const stale = ageH > 48 ? `<div class="card warn"><strong>Last update ${Math.round(ageH / 24)} days ago.</strong><p class="small muted">${fromSync ? 'Her phone syncs whenever she opens the app — she may not have opened it.' : 'This is an old file.'}${S.sync.status === 'error' ? ' Sync error: ' + esc(S.sync.msg) : ''}</p></div>` : (S.sync.status === 'error' && c ? `<div class="card warn small"><strong>Sync problem:</strong> ${esc(S.sync.msg)}</div>` : '');
-  const v1 = (m.r.v || 1) < 2 ? `<div class="card warn small">Older 7-day file — calories per food item and full history need her app updated to 1.5.3+.</div>` : '';
-
-  // --- day detail
-  const k = S.dash.day; const dd = m.daily[k] || { kcal: 0, protein: 0, items: 0 };
-  const burnK = m.burned[k] || 0;
-  const items = m.food.filter((f) => f.date === k).sort((a, b) => (a.at || 0) - (b.at || 0));
-  const meals = MEAL_ORDER.map((ml) => {
-    const its = items.filter((f) => f.meal === ml); if (!its.length && !editable) return '';
-    const sum = its.reduce((s, f) => s + (f.kcal || 0), 0);
-    return `<div class="meal"><div class="between"><strong>${MEAL_LABEL[ml]}</strong><span class="row" style="gap:8px"><span class="small muted">${sum ? n0(sum) + ' kcal' : editable ? 'Nothing yet' : ''}</span>${editable ? `<button class="ib" type="button" data-fadd="${k}" data-meal="${ml}" aria-label="Add to ${MEAL_LABEL[ml]}" style="width:34px;height:34px;background:var(--acc);color:#0c0c10;border:none;font-size:20px;font-weight:700">+</button>` : ''}</span></div>
-      ${its.map((f) => `<div class="fi"><span>${f._p ? '⏳ ' : ''}${esc(f.name)}${f.mult && f.mult !== 1 ? ` <span class="muted">×${f.mult}</span>` : ''}${f.portion ? `<span class="faint small"> · ${esc(f.portion)}</span>` : ''}</span><span class="small muted">${f.kcal != null ? `${n0(f.kcal)} kcal · ${r1(f.protein)} g` : ''}${f.at ? ` · ${new Date(f.at).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })}` : ''}${editable && f.id ? `<button class="ib" type="button" data-fedit="${esc(f.id)}" aria-label="Edit ${esc(f.name)}" style="width:32px;height:32px;margin-left:6px">✎</button><button class="ib" type="button" data-fdel="${esc(f.id)}" aria-label="Remove ${esc(f.name)}" style="width:32px;height:32px;margin-left:4px">🗑</button>` : ''}</span></div>`).join('')}</div>`;
-  }).join('');
-  const daySess = m.sessions.filter((s) => s.date === k);
-  const dayCard = `<div class="card stack" id="daycard">
-    <div class="between"><button class="ib" type="button" data-dnav="-1" aria-label="Previous day" ${k <= m.first ? 'disabled' : ''}>‹</button>
-      <div style="text-align:center"><p class="eyebrow">Day detail</p><h2>${esc(dlabel(k, { weekday: 'long', day: 'numeric', month: 'short' }))}</h2></div>
-      <button class="ib" type="button" data-dnav="1" aria-label="Next day" ${k >= m.last ? 'disabled' : ''}>›</button></div>
-    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
-      <div><p class="eyebrow">Eaten</p><p class="big" style="font-size:24px">${n0(dd.kcal)}</p><p class="small muted">of ${n0(T.kcal + Math.round(burnK / 2))} kcal</p></div>
-      <div><p class="eyebrow">Protein</p><p class="big" style="font-size:24px">${r1(dd.protein)} g</p><p class="small muted">goal ${T.protein} g</p></div>
-      <div><p class="eyebrow">Water</p><p class="big" style="font-size:24px">${m.water[k] || 0}</p><p class="small muted">of ${T.water || 8} glasses</p></div>
-      <div><p class="eyebrow">Steps</p><p class="big" style="font-size:24px">${n0(m.steps[k])}</p><p class="small muted">${burnK ? `${n0(burnK)} kcal burned` : '—'}</p></div>
-    </div>
-    <div class="bar" role="img" aria-label="${dd.kcal} of ${T.kcal} kcal"><i style="width:${Math.min(100, (dd.kcal / T.kcal) * 100)}%;${dd.kcal > T.kcal * 1.1 ? 'background:var(--danger)' : ''}"></i></div>
-    ${meals || '<p class="muted">Nothing logged this day.</p>'}
-    ${editable ? `<div class="row wrapr"><button class="btn ghost sm" type="button" data-dayedit="${k}">Water, steps & weight</button></div>` : ''}
-    ${daySess.map((s) => `<div class="meal" style="--acc:var(--amber)"><div class="between"><strong>🏋️ ${esc(s.title)}</strong><span class="small muted">${s.minutes || '?'} min${s.kcal ? ` · ${n0(s.kcal)} kcal` : ''}</span></div>${sessBody(s)}</div>`).join('')}
-  </div>`;
-
-  // --- strength: first vs latest best per lift
   const lifts = {};
   m.sessions.slice().sort((a, b) => (a.date < b.date ? -1 : 1)).forEach((s) => {
     const best = {}; (s.sets || []).forEach((x) => { if (x.kg > 0) best[x.name] = Math.max(best[x.name] || 0, x.kg); });
-    Object.entries(best).forEach(([n, kg]) => { const L = lifts[n] || (lifts[n] = { first: kg, firstDate: s.date, last: kg, top: kg, n: 0 }); L.last = kg; L.top = Math.max(L.top, kg); L.n++; });
+    Object.entries(best).forEach(([n, kg]) => { const L = lifts[n] || (lifts[n] = { first: kg, last: kg, top: kg, n: 0 }); L.last = kg; L.top = Math.max(L.top, kg); L.n++; });
   });
   const liftRows = Object.entries(lifts).sort((a, b) => b[1].n - a[1].n).slice(0, 12);
-
-  // --- food habits in range
   const inR = m.food.filter((f) => f.date >= days[0]);
   const cnt = {}; inR.forEach((f) => { const c = cnt[f.name] || (cnt[f.name] = { n: 0, kcal: 0 }); c.n++; c.kcal += f.kcal || 0; });
   const top = Object.entries(cnt).sort((a, b) => b[1].n - a[1].n).slice(0, 8);
   const mealK = MEAL_ORDER.map((ml) => [ml, inR.filter((f) => f.meal === ml).reduce((s, f) => s + (f.kcal || 0), 0)]);
   const mealTot = mealK.reduce((s, x) => s + x[1], 0);
   const missing = days.filter((k) => !(m.daily[k]?.items > 0)).length;
-
   const tips = [];
   if (logged.length && protHit < logged.length / 2) tips.push(['Protein is the gap', `Hit 90%+ of ${T.protein} g on only ${protHit} of ${logged.length} logged days.`]);
   if (missing > 1) tips.push(['Days not logged', `${missing} of ${days.length} days have no food logged.`]);
   if (logged.length && avg((k) => m.daily[k].kcal) > T.kcal * 1.12) tips.push(['Running over', `Averaging ${n0(avg((k) => m.daily[k].kcal))} kcal vs a ${n0(T.kcal)} target.`]);
-
-  const cyc = m.r.cycle ? `<div class="card" style="--acc:var(--pink)"><p class="eyebrow" style="color:var(--pink)">Cycle · shared by her</p><p class="big" style="font-size:24px;margin-top:6px">${esc(m.r.cycle.phase)} · day ${esc(m.r.cycle.day)}</p><p class="small muted">${m.r.cycle.daysToNext >= 0 ? `Next period in about ${m.r.cycle.daysToNext} days` : `Period ${-m.r.cycle.daysToNext} days late`}</p></div>` : '';
-
-  return `<div class="stack dash" style="gap:16px">
-    <div class="between wrapr"><p class="muted small">${fromSync ? '<span class="live"></span>Live from her phone' : 'From a file'} · updated ${fresh}${m.r.streaks ? ` · logging streak <b>${m.r.streaks.logging}</b> · workout streak <b>${m.r.streaks.workout}</b>` : ''}</p>${c ? `<button class="btn ghost sm" type="button" id="srefresh">${S.sync.status === 'loading' ? 'Refreshing…' : 'Refresh'}</button>` : ''}</div>
-    ${stale}${v1}
-    ${editable ? vPending() : ''}
-    ${m.r.activeSession && m.r.activeSession.startedAt > Date.now() - 4 * 3600000 ? `<div class="card" style="--acc:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,transparent)"><p class="eyebrow" style="color:var(--amber)"><span class="live" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span>At the gym now</p><p class="big" style="font-size:22px;margin-top:6px">${esc(m.r.activeSession.title)}</p><p class="small muted">Started ${new Date(m.r.activeSession.startedAt).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })} · ${m.r.activeSession.done.length} moves done${m.r.activeSession.done.length ? ': ' + esc(m.r.activeSession.done.join(', ')) : ''}</p></div>` : ''}
-    ${c ? vPushCard() : ''}
-    <div class="chips" role="group" aria-label="Range">${[['7', '7 days'], ['30', '30 days'], ['all', 'All time']].map(([v, l]) => `<button class="chip" type="button" data-range="${v}" aria-pressed="${S.dash.range === v}">${l}</button>`).join('')}</div>
-    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
-      <div class="card"><p class="eyebrow">Avg calories</p><p class="big" style="font-size:30px">${n0(avg((k) => m.daily[k].kcal))}</p><p class="small muted">target ${n0(T.kcal)} · ${logged.length} days logged</p></div>
-      <div class="card"><p class="eyebrow">Avg protein</p><p class="big" style="font-size:30px">${n0(avg((k) => m.daily[k].protein))} g</p><p class="small muted">goal ${T.protein} g · hit ${protHit}×</p></div>
-      <div class="card"><p class="eyebrow">On target</p><p class="big" style="font-size:30px">${onT}/${logged.length}</p><p class="small muted">days within ±10%</p></div>
-      <div class="card"><p class="eyebrow">Workouts</p><p class="big" style="font-size:30px">${sess.length}</p><p class="small muted">${n0(mins)} min · ${n0(sess.reduce((s, x) => s + (x.kcal || 0), 0))} kcal</p></div>
-      <div class="card"><p class="eyebrow">Weight</p><p class="big" style="font-size:30px">${wNow ? r1(wNow.kg) + ' kg' : '—'}</p><p class="small muted">${wNow && wStart ? `${wNow.kg - wStart > 0 ? '+' : ''}${r1(wNow.kg - wStart)} kg since start` : 'no weigh-ins yet'}</p></div>
-      <div class="card"><p class="eyebrow">Avg steps</p><p class="big" style="font-size:30px">${n0(days.reduce((s, k) => s + (m.steps[k] || 0), 0) / Math.max(1, days.filter((k) => m.steps[k] > 0).length))}</p><p class="small muted">on days logged</p></div>
+  const cyc = m.r.cycle ? `<div class="card"><p class="eyebrow" style="color:var(--pink)">Cycle · shared by her</p><p class="big" style="font-size:24px;margin-top:6px">${esc(m.r.cycle.phase)} · day ${esc(m.r.cycle.day)}</p><p class="small muted">${m.r.cycle.daysToNext >= 0 ? `Next period in about ${m.r.cycle.daysToNext} days` : `Period ${-m.r.cycle.daysToNext} days late`}</p></div>` : '';
+  const kpi = (l, v, s) => `<div class="tile"><span class="eyebrow">${l}</span><span class="v">${v}</span><span class="small muted">${s}</span></div>`;
+  const rangeLbl = { 7: 'last 7 days', 30: 'last 30 days', all: 'all time' }[S.dash.range];
+  return hdr(`${esc(m.r.name || 'Sapna')} · ${rangeLbl}`, 'Progress', refreshBtn()) + `<div class="stack dash" style="gap:14px">
+    ${F.line}${F.warn}
+    <div class="seg" role="group" aria-label="Range">${[['7', '7 days'], ['30', '30 days'], ['all', 'All time']].map(([v, l]) => `<button type="button" data-range="${v}" aria-pressed="${S.dash.range === v}">${l}</button>`).join('')}</div>
+    <div class="tiles kpis">
+      ${kpi('Avg calories', n0(avg((k) => m.daily[k].kcal)), `target ${n0(T.kcal)} · ${logged.length} days logged`)}
+      ${kpi('Avg protein', n0(avg((k) => m.daily[k].protein)) + ' g', `goal ${T.protein} g · hit ${protHit}×`)}
+      ${kpi('On target', `${onT}/${logged.length}`, 'days within ±10%')}
+      ${kpi('Workouts', sess.length, `${n0(mins)} min · ${n0(sess.reduce((s, x) => s + (x.kcal || 0), 0))} kcal`)}
+      ${kpi('Weight', wNow ? r1(wNow.kg) + ' kg' : '—', wNow && wStart ? `${wNow.kg - wStart > 0 ? '+' : ''}${r1(wNow.kg - wStart)} kg since start` : 'no weigh-ins yet')}
+      ${kpi('Avg steps', n0(days.reduce((s, k) => s + (m.steps[k] || 0), 0) / Math.max(1, days.filter((k) => m.steps[k] > 0).length)), 'on days logged')}
     </div>
-    ${tips.length ? `<div class="stack"><h2>Needs attention</h2>${tips.map(([t, b]) => `<div class="card warn"><strong>${esc(t)}</strong><p class="small muted">${esc(b)}</p></div>`).join('')}</div>` : ''}
-    <div class="card stack"><div class="between"><h2>Calories</h2><span class="small muted">dashed = ${n0(T.kcal)} target · red = 10%+ over</span></div>${barChart('ch-kcal', m, days, (k) => m.daily[k]?.kcal || 0, T.kcal, { overIsBad: true })}</div>
-    ${dayCard}
-    ${editable ? `<div class="card stack" id="herfoods"><div class="between"><h2>Her foods</h2><button class="btn sm" type="button" data-cfadd>+ Add</button></div>
-      <p class="small muted">Foods she saved herself — they show in her food search.</p>
-      ${(m.r.customFoods || []).length ? (m.r.customFoods || []).map((f) => `<div class="between small" style="border-top:1px solid var(--line);padding-top:8px"><span>${f._p ? '⏳ ' : ''}<b>${esc(f.name)}</b> <span class="faint">· ${esc(f.portion || '')}</span></span><span class="row" style="gap:6px"><span class="muted">${f.kcal} kcal · ${f.protein} g</span>${f.id ? `<button class="ib" type="button" data-cfedit="${esc(f.id)}" aria-label="Edit ${esc(f.name)}" style="width:32px;height:32px">✎</button>` : ''}</span></div>`).join('') : '<p class="small muted">None yet.</p>'}</div>` : ''}
-    <div class="card stack"><div class="between"><h2>Protein</h2><span class="small muted">dashed = ${T.protein} g goal</span></div>${barChart('ch-prot', m, days, (k) => m.daily[k]?.protein || 0, T.protein, { fmt: (v) => n0(v) + ' g' })}</div>
-    <div class="card stack"><h2>Steps</h2>${barChart('ch-steps', m, days, (k) => m.steps[k] || 0, 0)}</div>
-    ${m.weighIns.length >= 2 ? `<div class="card stack"><div class="between"><h2>Weight</h2><span class="small muted">${m.weighIns.length} weigh-ins</span></div>${weightChart(m)}</div>` : ''}
-    ${cyc}
-    <div class="card stack"><div class="between"><h2>Workout sessions</h2><span class="small muted">${sess.length} in range</span></div>
-      ${sess.length ? sess.map((s) => `<details class="sess"><summary><span><strong>${esc(s.title)}</strong><span class="small muted" style="display:block">${esc(dlabel(s.date))} · ${s.minutes || '?'} min${s.kcal ? ` · ${n0(s.kcal)} kcal` : ''} · ${(s.done || []).length || new Set((s.sets || []).map((x) => x.name)).size} moves</span></span><span class="pill">${(s.sets || []).length} sets</span></summary>${sessBody(s)}${editable && s.id ? `<button class="btn danger sm" type="button" data-sdel="${esc(s.id)}" data-title="${esc(s.title)}" style="margin-top:8px">Delete this workout</button>` : ''}</details>`).join('') : '<p class="muted">No workouts in this range.</p>'}</div>
-    ${liftRows.length ? `<div class="card stack"><h2>Strength progress</h2><table><thead><tr><th>Lift</th><th>First</th><th>Now</th><th>Best</th></tr></thead><tbody>${liftRows.map(([n, L]) => `<tr><td>${esc(n)}</td><td>${L.first} kg</td><td>${L.last} kg${L.last > L.first ? ` <span class="ok">+${r1(L.last - L.first)}</span>` : ''}</td><td>${L.top} kg</td></tr>`).join('')}</tbody></table></div>` : ''}
-    ${inR.length ? `<div class="card stack"><h2>Food habits</h2>
-      <p class="eyebrow">Calories by meal</p>${mealK.map(([ml, v]) => `<div class="mrow"><span>${MEAL_LABEL[ml]}</span><div class="bar"><i style="width:${mealTot ? (v / mealTot) * 100 : 0}%"></i></div><span class="small muted">${mealTot ? Math.round((v / mealTot) * 100) : 0}%</span></div>`).join('')}
-      <p class="eyebrow" style="margin-top:6px">Most logged</p>${top.map(([n, c]) => `<div class="between"><span>${esc(n)}</span><span class="small muted">${c.n}×${c.kcal ? ` · ~${n0(c.kcal / c.n)} kcal` : ''}</span></div>`).join('')}</div>` : ''}
-    ${m.r.reminders || m.r.profile ? `<details class="card"><summary><strong>Her settings</strong> <span class="small muted">as set on her phone</span></summary><div class="stack small" style="gap:6px;margin-top:10px">
-      ${m.r.profile ? `<div class="between"><span class="muted">Goal · diet</span><span>${esc(m.r.goal || '—')} · ${esc(m.r.profile.diet || '—')}</span></div>
-      <div class="between"><span class="muted">Gym days</span><span>${(m.r.profile.gymDays || []).map((d) => ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d]).join(', ') || 'none picked'}</span></div>
-      <div class="between"><span class="muted">Height · start weight</span><span>${m.r.profile.heightCm || '—'} cm · ${m.r.profile.startKg || '—'} kg</span></div>
-      ${m.r.profile.avoid ? `<div class="between"><span class="muted">Avoids</span><span>${esc(m.r.profile.avoid)}</span></div>` : ''}` : ''}
-      ${m.r.reminders ? `<div class="between"><span class="muted">Reminders on</span><span>${Object.entries(m.r.reminders).filter(([k, v]) => v === true).map(([k]) => ({ punch: 'gym punch line', meals: 'meals', water: 'water', gym: 'workout days', weigh: 'weigh-in', steps: 'night steps' }[k] || k)).join(', ') || 'none'}</span></div>` : ''}
-      ${(m.r.customFoods || []).length ? `<div class="between"><span class="muted">Her own foods</span><span>${m.r.customFoods.length}</span></div>` : ''}
-      ${editable ? '<button class="btn sm" type="button" id="pedit" style="align-self:flex-start;margin-top:6px">Edit her settings</button>' : ''}
-    </div></details>` : ''}
-    <details class="card"><summary><strong>Table view</strong> <span class="small muted">every day in range</span></summary><div style="overflow-x:auto;margin-top:10px"><table><thead><tr><th>Day</th><th>kcal</th><th>Protein</th><th>Water</th><th>Steps</th><th>Burned</th><th>Gym</th></tr></thead><tbody>
-      ${days.slice().reverse().map((k) => `<tr data-day="${k}" class="trow"><td>${esc(dlabel(k))}</td><td${(m.daily[k]?.kcal || 0) > T.kcal * 1.1 ? ' class="bad"' : ''}>${m.daily[k]?.kcal ? n0(m.daily[k].kcal) : '—'}</td><td>${m.daily[k]?.protein ? r1(m.daily[k].protein) + ' g' : '—'}</td><td>${m.water[k] || '—'}</td><td>${m.steps[k] ? n0(m.steps[k]) : '—'}</td><td>${m.burned[k] ? n0(m.burned[k]) : '—'}</td><td>${m.sessions.some((s) => s.date === k) ? '✓' : ''}</td></tr>`).join('')}
-    </tbody></table></div></details>
+    ${tips.length ? `<div class="stack" style="gap:8px">${tips.map(([t, b]) => `<div class="card warn"><strong>${esc(t)}</strong><p class="small muted">${esc(b)}</p></div>`).join('')}</div>` : ''}
+    <div class="pgrid">
+      <div class="card stack full"><div class="between"><h2>Calories</h2><span class="small muted">dashed = ${n0(T.kcal)} · red = 10%+ over</span></div>${barChart('ch-kcal', m, days, (k) => m.daily[k]?.kcal || 0, T.kcal, { overIsBad: true })}</div>
+      <div class="card stack"><div class="between"><h2>Protein</h2><span class="small muted">dashed = ${T.protein} g</span></div>${barChart('ch-prot', m, days, (k) => m.daily[k]?.protein || 0, T.protein, { fmt: (v) => n0(v) + ' g' })}</div>
+      <div class="card stack"><h2>Steps</h2>${barChart('ch-steps', m, days, (k) => m.steps[k] || 0, 0)}</div>
+      ${m.weighIns.length >= 2 ? `<div class="card stack"><div class="between"><h2>Weight</h2><span class="small muted">${m.weighIns.length} weigh-ins</span></div>${weightChart(m)}</div>` : ''}
+      ${cyc}
+      <div class="card stack"><div class="between"><h2>Workouts</h2><span class="small muted">${sess.length} in range</span></div>
+        ${sess.length ? sess.map((s) => `<details class="sess" data-k="sess-${esc(s.id || s.date + s.title)}"><summary><span><strong>${esc(s.title)}</strong><span class="small muted" style="display:block">${esc(dlabel(s.date))} · ${s.minutes || '?'} min${s.kcal ? ` · ${n0(s.kcal)} kcal` : ''} · ${((n) => `${n} move${n === 1 ? '' : 's'}`)((s.done || []).length || new Set((s.sets || []).map((x) => x.name)).size)}</span></span><span class="pill">${(s.sets || []).length} set${(s.sets || []).length === 1 ? '' : 's'}</span></summary>${sessBody(s)}${editable && s.id ? `<button class="btn danger sm" type="button" data-sdel="${esc(s.id)}" data-title="${esc(s.title)}" style="margin-top:8px">Delete this workout</button>` : ''}</details>`).join('') : '<p class="muted">No workouts in this range.</p>'}</div>
+      ${liftRows.length ? `<div class="card stack"><h2>Strength</h2><table><thead><tr><th>Lift</th><th>First</th><th>Now</th><th>Best</th></tr></thead><tbody>${liftRows.map(([n, L]) => `<tr><td>${esc(n)}</td><td>${L.first} kg</td><td>${L.last} kg${L.last > L.first ? ` <span class="ok">+${r1(L.last - L.first)}</span>` : ''}</td><td>${L.top} kg</td></tr>`).join('')}</tbody></table></div>` : ''}
+      ${inR.length ? `<div class="card stack"><h2>Food habits</h2>
+        <p class="eyebrow">Calories by meal</p>${mealK.map(([ml, v]) => `<div class="mrow"><span>${MEAL_LABEL[ml]}</span><div class="bar"><i style="width:${mealTot ? (v / mealTot) * 100 : 0}%"></i></div><span class="small muted">${mealTot ? Math.round((v / mealTot) * 100) : 0}%</span></div>`).join('')}
+        <p class="eyebrow" style="margin-top:6px">Most logged</p>${top.map(([n, c]) => `<div class="between"><span>${esc(n)}</span><span class="small muted">${c.n}×${c.kcal ? ` · ~${n0(c.kcal / c.n)} kcal` : ''}</span></div>`).join('')}</div>` : ''}
+      <details class="card full" data-k="table"><summary><strong>Every day as a table</strong> <span class="small muted">tap a row to open that day</span></summary><div style="overflow-x:auto;margin-top:10px"><table><thead><tr><th>Day</th><th>kcal</th><th>Protein</th><th>Water</th><th>Steps</th><th>Burned</th><th>Gym</th></tr></thead><tbody>
+        ${days.slice().reverse().map((k) => `<tr data-day="${k}" class="trow"><td>${esc(dlabel(k))}</td><td${(m.daily[k]?.kcal || 0) > T.kcal * 1.1 ? ' class="bad"' : ''}>${m.daily[k]?.kcal ? n0(m.daily[k].kcal) : '—'}</td><td>${m.daily[k]?.protein ? r1(m.daily[k].protein) + ' g' : '—'}</td><td>${m.water[k] || '—'}</td><td>${m.steps[k] ? n0(m.steps[k]) : '—'}</td><td>${m.burned[k] ? n0(m.burned[k]) : '—'}</td><td>${m.sessions.some((s) => s.date === k) ? '✓' : ''}</td></tr>`).join('')}
+      </tbody></table></div></details>
+    </div>
   </div>`;
 }
 
@@ -986,13 +1093,12 @@ function sessBody(s) {
   return `<div class="stack small" style="gap:6px;margin-top:8px">${Object.entries(by).map(([n, sets]) => `<div class="between"><span>${esc(n)}</span><span class="muted">${sets.map((x) => (x.kg ? `${x.kg}×${x.reps}` : `${x.reps}`)).join(' · ')}</span></div>`).join('') || '<span class="muted">No sets recorded.</span>'}</div>`;
 }
 
-function wireStatus() {
-  if (S._m) wireEdits(S._m);
+function wireShared() {
   const c = syncCfg();
   if (!c && S.token && S.syncExists === undefined) {
     S.syncExists = null; // checking
     fetch('https://api.github.com/repos/drishabhh/sapna-sync/contents/dashboard.enc.json', { headers: { Authorization: `Bearer ${S.token}`, Accept: 'application/vnd.github+json' }, cache: 'no-store' })
-      .then((r) => { S.syncExists = r.ok; if (r.ok && S.tab === 'status') render(); }).catch(() => { S.syncExists = false; });
+      .then((r) => { S.syncExists = r.ok; if (r.ok && (S.tab === 'day' || S.tab === 'settings')) render(); }).catch(() => { S.syncExists = false; });
   }
   document.querySelectorAll('[data-link]').forEach((b) => (b.onclick = showLink));
   const ps = $('#psend');
@@ -1003,9 +1109,9 @@ function wireStatus() {
     catch (e) { toastLong(e.message); }
     ps.disabled = false; ps.textContent = 'Send to her phone';
   };
-  const refresh = async () => { await fetchSync(); if (S.tab === 'status') { const y = scrollY; render(); scrollTo(0, y); } };
-  if (c && S.sync.status !== 'loading' && (!S.sync.fetchedAt || Date.now() - S.sync.fetchedAt > 60000)) refresh();
-  const rb = $('#srefresh'); if (rb) rb.onclick = () => { S.sync.fetchedAt = 0; rb.textContent = 'Refreshing…'; refresh(); };
+  const refresh = async () => { await fetchSync(); if (LIVE_TABS.includes(S.tab)) { const y = scrollY; render(); scrollTo(0, y); } };
+  if (c && LIVE_TABS.includes(S.tab) && S.sync.status !== 'loading' && (!S.sync.fetchedAt || Date.now() - S.sync.fetchedAt > 60000)) refresh();
+  [$('#srefresh'), $('#sretry')].forEach((rb) => { if (rb) rb.onclick = () => { S.sync.fetchedAt = 0; rb.disabled = true; rb.innerHTML = rb.id === 'srefresh' ? '<span class="spin"></span>' : 'Checking…'; refresh(); }; });
   const mk = $('#smake');
   if (mk) mk.onclick = async () => {
     const [o, r] = $('#sr').value.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\.git$/, '').split('/');
@@ -1067,14 +1173,16 @@ function wireStatus() {
     } catch { toast("That isn't one of Sapna's dashboard files."); }
   };
   document.querySelectorAll('[data-range]').forEach((b) => (b.onclick = () => { S.dash.range = b.dataset.range; render(); }));
-  const toDay = (k) => { if (!k) return; S.dash.day = k; const y = scrollY; render(); scrollTo(0, y); const c = $('#daycard'); if (c && c.getBoundingClientRect().top > innerHeight * 0.6) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  const toDay = (k) => { if (!k) return; S.dash.day = k; const y = scrollY; if (S.tab !== 'day') { S.tab = 'day'; try { localStorage.setItem(LS_TAB, 'day'); } catch {} render(); scrollTo(0, 0); } else { render(); scrollTo(0, y); } };
+  document.querySelectorAll('[data-dpick]').forEach((b) => (b.onclick = () => toDay(b.dataset.dpick)));
+  const ds = $('#dstrip'); if (ds) { const sel = ds.querySelector('[aria-pressed=true]'); if (sel) ds.scrollLeft = sel.offsetLeft - ds.clientWidth / 2 + sel.offsetWidth / 2; }
   document.querySelectorAll('.cbar').forEach((b) => {
     const tip = () => { const t = b.closest('.chart').querySelector('.ctip'); t.textContent = b.dataset.tip; t.classList.add('on'); };
     b.onpointerenter = tip; b.onfocus = tip;
-    b.onclick = () => { tip(); toDay(b.dataset.day); };
+    b.onclick = () => { tip(); if (b.dataset.day) toDay(b.dataset.day); };
   });
   document.querySelectorAll('.trow').forEach((r) => (r.onclick = () => toDay(r.dataset.day)));
-  document.querySelectorAll('[data-dnav]').forEach((b) => (b.onclick = () => { const y = scrollY; S.dash.day = dadd(S.dash.day, +b.dataset.dnav); render(); scrollTo(0, y); }));
+  document.querySelectorAll('[data-dnav]').forEach((b) => (b.onclick = () => toDay(dadd(S.dash.day, +b.dataset.dnav))));
 }
 
 /* --- Workouts --- */
@@ -1084,7 +1192,7 @@ function vWorkouts() {
   if (S.editing != null) {
     const p = c.plans[S.editing]; if (!p) { S.editing = null; return vWorkouts(); }
     return `<div class="stack" style="gap:14px">
-      <button class="btn ghost sm" type="button" id="back" style="align-self:flex-start">← All plans</button>
+      <div class="between"><button class="btn ghost sm" type="button" id="back">← All plans</button><button class="btn ghost sm" type="button" id="dupplan">Duplicate</button></div>
       <label class="f">Plan name<input class="input" id="pt" value="${esc(p.title)}"></label>
       <label class="f">What she's hitting today (one line she sees on the tile)<input class="input" id="pf" placeholder="e.g. Glutes + hamstrings, light core" value="${esc(p.focus || '')}"></label>
       <div class="f">Show this plan on<div class="chips" style="margin-top:6px">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d, i) => `<button class="chip" type="button" data-day="${i}" aria-pressed="${(p.days || []).includes(i)}">${d}</button>`).join('')}</div><span class="small muted">No day picked = it rotates with your other undated plans on her gym days.</span></div>
@@ -1099,10 +1207,20 @@ function vWorkouts() {
       <button class="btn danger" type="button" id="delplan" style="align-self:flex-start">Delete this plan</button>
     </div>${S.picker ? vPicker() : ''}`;
   }
-  return `<div class="stack" style="gap:12px">
-    <p class="muted small">Sapna sees one tile: today's plan. A plan pinned to a weekday shows on that day; undated plans rotate in order on her gym days. No plan for today = "Rishu is designing today's plan".</p>
-    ${c.plans.map((p, i) => `<button class="card between" type="button" data-edit="${i}" style="text-align:left"><span><strong style="font-size:17px">${esc(p.title)}</strong><span class="small muted" style="display:block">${p.moves.length} moves · ${p.moves.filter((m) => exOf(m.exId)?.group === 'stretching').length} stretches · ${p.days && p.days.length ? p.days.map((d) => ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d]).join(', ') : 'rotates'}</span></span><span class="row" style="gap:4px">${p.moves.slice(0, 4).map((m) => `<img src="${esc(gif(exOf(m.exId)?.gif))}" alt="" loading="lazy" style="width:40px;height:40px;border-radius:9px;object-fit:cover;background:#fff">`).join('')}</span></button>`).join('')}
-    <button class="btn" type="button" id="newplan">+ New plan</button></div>`;
+  const rep = currentReport(); const gym = new Set((rep && rep.profile && rep.profile.gymDays) || []);
+  const undated = c.plans.filter((p) => !(p.days || []).length);
+  const now = new Date().getDay();
+  const week = `<div class="week" role="group" aria-label="Her week">${DOW.map((d, i) => {
+    const pi = c.plans.findIndex((p) => (p.days || []).includes(i));
+    const label = pi >= 0 ? esc(c.plans[pi].title) : gym.has(i) ? (undated.length ? 'Rotating' : 'No plan') : 'Rest';
+    return `<button class="wday${pi >= 0 ? ' set' : ''}${i === now ? ' now' : ''}" type="button" ${pi >= 0 ? `data-edit="${pi}"` : 'disabled'}><span>${i === now ? 'Today' : d}</span><b>${label}</b></button>`;
+  }).join('')}</div>`;
+  const dayNames = (p) => (p.days && p.days.length ? p.days.map((d) => DOW[d]).join(', ') : 'Rotates on gym days');
+  return hdr('Her week', 'Workouts', `<button class="btn sm" type="button" id="newplan">+ New plan</button>`) + `<div class="stack" style="gap:14px">
+    ${week}
+    <p class="small muted">She sees one tile a day: the plan pinned to that weekday, otherwise the undated plans take turns on her gym days${gym.size ? ` (${[...gym].sort().map((d) => DOW[d]).join(', ')})` : ''}.</p>
+    <div class="stack" style="gap:10px">${c.plans.map((p, i) => `<button class="card plan" type="button" data-edit="${i}"><span style="flex:1;min-width:0"><strong style="font-size:17px;display:block">${esc(p.title)}</strong>${p.focus ? `<span class="small" style="display:block;color:var(--acc);font-weight:600">${esc(p.focus)}</span>` : ''}<span class="small muted" style="display:block">${p.moves.length} moves · ${dayNames(p)}</span></span><span class="row" style="gap:4px">${p.moves.slice(0, 3).map((m) => `<img src="${esc(gif(exOf(m.exId)?.gif))}" alt="" loading="lazy" style="width:40px;height:40px;border-radius:9px;object-fit:cover;background:#fff">`).join('')}</span><span class="chev">›</span></button>`).join('') || '<div class="card"><p class="muted">No plans yet — she sees “Rishu is designing today’s plan”. Tap <b>+ New plan</b>.</p></div>'}</div>
+  </div>`;
 }
 function vPicker() {
   const lib = S.lib || [];
@@ -1139,7 +1257,8 @@ function wireWorkouts() {
   const np = $('#newplan'); if (np) np.onclick = () => { c.plans.push({ id: 'plan-' + Date.now().toString(36), title: 'New plan', note: 'Rest 1–1.5 min between sets.', moves: [] }); S.editing = c.plans.length - 1; markDirty(); render(); };
   if (S.editing == null) return;
   const p = c.plans[S.editing];
-  $('#back').onclick = () => { S.editing = null; S.picker = null; render(); };
+  $('#back').onclick = () => { S.editing = null; S.picker = null; render(); scrollTo(0, 0); };
+  $('#dupplan').onclick = () => { const cp = JSON.parse(JSON.stringify(p)); cp.id = 'plan-' + Date.now().toString(36); cp.title = p.title + ' (copy)'; delete cp.days; c.plans.splice(S.editing + 1, 0, cp); S.editing += 1; markDirty(); render(); scrollTo(0, 0); toast('Copied — rename it and pick its day'); };
   $('#pt').oninput = (e) => { p.title = e.target.value; markDirty(); };
   $('#pn').oninput = (e) => { p.note = e.target.value; markDirty(); };
   $('#pf').oninput = (e) => { const v = e.target.value.trim(); if (v) p.focus = v; else delete p.focus; markDirty(); };
@@ -1232,20 +1351,109 @@ function vFoodJson() {
   </div>`;
 }
 
-/* --- Foods --- */
+/* --- Foods: library (published) + her own foods (live) --- */
+if (!S.foodChanged) S.foodChanged = new Set();
+if (!S.foodSeg) S.foodSeg = 'lib';
+if (!S.foodSort) S.foodSort = 'az';
+const hl = (s, q) => { const e = esc(s); if (!q) return e; const ws = q.split(/\s+/).filter(Boolean).map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')); return ws.length ? e.replace(new RegExp(`(${ws.map(esc).join('|')})`, 'gi'), '<mark>$1</mark>') : e; };
+const matches = (f, q) => { if (!q) return true; const hay = `${f.name} ${f.portion || ''} ${(f.tags || []).join(' ')}`.toLowerCase(); return q.split(/\s+/).every((w) => hay.includes(w)); };
+/** How often she has logged each food (from her synced log). */
+function usage() {
+  const r = S.syncReport; const u = {}; if (!r || !r.food) return u;
+  r.food.forEach((f) => { const n = 'n:' + String(f.name).toLowerCase(); u[n] = (u[n] || 0) + 1; if (f.foodId) u['i:' + f.foodId] = (u['i:' + f.foodId] || 0) + 1; });
+  return u;
+}
+const usesOf = (u, f) => Math.max(u['i:' + f.id] || 0, u['n:' + f.name.toLowerCase()] || 0);
+
 function vFoods() {
+  const M = model();
+  const hers = M.rep ? ((M.m && M.m.r.customFoods) || []) : [];
+  const seg = S.foodSeg;
+  const newBtn = `<button class="btn sm" type="button" id="fnew">+ New food</button>`;
+  return hdr('Food library', 'Foods', newBtn) + `<div class="stack foodcol" style="gap:12px">
+    <div class="seg" role="group" aria-label="Which foods"><button type="button" data-fseg="lib" aria-pressed="${seg === 'lib'}">Library <span class="cnt">${S.content.foods.length}</span></button><button type="button" data-fseg="hers" aria-pressed="${seg === 'hers'}">Her foods <span class="cnt">${hers.length}</span></button></div>
+    <div class="searchbar"><input class="input" id="fq" type="search" placeholder="${seg === 'lib' ? 'Search name, portion or tag' : 'Search her foods'}" value="${esc(S.foodQ)}" autocomplete="off"></div>
+    ${seg === 'lib' ? `<div class="between wrapr" style="gap:8px"><div class="chips" role="group" aria-label="Sort">${[['az', 'A–Z'], ['new', 'Newest'], ['used', 'She eats most']].map(([v, l]) => `<button class="chip" type="button" data-fsort="${v}" aria-pressed="${S.foodSort === v}">${l}</button>`).join('')}</div><button class="btn ghost sm" type="button" id="fjopen">{ } Paste JSON</button></div>
+      ${S.foodJsonOpen ? vFoodJson() : ''}
+      <p class="small muted">Sapna searches these in her app. Tap a food to edit it; changes go to her after you Publish.</p>`
+      : `<p class="small muted">Foods she saved on her phone. Changes go straight to her phone (⏳ until it confirms) — no Publish needed.</p>`}
+    <div id="flist"></div>
+  </div>`;
+}
+function foodListHtml() {
   const q = S.foodQ.trim().toLowerCase();
-  const list = S.content.foods.map((f, i) => ({ f, i })).filter(({ f }) => !q || f.name.toLowerCase().includes(q));
-  return `<div class="stack" style="gap:12px">
-    <p class="muted small">Every food Sapna can search in her app. Calories and protein are per portion.</p>
-    <div class="row foodbar"><input class="input" id="fq" type="search" placeholder="Search ${S.content.foods.length} foods" value="${esc(S.foodQ)}"><button class="btn ghost" type="button" id="fjopen" style="flex:none">{ } JSON</button><button class="btn" type="button" id="fadd" style="flex:none">+ Food</button></div>
-    ${S.foodJsonOpen ? vFoodJson() : ''}
-    <div style="overflow-x:auto" class="card ftwrap"><table class="ftable"><thead><tr><th>Food</th><th>Portion</th><th>kcal</th><th>Protein g</th><th></th></tr></thead><tbody>
-    ${list.map(({ f, i }) => `<tr><td data-l="Food"><input class="input" data-fi="${i}" data-k="name" value="${esc(f.name)}" style="min-width:150px" aria-label="Food name"></td><td data-l="Portion"><input class="input" data-fi="${i}" data-k="portion" value="${esc(f.portion)}" style="min-width:110px" aria-label="Portion"></td><td data-l="kcal"><input class="input" inputmode="numeric" data-fi="${i}" data-k="kcal" value="${f.kcal}" style="width:76px" aria-label="kcal"></td><td data-l="Protein g"><input class="input" inputmode="decimal" data-fi="${i}" data-k="protein" value="${f.protein}" style="width:70px" aria-label="Protein g"></td><td class="fdel"><button class="ib" type="button" data-fdel="${i}" aria-label="Delete ${esc(f.name)}">✕</button></td></tr>`).join('')}
-    </tbody></table></div></div>`;
+  if (S.foodSeg === 'hers') {
+    const M = { m: S._m }; const live = !!S._m;
+    const r = S._m ? S._m.r : currentReport();
+    if (!r) return `<div class="card"><p class="muted">Her foods show here once live sync is connected (Settings → Live sync).</p></div>`;
+    const list = (r.customFoods || []).filter((f) => matches(f, q)).sort((a, b) => a.name.localeCompare(b.name));
+    return `<div class="list">${list.map((f) => `<button class="lrow" type="button" ${live && f.id ? `data-cfedit="${esc(f.id)}"` : 'disabled'}><span class="lmain"><b>${f._p ? '⏳ ' : ''}${hl(f.name, q)}</b><span class="small muted">${esc(f.portion || '')} · ${f.protein} g protein</span></span><span class="lk"><b>${n0(f.kcal)}</b><span class="small muted">kcal</span></span>${live ? '<span class="chev">›</span>' : ''}</button>`).join('') || `<p class="muted" style="padding:14px">${q ? 'No match.' : 'She hasn’t saved any foods of her own yet.'}</p>`}</div>
+      ${live ? `<button class="btn ghost" type="button" data-cfadd style="width:100%;margin-top:10px">+ Add to her foods</button>` : ''}`;
+  }
+  const u = usage();
+  let rows = S.content.foods.map((f, i) => ({ f, i, n: usesOf(u, f) })).filter(({ f }) => matches(f, q));
+  if (S.foodSort === 'az') rows.sort((a, b) => a.f.name.localeCompare(b.f.name, 'en', { sensitivity: 'base' }));
+  else if (S.foodSort === 'used') rows.sort((a, b) => b.n - a.n || a.f.name.localeCompare(b.f.name));
+  let last = '';
+  const out = rows.map(({ f, i, n }) => {
+    let head = '';
+    if (S.foodSort === 'az' && !q) { const L = (f.name.match(/[a-z0-9]/i) || ['#'])[0].toUpperCase(); if (L !== last) { last = L; head = `<p class="letter">${/[0-9]/.test(L) ? '#' : L}</p>`; } }
+    return head + `<button class="lrow${S.foodChanged.has(f.id) ? ' chg' : ''}" type="button" data-lopen="${i}" id="lf-${esc(f.id)}"><span class="lmain"><b>${hl(f.name, q)}</b><span class="small muted">${esc(f.portion || '')} · ${f.protein} g protein${n ? ` · <span style="color:var(--acc)">she logged ${n}×</span>` : ''}</span></span><span class="lk"><b>${n0(f.kcal)}</b><span class="small muted">kcal</span></span><span class="chev">›</span></button>`;
+  }).join('');
+  const changed = S.foodChanged.size ? `<p class="small" style="color:var(--amber);margin:0 0 8px">● ${S.foodChanged.size} food${S.foodChanged.size === 1 ? '' : 's'} changed — Publish to send to her app</p>` : '';
+  return changed + (q ? `<p class="small muted" style="margin:0 0 8px">${rows.length} of ${S.content.foods.length}</p>` : '') + `<div class="list">${out || `<div style="padding:14px" class="stack"><p class="muted">No food matches “${esc(S.foodQ)}”.</p><button class="btn sm" type="button" id="fnewq" style="align-self:flex-start">+ Add “${esc(S.foodQ.trim())}”</button></div>`}</div>`;
+}
+function renderFoodList() {
+  const box = $('#flist'); if (!box) return;
+  box.innerHTML = foodListHtml();
+  box.querySelectorAll('[data-lopen]').forEach((b) => (b.onclick = () => libFoodSheet(+b.dataset.lopen)));
+  const nq = $('#fnewq'); if (nq) nq.onclick = () => libFoodSheet(null, S.foodQ.trim());
+  if (S._m) wireEdits(S._m);
+  if (S.foodFlash) { const el = document.getElementById('lf-' + S.foodFlash); S.foodFlash = null; if (el) { el.classList.add('flash'); el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } }
+}
+function libFoodSheet(i, presetName = '') {
+  const F = S.content.foods; const isNew = i == null;
+  const f = isNew ? { name: presetName, portion: '1 serving', kcal: '', protein: '' } : F[i];
+  const more = f.carbs != null || f.fat != null || f.fiber != null || (f.tags && f.tags.length);
+  sheet(isNew ? 'New food' : 'Edit food', `
+    <label class="f">Name<input class="input" name="name" value="${esc(f.name)}" placeholder="e.g. Besan chilla"></label>
+    <label class="f">Portion <span class="faint">(what 1× means)</span><input class="input" name="portion" value="${esc(f.portion || '')}" placeholder="1 piece, 1 bowl, 100 g…"></label>
+    <div class="g2"><label class="f">Calories<input class="input" name="kcal" inputmode="numeric" value="${f.kcal ?? ''}"></label><label class="f">Protein (g)<input class="input" name="protein" inputmode="decimal" value="${f.protein ?? ''}"></label></div>
+    <details ${more ? 'open' : ''}><summary class="small" style="cursor:pointer;font-weight:700">More nutrition & tags (optional)</summary><div class="stack" style="margin-top:8px">
+      <div class="g3"><label class="f">Carbs g<input class="input" name="carbs" inputmode="decimal" value="${f.carbs ?? ''}"></label><label class="f">Fat g<input class="input" name="fat" inputmode="decimal" value="${f.fat ?? ''}"></label><label class="f">Fiber g<input class="input" name="fiber" inputmode="decimal" value="${f.fiber ?? ''}"></label></div>
+      <label class="f">Tags <span class="faint">comma separated</span><input class="input" name="tags" value="${esc((f.tags || []).join(', '))}" placeholder="breakfast, veg"></label></div></details>
+    <p class="small muted">Saved here first — tap <b>Publish</b> at the bottom to send it to her app.</p>
+    <button class="btn" type="button" data-save>${isNew ? 'Add to library' : 'Save'}</button>
+    ${isNew ? '' : '<button class="btn danger" type="button" data-del>Delete from library</button>'}`, (m, close) => {
+    const g = (n) => m.querySelector(`[name="${n}"]`);
+    m.querySelector('[data-save]').onclick = () => {
+      const name = g('name').value.trim().slice(0, 60), kcal = numVal(g('kcal'));
+      if (!name) return toast('Give it a name');
+      if (kcal === null || kcal <= 0 || kcal > 5000) return toast('Calories should be a number');
+      const dup = F.findIndex((x, j) => j !== i && x.name.trim().toLowerCase() === name.toLowerCase());
+      if (dup >= 0) { if (!confirm(`“${F[dup].name}” is already in the library. Open that one instead?`)) return; close(); return libFoodSheet(dup); }
+      const opt = (n) => { const v = g(n).value.trim(); if (!v) return undefined; const x = numVal(g(n)); return x === null ? undefined : Math.round(x * 10) / 10; };
+      const tags = g('tags').value.split(/[,;]/).map((t) => t.trim().toLowerCase()).filter(Boolean).slice(0, 8);
+      const next = { ...(isNew ? { id: 'food-' + slug(name) + '-' + Math.random().toString(36).slice(2, 6) } : f), name, portion: g('portion').value.trim().slice(0, 90) || '1 serving', kcal: Math.round(kcal), protein: Math.round((numVal(g('protein')) || 0) * 10) / 10 };
+      ['carbs', 'fat', 'fiber'].forEach((n) => { const v = opt(n); if (v === undefined) delete next[n]; else next[n] = v; });
+      if (tags.length) next.tags = tags; else delete next.tags;
+      if (isNew) F.unshift(next); else F[i] = next;
+      S.foodChanged.add(next.id); S.foodFlash = next.id;
+      if (!matches(next, S.foodQ.trim().toLowerCase())) { S.foodQ = ''; const q = $('#fq'); if (q) q.value = ''; }
+      close(); markDirty(); renderFoodList(); toast(isNew ? `${name} added — Publish to send` : 'Saved — Publish to send');
+    };
+    const del = m.querySelector('[data-del]');
+    if (del) del.onclick = () => { if (!confirm(`Delete ${f.name} from the library? Meals she already logged stay.`)) return; F.splice(i, 1); S.foodChanged.add('del:' + f.id); close(); markDirty(); renderFoodList(); toast(`${f.name} deleted — Publish to send`); };
+    if (isNew) g(presetName ? 'kcal' : 'name').focus();
+  });
 }
 function wireFoods() {
   const F = S.content.foods;
+  renderFoodList();
+  document.querySelectorAll('[data-fseg]').forEach((b) => (b.onclick = () => { S.foodSeg = b.dataset.fseg; S.foodQ = ''; render(); }));
+  document.querySelectorAll('[data-fsort]').forEach((b) => (b.onclick = () => { S.foodSort = b.dataset.fsort; document.querySelectorAll('[data-fsort]').forEach((x) => x.setAttribute('aria-pressed', x === b)); renderFoodList(); }));
+  const q = $('#fq'); let t; q.oninput = () => { clearTimeout(t); t = setTimeout(() => { S.foodQ = q.value; renderFoodList(); }, 120); };
+  $('#fnew').onclick = () => { if (S.foodSeg === 'hers') { if (S._m) herFoodSheet(null); else toast('Connect live sync first'); } else libFoodSheet(null); };
   const fjo = $('#fjopen'); if (fjo) fjo.onclick = () => { S.foodJsonOpen = !S.foodJsonOpen; render(); if (S.foodJsonOpen) $('#fjt')?.focus(); };
   if (S.foodJsonOpen) {
     const ta = $('#fjt'); let tt;
@@ -1259,42 +1467,52 @@ function wireFoods() {
       let added = 0, updated = 0;
       foods.forEach((f) => {
         const ex = F.find((x) => x.name.trim().toLowerCase() === f.name.toLowerCase());
-        if (ex) { Object.assign(ex, { ...f, id: ex.id }); updated++; } else { F.unshift(f); added++; }
+        if (ex) { Object.assign(ex, { ...f, id: ex.id }); S.foodChanged.add(ex.id); updated++; } else { F.unshift(f); S.foodChanged.add(f.id); added++; }
       });
-      S.foodJson = ''; S.foodJsonOpen = false; S.foodQ = ''; markDirty(); render();
+      S.foodJson = ''; S.foodJsonOpen = false; S.foodQ = ''; S.foodSort = 'new'; markDirty(); render();
       toast(`${added} added${updated ? `, ${updated} updated` : ''} — tap Publish to send to her app`);
     };
   }
-
-  const q = $('#fq'); let t; q.oninput = () => { clearTimeout(t); t = setTimeout(() => { S.foodQ = q.value; render(); const n = $('#fq'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250); };
-  $('#fadd').onclick = () => { F.unshift({ id: 'food-' + Date.now().toString(36), name: 'New food', portion: '1 serving', kcal: 100, protein: 5 }); S.foodQ = ''; markDirty(); render(); const first = document.querySelector('[data-fi="0"][data-k="name"]'); first.focus(); first.select(); };
-  document.querySelectorAll('[data-fi]').forEach((el) => (el.oninput = () => {
-    const f = F[+el.dataset.fi]; const k = el.dataset.k;
-    f[k] = k === 'kcal' ? Math.round(Number(el.value) || 0) : k === 'protein' ? Number(el.value) || 0 : el.value;
-    markDirty();
-  }));
-  document.querySelectorAll('[data-fdel]').forEach((b) => (b.onclick = () => { const f = F[+b.dataset.fdel]; if (confirm(`Remove ${f.name}?`)) { F.splice(+b.dataset.fdel, 1); markDirty(); render(); } }));
 }
 
-/* --- Targets & note --- */
+/* --- Settings --- */
 function vSettings() {
-  const t = S.content.targets;
-  return `<div class="stack" style="gap:14px;max-width:560px">
-    <div class="card stack"><h2>Daily targets</h2><div class="g2">
-      <label class="f">Calories (kcal)<input class="input" id="tk" inputmode="numeric" value="${t.kcal}"></label>
-      <label class="f">Protein (g)<input class="input" id="tp" inputmode="numeric" value="${t.protein}"></label>
-      <label class="f">Water (glasses)<input class="input" id="tw" inputmode="numeric" value="${t.water ?? 8}"></label></div></div>
-    <div class="card stack"><h2>Note on her Today screen</h2><textarea class="input" id="msg" placeholder="e.g. Proud of you this week! Try paneer at dinner.">${esc(S.content.message || '')}</textarea><p class="small muted">Leave empty to hide it.</p></div>
-    <div class="card stack"><h2>Notifications to her phone</h2>
-      <label class="row" style="gap:10px;cursor:pointer"><input type="checkbox" id="autop" ${autoPush() ? 'checked' : ''} style="width:20px;height:20px"> <span>Tell her automatically every time I publish</span></label>
-      <p class="small muted">${herPush() ? 'Her phone is registered.' : 'Her phone isn’t registered yet (needs app 1.7 + live sync).'} Pushes go through your GitHub workflow — usually 15–30 s.</p>
-      <details><summary class="small" style="cursor:pointer">Instant mode (optional, ~1 s)</summary><div class="stack" style="margin-top:8px">
-        <p class="small muted">Paste the Firebase <b>service-account key</b> JSON (Project settings → Service accounts → Generate new private key). It stays in this browser and travels to your other devices only through “Link another device”. If instant sending fails, the GitHub route is used automatically.</p>
-        ${fcmSa() ? `<p class="small"><b>Instant mode on</b> · ${esc(fcmSa().client_email)}</p><button class="btn ghost sm" type="button" id="fcmoff" style="align-self:flex-start">Remove key from this device</button>` : `<textarea class="input mono" id="fcmsa" placeholder='{"type":"service_account", …}'></textarea><button class="btn sm" type="button" id="fcmsave" style="align-self:flex-start">Save key</button>`}
-      </div></details></div>
-    <div class="card stack"><h2>Link another device</h2><p class="small muted">Open this admin on your phone (or any device) already set up — publishing and her live dashboard — by scanning a QR. No tokens or codes to paste.</p><button class="btn" type="button" data-link style="align-self:flex-start">Show QR & link</button></div>
-    <div class="card stack small muted"><strong style="color:var(--text)">Published</strong><span>Version ${S.content.version || 0} · ${S.content.updatedAt ? new Date(S.content.updatedAt).toLocaleString() : 'never'}</span>
-      <div class="row wrapr"><button class="btn ghost sm" type="button" id="chtok">Change token (keeps changes)</button><button class="btn ghost sm" type="button" id="logout">Forget token on this device</button></div></div></div>`;
+  const M = model();
+  const t = S.content.targets; const c = M.c;
+  const r = M.m ? M.m.r : M.rep;
+  const p = r && r.profile;
+  const herCard = r && (r.reminders || p) ? `<div class="card stack" id="herset"><div class="between"><h2>Her app settings</h2>${M.editable ? '<button class="btn sm" type="button" id="pedit">Edit</button>' : ''}</div>
+      <p class="small muted">As set on her phone${M.editable ? ' — edits go straight to her phone' : ''}.</p>
+      <div class="stack small kv" style="gap:6px">
+      ${p ? `<div class="between"><span class="muted">Goal · diet</span><span>${esc(GOALS[p.goalRaw] || r.goal || '—')} · ${esc(DIETS[p.diet] || p.diet || '—')}</span></div>
+      <div class="between"><span class="muted">Gym days</span><span>${(p.gymDays || []).map((d) => DOW[d]).join(', ') || 'none picked'}</span></div>
+      <div class="between"><span class="muted">Height · start weight</span><span>${p.heightCm || '—'} cm · ${p.startKg || '—'} kg</span></div>
+      ${p.avoid ? `<div class="between"><span class="muted">Avoids</span><span>${esc(p.avoid)}</span></div>` : ''}` : ''}
+      ${r.reminders ? `<div class="between" style="align-items:flex-start"><span class="muted">Reminders on</span><span style="text-align:right">${Object.entries(r.reminders).filter(([, v]) => v === true).map(([k]) => ({ punch: 'gym punch line', meals: 'meals', water: 'water', gym: 'workout days', weigh: 'weigh-in', steps: 'night steps' }[k] || k)).join(', ') || 'none'}</span></div>` : ''}
+      </div></div>` : '';
+  return hdr('Sapna Health · Admin', 'Settings') + `<div class="setgrid">
+    <section class="stack" style="gap:12px"><p class="eyebrow sec">Her app · goes out when you Publish</p>
+      <div class="card stack"><h2>Daily targets</h2><div class="g3">
+        <label class="f">Calories<input class="input" id="tk" inputmode="numeric" value="${t.kcal}"></label>
+        <label class="f">Protein g<input class="input" id="tp" inputmode="numeric" value="${t.protein}"></label>
+        <label class="f">Water<input class="input" id="tw" inputmode="numeric" value="${t.water ?? 8}"></label></div></div>
+      <div class="card stack"><h2>Note on her Today screen</h2><textarea class="input" id="msg" placeholder="e.g. Proud of you this week! Try paneer at dinner.">${esc(S.content.message || '')}</textarea><p class="small muted">Leave empty to hide it.</p></div>
+      ${herCard}
+    </section>
+    <section class="stack" style="gap:12px"><p class="eyebrow sec">Connection</p>
+      ${c ? vSyncCard(c) : vSyncSetup()}
+      <div class="card stack"><h2>Notifications to her phone</h2>
+        <label class="row" style="gap:10px;cursor:pointer"><input type="checkbox" id="autop" ${autoPush() ? 'checked' : ''} style="width:20px;height:20px"> <span>Tell her automatically every time I publish</span></label>
+        <p class="small muted">${herPush() ? 'Her phone is registered.' : 'Her phone isn’t registered yet (needs app 1.7 + live sync).'} Pushes go through your GitHub workflow — usually 15–30 s.</p>
+        <details><summary class="small" style="cursor:pointer">Instant mode (optional, ~1 s)</summary><div class="stack" style="margin-top:8px">
+          <p class="small muted">Paste the Firebase <b>service-account key</b> JSON (Project settings → Service accounts → Generate new private key). It stays in this browser and travels to your other devices only through “Link another device”. If instant sending fails, the GitHub route is used automatically.</p>
+          ${fcmSa() ? `<p class="small"><b>Instant mode on</b> · ${esc(fcmSa().client_email)}</p><button class="btn ghost sm" type="button" id="fcmoff" style="align-self:flex-start">Remove key from this device</button>` : `<textarea class="input mono" id="fcmsa" placeholder='{"type":"service_account", …}'></textarea><button class="btn sm" type="button" id="fcmsave" style="align-self:flex-start">Save key</button>`}
+        </div></details></div>
+      <div class="card stack"><h2>Link another device</h2><p class="small muted">Open this admin on another phone or laptop already set up — publishing and her live data — by scanning a QR. Nothing to paste.</p><button class="btn" type="button" data-link style="align-self:flex-start">Show QR & link</button></div>
+      ${emergencyFile()}
+      <div class="card stack small muted"><strong style="color:var(--text)">GitHub token & publishing</strong><span>Published version ${S.content.version || 0} · ${S.content.updatedAt ? new Date(S.content.updatedAt).toLocaleString('en-IN') : 'never'}</span>
+        <div class="row wrapr"><button class="btn ghost sm" type="button" id="chtok">Change token (keeps changes)</button><button class="btn danger sm" type="button" id="logout">Forget token on this device</button></div></div>
+    </section></div>`;
 }
 function wireSettings() {
   const t = S.content.targets;
@@ -1302,7 +1520,6 @@ function wireSettings() {
   $('#tp').oninput = (e) => { t.protein = Math.max(20, parseInt(e.target.value) || 0); markDirty(); };
   $('#tw').oninput = (e) => { t.water = Math.max(1, parseInt(e.target.value) || 8); markDirty(); };
   $('#msg').oninput = (e) => { S.content.message = e.target.value.slice(0, 220); markDirty(); };
-  document.querySelectorAll('[data-link]').forEach((b) => (b.onclick = showLink));
   $('#autop').onchange = (e) => { try { localStorage.setItem(LS_AUTOPUSH, e.target.checked ? '1' : '0'); } catch {} toast(e.target.checked ? 'She’ll be notified on every publish' : 'Publishing quietly'); };
   const fs = $('#fcmsave'); if (fs) fs.onclick = () => {
     let j; try { j = JSON.parse($('#fcmsa').value); } catch { return toast('That isn’t valid JSON — paste the whole file'); }
@@ -1311,13 +1528,14 @@ function wireSettings() {
   };
   const fo = $('#fcmoff'); if (fo) fo.onclick = () => { localStorage.removeItem(LS_FCM); render(); };
   $('#chtok').onclick = () => askToken('Paste a token with write access to sapna-app-and-admin.', null);
-  $('#logout').onclick = () => { localStorage.removeItem(LS_TOKEN); S.token = ''; viewSetup(); };
+  $('#logout').onclick = () => { if (!confirm('Forget the GitHub token on this device? You’ll need to paste it (or scan a link) again.')) return; localStorage.removeItem(LS_TOKEN); S.token = ''; viewSetup(); };
 }
 
-document.addEventListener('visibilitychange', () => { if (!document.hidden && S.tab === 'status' && syncCfg() && S.content) { S.sync.fetchedAt = 0; render(); } });
+const LIVE_TABS = ['day', 'progress', 'foods', 'settings'];
+document.addEventListener('visibilitychange', () => { if (!document.hidden && LIVE_TABS.includes(S.tab) && syncCfg() && S.content) { S.sync.fetchedAt = 0; render(); } });
 // Live: re-check her file every 20 s while the dashboard is on screen; repaint only if it changed.
 setInterval(async () => {
-  if (document.hidden || S.tab !== 'status' || !S.content || !syncCfg() || S.sync.status === 'loading') return;
+  if (document.hidden || !['day', 'progress'].includes(S.tab) || document.querySelector('.modal') || !S.content || !syncCfg() || S.sync.status === 'loading') return;
   const a = document.activeElement; if (a && /INPUT|TEXTAREA|SELECT/.test(a.tagName)) return; // don't disturb typing
   const before = S.sync.at;
   await fetchSync();
