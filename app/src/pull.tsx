@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { buildReport, haptic } from './lib/native';
 import { useStore } from './lib/store';
 import { loadSyncCfg, pushReport } from './lib/sync';
+import { syncAdminOps } from './lib/adminops';
 import { Icon, toast } from './ui';
 
 const TRIGGER = 72; // px of pull needed
@@ -12,7 +13,7 @@ const MAX = 110;
  * Attaches to the tab's scrolling `.screen` element.
  */
 export function PullToRefresh({ tab }: { tab: string }) {
-  const { data, content, reloadContent } = useStore();
+  const { data, content, reloadContent, update } = useStore();
   const latest = useRef({ data, content });
   latest.current = { data, content };
   const [pull, setPull] = useState(0);
@@ -56,8 +57,10 @@ export function PullToRefresh({ tab }: { tab: string }) {
 
   async function run() {
     busyRef.current = true; setBusy(true); setPull(TRIGGER * 0.75); haptic.tap();
-    const { data: d, content: c } = latest.current;
     const cfg = await loadSyncCfg();
+    const applied = cfg ? await syncAdminOps(() => latest.current.data, update).catch(() => 0) : 0;
+    if (applied) await new Promise((r) => setTimeout(r, 300));
+    const { data: d, content: c } = latest.current;
     const [synced, fresh] = await Promise.all([
       cfg ? pushReport(buildReport(d, c) as unknown as Record<string, unknown>, { force: true }) : Promise.resolve(null),
       reloadContent().catch(() => false),
@@ -66,7 +69,7 @@ export function PullToRefresh({ tab }: { tab: string }) {
     if (synced === false) toast('Couldn’t sync — check Settings › Live sync');
     else {
       haptic.success();
-      toast([fresh ? 'New plan from Rishu' : null, synced ? 'Synced with Rishu' : null].filter(Boolean).join(' · ') || 'Up to date');
+      toast([applied ? `Rishu updated your log (${applied})` : null, fresh ? 'New plan from Rishu' : null, synced ? 'Synced with Rishu' : null].filter(Boolean).join(' · ') || 'Up to date');
     }
   }
 

@@ -166,6 +166,8 @@ export interface AppData {
   remV?: number;
   lastBackupAt?: number;
   lastReportAt?: number;
+  /** ids of edits from Rishu's admin already applied on this phone */
+  adminApplied?: string[];
 }
 
 export const DEFAULT_PROFILE: Profile = {

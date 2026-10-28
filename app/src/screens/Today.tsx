@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { cycleInfo, isGymDay, mealFor, streakInfo, mealTotals, planBrief, todayPlan, PHASE_COPY, sessionsOn, totalsOn } from '../lib/calc';
 import { greeting, longLabel, today } from '../lib/dates';
 import { haptic } from '../lib/native';
 import { useStore } from '../lib/store';
-import { Food, MEALS } from '../lib/types';
+import { Food, Meal, MEALS } from '../lib/types';
 import { useNav } from '../nav';
 import { Bar, Icon, Ring, Sheet, toast } from '../ui';
 import { StreakCard } from '../streak';
@@ -13,6 +13,7 @@ import { takeStepsRequest } from '../lib/intents';
 import { Num } from '../anim';
 import { TTL, useDraft } from '../lib/drafts';
 import { InstantNudge } from '../power';
+import { MealSheet } from '../foodedit';
 
 export default function Today() {
   const { data, content, foods, update, exById, contentFresh } = useStore();
@@ -31,6 +32,7 @@ export default function Today() {
   const done = sessionsOn(data, d).some((s) => s.endedAt && s.sets.length && (!plan || s.planId === plan.id));
   const gym = isGymDay(data);
   const cyc = data.profile.cycleEnabled ? cycleInfo(data) : null;
+  const [mealOpen, setMealOpen] = useState<Meal | null>(null);
   const [stepsOpen, setStepsOpen] = useDraft('today.stepsOpen', false);
   const [stepsVal, setStepsVal] = useDraft('today.stepsVal', '', TTL.text);
   const kg = latestWeight(data);
@@ -110,17 +112,21 @@ export default function Today() {
             const mt = mealTotals(data, d, m.id);
             const names = mt.entries.map((e) => e.name + (e.mult !== 1 ? ` ×${e.mult}` : '')).join(', ');
             return (
-              <div key={m.id} className="list-row">
+              <div key={m.id} className="list-row" role="button" tabIndex={0} style={{ cursor: 'pointer' }}
+                onClick={() => (mt.entries.length ? setMealOpen(m.id) : nav.openLogger(m.id))}
+                onKeyDown={(ev) => { if (ev.key === 'Enter') (mt.entries.length ? setMealOpen(m.id) : nav.openLogger(m.id)); }}>
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <strong>{m.label}</strong>
                   <span className="small muted" style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{names || 'Nothing yet'}</span>
                 </span>
                 {mt.kcal ? <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{mt.kcal} <span className="small muted">kcal</span></span> : null}
-                <button type="button" className="icon-btn acc" aria-label={`Add to ${m.label}`} onClick={() => nav.openLogger(m.id)}><Icon name="plus" size={20} stroke={2.4} /></button>
+                <button type="button" className="icon-btn acc" aria-label={`Add to ${m.label}`} onClick={(ev) => { ev.stopPropagation(); nav.openLogger(m.id); }}><Icon name="plus" size={20} stroke={2.4} /></button>
               </div>
             );
           })}
         </section>
+
+        <MealSheet date={d} meal={mealOpen} onClose={() => setMealOpen(null)} />
 
         <section className="grid2" aria-label="Water and steps">
           <div className="card tight stack" style={{ gap: 10 }} data-acc="progress">

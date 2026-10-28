@@ -20,6 +20,7 @@ import { syncNightSteps, syncWidget } from './streak';
 import { requestSteps } from './lib/intents';
 import { clearDrafts, getDraft, setDraft, useDraft } from './lib/drafts';
 import { pushReport, SYNC_EVERY_DEFAULT, useSyncCfg } from './lib/sync';
+import { syncAdminOps } from './lib/adminops';
 import { PullToRefresh } from './pull';
 import { initPush } from './lib/push';
 import { buildReport } from './lib/native';
@@ -33,7 +34,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 ];
 
 function Shell() {
-  const { ready, data } = useStore();
+  const { ready, data, update } = useStore();
   const [tab, setTab] = useDraft<Tab>('app.tab', 'today');
   const [logger, setLogger] = useDraft<{ open: boolean; meal: Meal; date?: string }>('app.logger', { open: false, meal: 'breakfast' });
   const [settings, setSettings] = useDraft('app.settings', false);
@@ -66,18 +67,31 @@ function Shell() {
   const every = Math.max(10, syncCfg?.every ?? SYNC_EVERY_DEFAULT) * 1000;
   useEffect(() => {
     if (!ready || !data.onboarded || !syncCfg) return;
-    const tick = () => { if (document.visibilityState !== 'hidden') { const { data: d, content: c } = latest.current; pushReport(buildReport(d, c)).catch(() => {}); } };
+    const tick = async () => {
+      if (document.visibilityState === 'hidden') return;
+      // Rishu's edits first, so the upload right after carries the result (and the "applied" receipt).
+      const n = await syncAdminOps(() => latest.current.data, update).catch(() => 0);
+      if (n) { toast(`Rishu updated your log (${n} change${n === 1 ? '' : 's'})`); await new Promise((r) => setTimeout(r, 300)); }
+      const { data: d, content: c } = latest.current; pushReport(buildReport(d, c)).catch(() => {});
+    };
     const t = window.setInterval(tick, every);
     return () => window.clearInterval(t);
   }, [ready, data.onboarded, !!syncCfg, every]);
   useEffect(() => {
     if (!ready || !data.onboarded) return;
     const now = () => { const { data: d, content: c } = latest.current; pushReport(buildReport(d, c)).catch(() => {}); };
-    const first = window.setTimeout(now, 3000);
+    const pullThenPush = async () => {
+      const n = await syncAdminOps(() => latest.current.data, update).catch(() => 0);
+      if (n) { toast(`Rishu updated your log (${n} change${n === 1 ? '' : 's'})`); await new Promise((r) => setTimeout(r, 300)); }
+      now();
+    };
+    const first = window.setTimeout(pullThenPush, 2500);
+    const onShow = () => { if (document.visibilityState === 'visible') pullThenPush(); };
+    document.addEventListener('visibilitychange', onShow);
     const onHide = () => { if (document.visibilityState === 'hidden') now(); };
     document.addEventListener('visibilitychange', onHide);
     const sub = CapApp.addListener('appStateChange', ({ isActive }) => { if (!isActive) now(); });
-    return () => { window.clearTimeout(first); document.removeEventListener('visibilitychange', onHide); sub.then((x) => x.remove()).catch(() => {}); };
+    return () => { window.clearTimeout(first); document.removeEventListener('visibilitychange', onShow); document.removeEventListener('visibilitychange', onHide); sub.then((x) => x.remove()).catch(() => {}); };
   }, [ready, data.onboarded]);
 
   // Instant pushes from Rishu: a new plan → fetch it straight from GitHub; tap → open that tab.

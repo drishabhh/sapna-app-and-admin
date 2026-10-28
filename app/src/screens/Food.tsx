@@ -1,39 +1,22 @@
-import { mealTotals, r1, totalsOn } from '../lib/calc';
+import { useState } from 'react';
+import { mealTotals, totalsOn } from '../lib/calc';
 import { addDays, longLabel, today } from '../lib/dates';
-import { haptic } from '../lib/native';
 import { useStore } from '../lib/store';
-import { FoodEntry, MEALS } from '../lib/types';
+import { MEALS } from '../lib/types';
 import { useNav } from '../nav';
-import { Bar, Icon, Sheet, Stepper, toast } from '../ui';
+import { Bar, Icon } from '../ui';
+import { FoodEditSheet } from '../foodedit';
 import { Num } from '../anim';
-import { useDraft } from '../lib/drafts';
 
 export default function FoodScreen() {
-  const { data, content, update } = useStore();
+  const { data, content } = useStore();
   const nav = useNav();
-  const [day, setDay] = useDraft('food.day', today());
-  const [edit, setEdit] = useDraft<FoodEntry | null>('food.edit', null);
-  const [mult, setMult] = useDraft('food.mult', 1);
+  // Always opens on today (a remembered day kept showing yesterday after midnight).
+  const [day, setDay] = useState(today());
+  const [editId, setEditId] = useState<string | null>(null);
+  const edit = editId ? data.food.find((f) => f.id === editId) || null : null;
   const t = totalsOn(data, day);
   const isToday = day === today();
-
-  function saveEdit() {
-    if (!edit) return;
-    const per = { kcal: edit.kcal / edit.mult, protein: edit.protein / edit.mult };
-    update((d) => ({
-      ...d,
-      food: d.food.map((f) => (f.id === edit.id ? { ...f, mult, kcal: Math.round(per.kcal * mult), protein: r1(per.protein * mult) } : f)),
-    }));
-    haptic.tap();
-    setEdit(null);
-  }
-  function remove() {
-    if (!edit) return;
-    const gone = edit;
-    update((d) => ({ ...d, food: d.food.filter((f) => f.id !== gone.id) }));
-    toast(`Removed ${gone.name}`);
-    setEdit(null);
-  }
 
   return (
     <div className="screen" data-acc="food">
@@ -77,7 +60,7 @@ export default function FoodScreen() {
                 <div className="stack" style={{ gap: 0, marginTop: 8 }}>
                   {mt.entries.map((e) => (
                     <button key={e.id} type="button" className="between" style={{ border: 'none', background: 'transparent', color: 'var(--text)', padding: '11px 2px', borderTop: '1px solid var(--line)', textAlign: 'left', minHeight: 48 }}
-                      onClick={() => { setEdit(e); setMult(e.mult); }}>
+                      onClick={() => setEditId(e.id)}>
                       <span style={{ minWidth: 0 }}><strong style={{ fontWeight: 600 }}>{e.name}</strong> <span className="small muted">{e.mult !== 1 ? `${e.mult}× ` : ''}{e.portion}</span></span>
                       <span className="small" style={{ whiteSpace: 'nowrap' }}>{e.kcal} kcal</span>
                     </button>
@@ -89,18 +72,7 @@ export default function FoodScreen() {
         })}
       </div>
 
-      <Sheet open={!!edit} onClose={() => setEdit(null)} label="Edit food">
-        {edit ? (
-          <div className="stack" style={{ gap: 14 }} data-acc="food">
-            <h2 className="h1" style={{ fontSize: 30 }}>{edit.name}</h2>
-            <p className="muted">1× = {edit.portion}</p>
-            <Stepper label="portion" value={mult} step={0.25} min={0.25} max={10} decimals={2} unit="×" onChange={setMult} />
-            <p className="muted">{Math.round((edit.kcal / edit.mult) * mult)} kcal · {r1((edit.protein / edit.mult) * mult)} g protein</p>
-            <button type="button" className="btn lg block" onClick={saveEdit}>Save</button>
-            <button type="button" className="btn ghost block" style={{ color: 'var(--danger)' }} onClick={remove}><Icon name="trash" size={18} /> Remove from log</button>
-          </div>
-        ) : null}
-      </Sheet>
+      <FoodEditSheet entry={edit} onClose={() => setEditId(null)} />
     </div>
   );
 }

@@ -139,6 +139,19 @@ async function encrypt(json: string, keyB64: string): Promise<string> {
   return JSON.stringify({ type: 'sapna-sync', v: 1, alg: 'A256GCM', z, iv: b64uEnc(iv), ct: b64uEnc(ct), at: new Date().toISOString() });
 }
 
+async function gunzip(bytes: Uint8Array): Promise<Uint8Array> {
+  const ds = new Blob([bytes as BlobPart]).stream().pipeThrough(new DecompressionStream('gzip'));
+  return new Uint8Array(await new Response(ds).arrayBuffer());
+}
+
+async function decrypt(envelopeText: string, keyB64: string): Promise<string> {
+  const env = JSON.parse(envelopeText) as { iv: string; ct: string; z?: boolean };
+  const key = await crypto.subtle.importKey('raw', b64uDec(keyB64) as BufferSource, 'AES-GCM', false, ['decrypt']);
+  let bytes: Uint8Array = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64uDec(env.iv) as BufferSource }, key, b64uDec(env.ct) as BufferSource));
+  if (env.z) bytes = await gunzip(bytes);
+  return new TextDecoder().decode(bytes);
+}
+
 /* ---------------- GitHub ---------------- */
 
 class SyncError extends Error {
@@ -244,4 +257,28 @@ export async function connectSync(code: string, report: Record<string, unknown>)
 
 export async function disconnectSync() {
   await saveCfg(null);
+}
+
+/* ---------------- changes from Rishu's admin ---------------- */
+
+/** Rishu's edits live on their own branch so her dashboard uploads never overwrite them. */
+export const ADMIN_BRANCH = 'admin';
+export const ADMIN_FILE = 'admin-ops.enc.json';
+
+/** Encrypted list of edits Rishu made on the admin page. null = not paired / unreachable. */
+export async function fetchAdminOps(): Promise<Record<string, unknown>[] | null> {
+  const c = cfg || (await loadSyncCfg());
+  if (!c) return null;
+  try {
+    const res = await fetch(`${API}/repos/${c.o}/${c.r}/contents/${ADMIN_FILE}?ref=${ADMIN_BRANCH}&t=${Date.now()}`, {
+      headers: { Authorization: `Bearer ${c.t}`, Accept: 'application/vnd.github.raw', 'X-GitHub-Api-Version': '2022-11-28' },
+      cache: 'no-store',
+    });
+    if (res.status === 404) return [];
+    if (!res.ok) return null;
+    const j = JSON.parse(await decrypt(await res.text(), c.k)) as { type?: string; ops?: unknown };
+    return j && j.type === 'sapna-ops' && Array.isArray(j.ops) ? (j.ops as Record<string, unknown>[]) : [];
+  } catch {
+    return null;
+  }
 }

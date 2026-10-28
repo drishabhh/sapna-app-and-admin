@@ -418,6 +418,8 @@ async function fetchSync() {
     if (env.z) bytes = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer());
     const rep = JSON.parse(new TextDecoder().decode(bytes));
     S.syncReport = rep; S.sync = { status: 'ok', fetchedAt: Date.now(), at: env.at };
+    const ops = await fetchOps(c).catch(() => null) || (S.token && S.token !== c.t ? await fetchOps({ ...c, t: S.token }).catch(() => null) : null);
+    if (ops) S.remoteOps = ops;
   } catch (e) {
     S.sync = { status: 'error', msg: e.message || 'Could not reach GitHub', fetchedAt: Date.now() };
   }
@@ -545,6 +547,228 @@ function vPushCard() {
   </div>`;
 }
 
+/* --- Edit her data from here (two-way) ---
+   Edits become small encrypted ops in admin-ops.enc.json on the `admin` branch of the private
+   sync repo (her phone force-pushes `main`, so the ops never get wiped). Her app applies them
+   (on open, every 20 s while open, pull-to-refresh) and lists applied ids in report.adminAck. */
+const ADMIN_BRANCH = 'admin';
+const ADMIN_FILE = 'admin-ops.enc.json';
+const DIETS = { veg: 'Vegetarian', egg: 'Eggetarian', non: 'Non-veg' };
+const GOALS = { lose: 'Lose fat', strong: 'Get strong', energy: 'More energy', keep: 'Stay fit' };
+const REMS = { punch: '7:10 am gym punch line', meals: 'Meal reminders', water: 'Water', gym: 'Workout days', weigh: 'Weekly weigh-in', steps: '11:30 pm steps' };
+if (!S.remoteOps) S.remoteOps = [];
+
+async function decryptEnv(text, k) {
+  const env = JSON.parse(text);
+  const key = await crypto.subtle.importKey('raw', unb64u(k), 'AES-GCM', false, ['decrypt']);
+  let bytes = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64u(env.iv) }, key, unb64u(env.ct)));
+  if (env.z) bytes = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer());
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+async function encryptEnv(obj, k) {
+  const key = await crypto.subtle.importKey('raw', unb64u(k), 'AES-GCM', false, ['encrypt']);
+  let data = new TextEncoder().encode(JSON.stringify(obj)); let z = false;
+  if (typeof CompressionStream !== 'undefined') { data = new Uint8Array(await new Response(new Blob([data]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer()); z = true; }
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, data));
+  return JSON.stringify({ type: 'sapna-sync', v: 1, alg: 'A256GCM', z, iv: b64u(iv), ct: b64u(ct), at: new Date().toISOString() });
+}
+async function syncApi(c, path, method, body) {
+  const res = await fetch(`https://api.github.com/repos/${c.o}/${c.r}${path}`, { method, headers: { Authorization: `Bearer ${c.t}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+  const j = await res.json().catch(() => ({}));
+  if (!res.ok) { const e = new Error(j.message || `GitHub ${res.status}`); e.status = res.status; throw e; }
+  return j;
+}
+async function fetchOps(c) {
+  const r = await syncGh(c, `/contents/${ADMIN_FILE}?ref=${ADMIN_BRANCH}&t=${Date.now()}`, 'application/vnd.github.raw');
+  if (r.status === 404) return [];
+  if (!r.ok) return null;
+  try { const j = await decryptEnv(await r.text(), c.k); return j && Array.isArray(j.ops) ? j.ops : []; } catch { return null; }
+}
+async function writeOps(c, ops) {
+  const text = await encryptEnv({ type: 'sapna-ops', v: 1, ops }, c.k);
+  const blob = await syncApi(c, '/git/blobs', 'POST', { content: text, encoding: 'utf-8' });
+  const tree = await syncApi(c, '/git/trees', 'POST', { tree: [{ path: ADMIN_FILE, mode: '100644', type: 'blob', sha: blob.sha }] });
+  const commit = await syncApi(c, '/git/commits', 'POST', { message: 'admin edits', tree: tree.sha, parents: [] });
+  try { await syncApi(c, `/git/refs/heads/${ADMIN_BRANCH}`, 'PATCH', { sha: commit.sha, force: true }); }
+  catch (e) { if (e.status === 404 || e.status === 422) await syncApi(c, '/git/refs', 'POST', { ref: `refs/heads/${ADMIN_BRANCH}`, sha: commit.sha }); else throw e; }
+}
+const ackSet = () => new Set((S.syncReport && S.syncReport.adminAck) || []);
+function pendingOps() { const a = ackSet(); return (S.remoteOps || []).filter((o) => !a.has(o.id)); }
+const newOpId = () => 'op_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
+
+async function queueOps(ops, msg = 'Sent — applies on her phone within ~20 s while the app is open, otherwise when she opens it') {
+  const c = syncCfg(); if (!c) return toast('Set up live sync first');
+  const stamped = ops.map((o) => ({ id: newOpId(), at: Date.now(), ...o }));
+  const next = [...pendingOps(), ...stamped];
+  try { await writeOps(c, next); }
+  catch (e) {
+    if (e.status === 401 || e.status === 403) { try { await writeOps({ ...c, t: S.token }, next); } catch (e2) { return toastLong('Couldn’t send the change: ' + e2.message); } }
+    else return toastLong('Couldn’t send the change: ' + e.message);
+  }
+  S.remoteOps = next; const y = scrollY; render(); scrollTo(0, y); toast(msg);
+}
+async function undoOp(id) {
+  const c = syncCfg(); if (!c) return;
+  const next = pendingOps().filter((o) => o.id !== id);
+  try { await writeOps(c, next); S.remoteOps = next; const y = scrollY; render(); scrollTo(0, y); toast('Change cancelled'); }
+  catch (e) { toastLong('Couldn’t cancel: ' + e.message); }
+}
+
+/** Show pending edits immediately on the dashboard (marked ⏳ until her phone confirms). */
+function overlayReport(r) {
+  const ops = pendingOps(); if (!ops.length || !r || (r.v || 1) < 2) return r;
+  const o = { ...r, food: (r.food || []).map((x) => ({ ...x })), water: { ...(r.water || {}) }, steps: { ...(r.steps || {}) }, weighIns: [...(r.weighIns || [])], sessions: [...(r.sessions || [])], profile: { ...(r.profile || {}) }, reminders: { ...(r.reminders || {}) } };
+  for (const op of [...ops].sort((a, b) => a.at - b.at)) {
+    if (op.kind === 'food.upsert') { const e = op.entry; const ex = o.food.find((f) => f.id === e.id); if (ex) Object.assign(ex, e, { _p: true }); else o.food.push({ ...e, _p: true }); }
+    else if (op.kind === 'food.delete') o.food = o.food.filter((f) => f.id !== op.foodId);
+    else if (op.kind === 'water.set') { if (op.value) o.water[op.date] = op.value; else delete o.water[op.date]; }
+    else if (op.kind === 'steps.set') { if (op.value) o.steps[op.date] = op.value; else delete o.steps[op.date]; }
+    else if (op.kind === 'weigh.set') { o.weighIns = o.weighIns.filter((w) => w.date !== op.date); if (op.kg !== null) o.weighIns.push({ date: op.date, kg: op.kg }); }
+    else if (op.kind === 'session.delete') o.sessions = o.sessions.filter((s) => s.id !== op.sessionId);
+    else if (op.kind === 'profile.patch') { Object.assign(o.profile, op.patch); if (op.patch.goal) o.goal = op.patch.goal; if (op.patch.name) o.name = op.patch.name; }
+    else if (op.kind === 'reminders.patch') Object.assign(o.reminders, op.patch);
+  }
+  return o;
+}
+function opLabel(op) {
+  const d = (k) => esc(dlabel(k, { day: 'numeric', month: 'short' }));
+  switch (op.kind) {
+    case 'food.upsert': return `${S.syncReport && (S.syncReport.food || []).some((f) => f.id === op.entry.id) ? 'Edit' : 'Add'} ${esc(op.entry.name || 'food')}${op.entry.date ? ' · ' + d(op.entry.date) : ''}`;
+    case 'food.delete': return `Remove ${esc(op.name || 'food')}`;
+    case 'water.set': return `Water ${op.value} · ${d(op.date)}`;
+    case 'steps.set': return `Steps ${n0(op.value)} · ${d(op.date)}`;
+    case 'weigh.set': return op.kg === null ? `Remove weigh-in · ${d(op.date)}` : `Weight ${op.kg} kg · ${d(op.date)}`;
+    case 'session.delete': return `Delete workout ${esc(op.title || '')}`;
+    case 'profile.patch': return 'Update her profile';
+    case 'reminders.patch': return 'Update her reminders';
+    default: return esc(op.kind);
+  }
+}
+function vPending() {
+  const ops = pendingOps(); if (!ops.length) return '';
+  return `<div class="card stack" style="border-color:color-mix(in srgb,var(--amber) 50%,transparent)"><div class="between"><strong>⏳ ${ops.length} change${ops.length === 1 ? '' : 's'} waiting for her phone</strong></div>
+    <p class="small muted">They apply within ~20 s while her app is open, otherwise the next time she opens it. Shown below already, marked ⏳.</p>
+    ${ops.map((o) => `<div class="between small"><span>${opLabel(o)}</span><button class="btn ghost sm" type="button" data-undo="${esc(o.id)}">Undo</button></div>`).join('')}</div>`;
+}
+
+/* --- small modal helper --- */
+function sheet(title, body, onReady) {
+  document.getElementById('edm')?.remove();
+  const m = document.createElement('div'); m.className = 'modal'; m.id = 'edm';
+  m.innerHTML = `<div class="sheet stack" role="dialog" aria-label="${esc(title)}" style="max-width:560px"><div class="between"><h2>${esc(title)}</h2><button class="ib" type="button" data-x>✕</button></div>${body}</div>`;
+  document.body.appendChild(m);
+  const close = () => m.remove();
+  m.querySelector('[data-x]').onclick = close; m.onclick = (e) => { if (e.target === m) close(); };
+  onReady(m, close);
+}
+const mealSelect = (v) => `<select class="input" name="meal">${MEAL_ORDER.map((ml) => `<option value="${ml}" ${ml === v ? 'selected' : ''}>${MEAL_LABEL[ml]}</option>`).join('')}</select>`;
+const numVal = (el) => { const v = parseFloat(String(el.value).replace(/[^0-9.]/g, '')); return Number.isFinite(v) ? v : null; };
+
+function editFoodSheet(f) {
+  sheet('Edit food', `
+    <label class="f">Name<input class="input" name="name" value="${esc(f.name)}"></label>
+    <div class="g2"><label class="f">Meal${mealSelect(f.meal)}</label><label class="f">Portion<input class="input" name="portion" value="${esc(f.portion || '')}"></label></div>
+    <div class="g2"><label class="f">Calories<input class="input" name="kcal" inputmode="numeric" value="${f.kcal ?? ''}"></label><label class="f">Protein (g)<input class="input" name="protein" inputmode="decimal" value="${f.protein ?? ''}"></label></div>
+    <button class="btn" type="button" data-save>Save — send to her phone</button>
+    <button class="btn danger" type="button" data-del>Remove from her log</button>`, (m, close) => {
+    const g = (n) => m.querySelector(`[name="${n}"]`);
+    m.querySelector('[data-save]').onclick = () => {
+      const kcal = numVal(g('kcal')), protein = numVal(g('protein')) ?? 0, name = g('name').value.trim();
+      if (!name || kcal === null) return toast('Name and calories are needed');
+      close(); queueOps([{ kind: 'food.upsert', entry: { id: f.id, name, meal: g('meal').value, portion: g('portion').value.trim() || '1 serving', kcal: Math.round(kcal), protein: Math.round(protein * 10) / 10 } }]);
+    };
+    m.querySelector('[data-del]').onclick = () => { if (!confirm(`Remove ${f.name} from her log?`)) return; close(); queueOps([{ kind: 'food.delete', foodId: f.id, name: f.name }]); };
+  });
+}
+
+function addFoodSheet(day) {
+  const h = new Date().getHours();
+  const meal = h < 11 ? 'breakfast' : h < 16 ? 'lunch' : h < 19 ? 'snacks' : 'dinner';
+  const lib = [...(S.content?.foods || []), ...((S.syncReport && S.syncReport.customFoods) || [])];
+  sheet(`Add food · ${dlabel(day, { day: 'numeric', month: 'short' })}`, `
+    <input class="input" name="q" type="search" placeholder="Search ${lib.length} foods (library + hers)">
+    <div class="stack" data-res style="gap:4px"></div>
+    <label class="f">Name<input class="input" name="name"></label>
+    <div class="g2"><label class="f">Meal${mealSelect(meal)}</label><label class="f">Portion<input class="input" name="portion" value="1 serving"></label></div>
+    <div class="g2"><label class="f">How many portions<input class="input" name="mult" inputmode="decimal" value="1"></label><label class="f">Calories (total)<input class="input" name="kcal" inputmode="numeric"></label></div>
+    <label class="f">Protein g (total)<input class="input" name="protein" inputmode="decimal"></label>
+    <button class="btn" type="button" data-save>Add to her log</button>`, (m, close) => {
+    const g = (n) => m.querySelector(`[name="${n}"]`); let base = null;
+    const fill = () => { if (!base) return; const k = numVal(g('mult')) || 1; g('kcal').value = Math.round(base.kcal * k); g('protein').value = Math.round((base.protein || 0) * k * 10) / 10; };
+    const res = m.querySelector('[data-res]');
+    g('q').oninput = () => {
+      const q = g('q').value.trim().toLowerCase();
+      const hits = q ? lib.filter((x) => x.name.toLowerCase().includes(q)).slice(0, 8) : [];
+      res.innerHTML = hits.map((x, i) => `<button class="btn ghost sm" type="button" data-pick="${i}" style="justify-content:space-between"><span>${esc(x.name)} <span class="faint">· ${esc(x.portion || '')}</span></span><span class="muted">${x.kcal} kcal</span></button>`).join('');
+      res.querySelectorAll('[data-pick]').forEach((b) => (b.onclick = () => { base = hits[+b.dataset.pick]; g('name').value = base.name; g('portion').value = base.portion || '1 serving'; fill(); res.innerHTML = ''; g('q').value = ''; }));
+    };
+    g('mult').oninput = fill;
+    m.querySelector('[data-save]').onclick = () => {
+      const name = g('name').value.trim(), kcal = numVal(g('kcal')), mult = numVal(g('mult')) || 1;
+      if (!name || kcal === null) return toast('Pick a food or type a name and calories');
+      const at = day === dkey(new Date()) ? Date.now() : new Date(day + 'T12:00:00').getTime();
+      close(); queueOps([{ kind: 'food.upsert', entry: { id: 'rk-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), foodId: base?.id || 'rishu', date: day, meal: g('meal').value, name, portion: g('portion').value.trim() || '1 serving', mult, kcal: Math.round(kcal), protein: Math.round((numVal(g('protein')) || 0) * 10) / 10, at } }]);
+    };
+    g('q').focus();
+  });
+}
+
+function dayEditSheet(day, m0) {
+  const w = (m0.weighIns || []).find((x) => x.date === day);
+  sheet(`Water, steps & weight · ${dlabel(day, { day: 'numeric', month: 'short' })}`, `
+    <div class="g2"><label class="f">Water (glasses)<input class="input" name="water" inputmode="numeric" value="${m0.water[day] || 0}"></label><label class="f">Steps<input class="input" name="steps" inputmode="numeric" value="${m0.steps[day] || 0}"></label></div>
+    <label class="f">Weight (kg) <span class="faint">empty = no weigh-in</span><input class="input" name="kg" inputmode="decimal" value="${w ? w.kg : ''}"></label>
+    <button class="btn" type="button" data-save>Save — send to her phone</button>`, (m, close) => {
+    const g = (n) => m.querySelector(`[name="${n}"]`);
+    m.querySelector('[data-save]').onclick = () => {
+      const ops = []; const wa = numVal(g('water')) ?? 0, st = numVal(g('steps')) ?? 0, kgRaw = g('kg').value.trim(), kg = kgRaw ? numVal(g('kg')) : null;
+      if (wa !== (m0.water[day] || 0)) ops.push({ kind: 'water.set', date: day, value: Math.round(wa) });
+      if (st !== (m0.steps[day] || 0)) ops.push({ kind: 'steps.set', date: day, value: Math.round(st) });
+      if (kgRaw ? kg !== (w && w.kg) : !!w) ops.push({ kind: 'weigh.set', date: day, kg: kgRaw ? Math.round(kg * 10) / 10 : null });
+      close(); if (ops.length) queueOps(ops); else toast('Nothing changed');
+    };
+  });
+}
+
+function settingsSheet(r) {
+  const p = r.profile || {}, rem = r.reminders || {}; const gd = new Set(p.gymDays || []);
+  sheet('Her settings', `
+    <label class="f">Name<input class="input" name="name" value="${esc(r.name || p.name || '')}"></label>
+    <div class="g2"><label class="f">Goal<select class="input" name="goal">${Object.entries(GOALS).map(([k, l]) => `<option value="${k}" ${(p.goalRaw || r.goal) === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+      <label class="f">Diet<select class="input" name="diet">${Object.entries(DIETS).map(([k, l]) => `<option value="${k}" ${p.diet === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label></div>
+    <div class="f">Gym days<div class="chips" style="margin-top:6px">${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d, i) => `<button class="chip" type="button" data-gd="${i}" aria-pressed="${gd.has(i)}">${d}</button>`).join('')}</div></div>
+    <div class="f">Reminders<div class="stack" style="gap:6px;margin-top:6px">${Object.entries(REMS).map(([k, l]) => `<label class="row" style="gap:10px"><input type="checkbox" name="r_${k}" ${rem[k] ? 'checked' : ''} style="width:20px;height:20px"> <span style="color:var(--text);font-weight:500">${l}</span></label>`).join('')}</div></div>
+    <label class="f">Punch line time<input class="input" name="punchTime" type="time" value="${esc(rem.punchTime || '07:10')}"></label>
+    <button class="btn" type="button" data-save>Save — send to her phone</button>`, (m, close) => {
+    const g = (n) => m.querySelector(`[name="${n}"]`);
+    m.querySelectorAll('[data-gd]').forEach((b) => (b.onclick = () => { const i = +b.dataset.gd; gd.has(i) ? gd.delete(i) : gd.add(i); b.setAttribute('aria-pressed', gd.has(i)); }));
+    m.querySelector('[data-save]').onclick = () => {
+      const patch = {}, rp = {};
+      const name = g('name').value.trim(); if (name && name !== (r.name || p.name)) patch.name = name;
+      if (g('goal').value !== (p.goalRaw || r.goal)) patch.goal = g('goal').value;
+      if (g('diet').value !== p.diet) patch.diet = g('diet').value;
+      const days = [...gd].sort(); if (JSON.stringify(days) !== JSON.stringify([...(p.gymDays || [])].sort())) patch.gymDays = days;
+      Object.keys(REMS).forEach((k) => { const v = g('r_' + k).checked; if (v !== !!rem[k]) rp[k] = v; });
+      if (g('punchTime').value && g('punchTime').value !== rem.punchTime) rp.punchTime = g('punchTime').value;
+      const ops = []; if (Object.keys(patch).length) ops.push({ kind: 'profile.patch', patch }); if (Object.keys(rp).length) ops.push({ kind: 'reminders.patch', patch: rp });
+      close(); if (ops.length) queueOps(ops); else toast('Nothing changed');
+    };
+  });
+}
+
+function wireEdits(m0) {
+  const live = !!syncCfg() && S.syncReport && (S.syncReport.v || 1) >= 2;
+  if (!live) return;
+  const byId = Object.fromEntries((m0.food || []).filter((f) => f.id).map((f) => [f.id, f]));
+  document.querySelectorAll('[data-fedit]').forEach((b) => (b.onclick = () => byId[b.dataset.fedit] && editFoodSheet(byId[b.dataset.fedit])));
+  document.querySelectorAll('[data-fadd]').forEach((b) => (b.onclick = () => addFoodSheet(b.dataset.fadd)));
+  document.querySelectorAll('[data-dayedit]').forEach((b) => (b.onclick = () => dayEditSheet(b.dataset.dayedit, m0)));
+  document.querySelectorAll('[data-sdel]').forEach((b) => (b.onclick = (e) => { e.preventDefault(); if (confirm(`Delete the workout “${b.dataset.title}” from her history?`)) queueOps([{ kind: 'session.delete', sessionId: b.dataset.sdel, title: b.dataset.title }]); }));
+  const pe = $('#pedit'); if (pe) pe.onclick = () => settingsSheet(overlayReport(S.syncReport));
+  document.querySelectorAll('[data-undo]').forEach((b) => (b.onclick = () => undoOp(b.dataset.undo)));
+}
+
 function vSyncCard(c) {
   const code = pairingCode(c);
   return `<div class="card stack"><div class="between"><h2>Live sync</h2><span class="pill">${esc(c.o)}/${esc(c.r)}</span></div>
@@ -577,7 +801,9 @@ function vStatus() {
 
 function vDash(rep, c) {
   const fromSync = rep === S.syncReport;
-  const m = normReport(rep);
+  const editable = fromSync && !!c && (rep.v || 1) >= 2;
+  const m = normReport(editable ? overlayReport(rep) : rep);
+  S._m = editable ? m : null;
   const T = m.T;
   if (!S.dash.day || S.dash.day > m.last || S.dash.day < m.first) S.dash.day = m.last;
   const days = rangeDays(m);
@@ -601,7 +827,7 @@ function vDash(rep, c) {
     const its = items.filter((f) => f.meal === ml); if (!its.length) return '';
     const sum = its.reduce((s, f) => s + (f.kcal || 0), 0);
     return `<div class="meal"><div class="between"><strong>${MEAL_LABEL[ml]}</strong><span class="small muted">${sum ? n0(sum) + ' kcal' : ''}</span></div>
-      ${its.map((f) => `<div class="fi"><span>${esc(f.name)}${f.mult && f.mult !== 1 ? ` <span class="muted">×${f.mult}</span>` : ''}${f.portion ? `<span class="faint small"> · ${esc(f.portion)}</span>` : ''}</span><span class="small muted">${f.kcal != null ? `${n0(f.kcal)} kcal · ${r1(f.protein)} g` : ''}${f.at ? ` · ${new Date(f.at).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })}` : ''}</span></div>`).join('')}</div>`;
+      ${its.map((f) => `<div class="fi"><span>${f._p ? '⏳ ' : ''}${esc(f.name)}${f.mult && f.mult !== 1 ? ` <span class="muted">×${f.mult}</span>` : ''}${f.portion ? `<span class="faint small"> · ${esc(f.portion)}</span>` : ''}</span><span class="small muted">${f.kcal != null ? `${n0(f.kcal)} kcal · ${r1(f.protein)} g` : ''}${f.at ? ` · ${new Date(f.at).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })}` : ''}${editable && f.id ? `<button class="ib" type="button" data-fedit="${esc(f.id)}" aria-label="Edit ${esc(f.name)}" style="width:32px;height:32px;margin-left:6px">✎</button>` : ''}</span></div>`).join('')}</div>`;
   }).join('');
   const daySess = m.sessions.filter((s) => s.date === k);
   const dayCard = `<div class="card stack" id="daycard">
@@ -616,6 +842,7 @@ function vDash(rep, c) {
     </div>
     <div class="bar" role="img" aria-label="${dd.kcal} of ${T.kcal} kcal"><i style="width:${Math.min(100, (dd.kcal / T.kcal) * 100)}%;${dd.kcal > T.kcal * 1.1 ? 'background:var(--danger)' : ''}"></i></div>
     ${meals || '<p class="muted">Nothing logged this day.</p>'}
+    ${editable ? `<div class="row wrapr"><button class="btn sm" type="button" data-fadd="${k}">+ Add food</button><button class="btn ghost sm" type="button" data-dayedit="${k}">Water, steps & weight</button></div>` : ''}
     ${daySess.map((s) => `<div class="meal" style="--acc:var(--amber)"><div class="between"><strong>🏋️ ${esc(s.title)}</strong><span class="small muted">${s.minutes || '?'} min${s.kcal ? ` · ${n0(s.kcal)} kcal` : ''}</span></div>${sessBody(s)}</div>`).join('')}
   </div>`;
 
@@ -645,6 +872,7 @@ function vDash(rep, c) {
   return `<div class="stack dash" style="gap:16px">
     <div class="between wrapr"><p class="muted small">${fromSync ? '<span class="live"></span>Live from her phone' : 'From a file'} · updated ${fresh}${m.r.streaks ? ` · logging streak <b>${m.r.streaks.logging}</b> · workout streak <b>${m.r.streaks.workout}</b>` : ''}</p>${c ? `<button class="btn ghost sm" type="button" id="srefresh">${S.sync.status === 'loading' ? 'Refreshing…' : 'Refresh'}</button>` : ''}</div>
     ${stale}${v1}
+    ${editable ? vPending() : ''}
     ${m.r.activeSession && m.r.activeSession.startedAt > Date.now() - 4 * 3600000 ? `<div class="card" style="--acc:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,transparent)"><p class="eyebrow" style="color:var(--amber)"><span class="live" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span>At the gym now</p><p class="big" style="font-size:22px;margin-top:6px">${esc(m.r.activeSession.title)}</p><p class="small muted">Started ${new Date(m.r.activeSession.startedAt).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })} · ${m.r.activeSession.done.length} moves done${m.r.activeSession.done.length ? ': ' + esc(m.r.activeSession.done.join(', ')) : ''}</p></div>` : ''}
     ${c ? vPushCard() : ''}
     <div class="chips" role="group" aria-label="Range">${[['7', '7 days'], ['30', '30 days'], ['all', 'All time']].map(([v, l]) => `<button class="chip" type="button" data-range="${v}" aria-pressed="${S.dash.range === v}">${l}</button>`).join('')}</div>
@@ -664,7 +892,7 @@ function vDash(rep, c) {
     ${m.weighIns.length >= 2 ? `<div class="card stack"><div class="between"><h2>Weight</h2><span class="small muted">${m.weighIns.length} weigh-ins</span></div>${weightChart(m)}</div>` : ''}
     ${cyc}
     <div class="card stack"><div class="between"><h2>Workout sessions</h2><span class="small muted">${sess.length} in range</span></div>
-      ${sess.length ? sess.map((s) => `<details class="sess"><summary><span><strong>${esc(s.title)}</strong><span class="small muted" style="display:block">${esc(dlabel(s.date))} · ${s.minutes || '?'} min${s.kcal ? ` · ${n0(s.kcal)} kcal` : ''} · ${(s.done || []).length || new Set((s.sets || []).map((x) => x.name)).size} moves</span></span><span class="pill">${(s.sets || []).length} sets</span></summary>${sessBody(s)}</details>`).join('') : '<p class="muted">No workouts in this range.</p>'}</div>
+      ${sess.length ? sess.map((s) => `<details class="sess"><summary><span><strong>${esc(s.title)}</strong><span class="small muted" style="display:block">${esc(dlabel(s.date))} · ${s.minutes || '?'} min${s.kcal ? ` · ${n0(s.kcal)} kcal` : ''} · ${(s.done || []).length || new Set((s.sets || []).map((x) => x.name)).size} moves</span></span><span class="pill">${(s.sets || []).length} sets</span></summary>${sessBody(s)}${editable && s.id ? `<button class="btn danger sm" type="button" data-sdel="${esc(s.id)}" data-title="${esc(s.title)}" style="margin-top:8px">Delete this workout</button>` : ''}</details>`).join('') : '<p class="muted">No workouts in this range.</p>'}</div>
     ${liftRows.length ? `<div class="card stack"><h2>Strength progress</h2><table><thead><tr><th>Lift</th><th>First</th><th>Now</th><th>Best</th></tr></thead><tbody>${liftRows.map(([n, L]) => `<tr><td>${esc(n)}</td><td>${L.first} kg</td><td>${L.last} kg${L.last > L.first ? ` <span class="ok">+${r1(L.last - L.first)}</span>` : ''}</td><td>${L.top} kg</td></tr>`).join('')}</tbody></table></div>` : ''}
     ${inR.length ? `<div class="card stack"><h2>Food habits</h2>
       <p class="eyebrow">Calories by meal</p>${mealK.map(([ml, v]) => `<div class="mrow"><span>${MEAL_LABEL[ml]}</span><div class="bar"><i style="width:${mealTot ? (v / mealTot) * 100 : 0}%"></i></div><span class="small muted">${mealTot ? Math.round((v / mealTot) * 100) : 0}%</span></div>`).join('')}
@@ -676,6 +904,7 @@ function vDash(rep, c) {
       ${m.r.profile.avoid ? `<div class="between"><span class="muted">Avoids</span><span>${esc(m.r.profile.avoid)}</span></div>` : ''}` : ''}
       ${m.r.reminders ? `<div class="between"><span class="muted">Reminders on</span><span>${Object.entries(m.r.reminders).filter(([k, v]) => v === true).map(([k]) => ({ punch: 'gym punch line', meals: 'meals', water: 'water', gym: 'workout days', weigh: 'weigh-in', steps: 'night steps' }[k] || k)).join(', ') || 'none'}</span></div>` : ''}
       ${(m.r.customFoods || []).length ? `<div class="between"><span class="muted">Her own foods</span><span>${m.r.customFoods.length}</span></div>` : ''}
+      ${editable ? '<button class="btn sm" type="button" id="pedit" style="align-self:flex-start;margin-top:6px">Edit her settings</button>' : ''}
     </div></details>` : ''}
     <details class="card"><summary><strong>Table view</strong> <span class="small muted">every day in range</span></summary><div style="overflow-x:auto;margin-top:10px"><table><thead><tr><th>Day</th><th>kcal</th><th>Protein</th><th>Water</th><th>Steps</th><th>Burned</th><th>Gym</th></tr></thead><tbody>
       ${days.slice().reverse().map((k) => `<tr data-day="${k}" class="trow"><td>${esc(dlabel(k))}</td><td${(m.daily[k]?.kcal || 0) > T.kcal * 1.1 ? ' class="bad"' : ''}>${m.daily[k]?.kcal ? n0(m.daily[k].kcal) : '—'}</td><td>${m.daily[k]?.protein ? r1(m.daily[k].protein) + ' g' : '—'}</td><td>${m.water[k] || '—'}</td><td>${m.steps[k] ? n0(m.steps[k]) : '—'}</td><td>${m.burned[k] ? n0(m.burned[k]) : '—'}</td><td>${m.sessions.some((s) => s.date === k) ? '✓' : ''}</td></tr>`).join('')}
@@ -689,6 +918,7 @@ function sessBody(s) {
 }
 
 function wireStatus() {
+  if (S._m) wireEdits(S._m);
   const c = syncCfg();
   if (!c && S.token && S.syncExists === undefined) {
     S.syncExists = null; // checking
