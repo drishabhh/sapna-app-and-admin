@@ -1,6 +1,6 @@
 {
- "version": 8,
- "updatedAt": "2026-10-27T14:46:57.712Z",
+ "version": 9,
+ "updatedAt": "2026-10-28T13:12:27.230Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -46,6 +46,64 @@
    "days": [
     1,
     2
+   ]
+  },
+  {
+   "id": "plan-mvs4og0y",
+   "title": "Thick Thighs ",
+   "note": "Rest 1–1.5 min between sets.",
+   "moves": [
+    {
+     "exId": "local-torso-rotations",
+     "sets": 1,
+     "reps": 10,
+     "unit": "reps"
+    },
+    {
+     "exId": "local-leg-swings",
+     "sets": 1,
+     "reps": 10,
+     "unit": "reps"
+    },
+    {
+     "exId": "lats-back-pec-stretch",
+     "sets": 1,
+     "reps": 10,
+     "unit": "reps"
+    },
+    {
+     "exId": "local-bodyweight-squats",
+     "sets": 1,
+     "reps": 20,
+     "unit": "reps"
+    },
+    {
+     "exId": "glutes-barbell-speed-squat",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "quads-lever-leg-extension",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "hamstrings-lever-lying-leg-curl",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "cardio-walk-elliptical-cross-trainer",
+     "sets": 1,
+     "reps": 15,
+     "unit": "min"
+    }
+   ],
+   "days": [
+    3
    ]
   }
  ],
@@ -93,6 +151,78 @@
    "part": "arms",
    "equipment": "dumbbell",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/triceps/dumbbell-one-arm-triceps-extension-on-bench.gif",
+   "cue": ""
+  },
+  {
+   "id": "local-torso-rotations",
+   "name": "Torso rotations",
+   "group": "stretching",
+   "part": "core",
+   "equipment": "local",
+   "gif": "media/torso-rotations.gif",
+   "cue": ""
+  },
+  {
+   "id": "local-leg-swings",
+   "name": "Leg swings",
+   "group": "stretching",
+   "part": "legs",
+   "equipment": "local",
+   "gif": "media/leg-swings.gif",
+   "cue": ""
+  },
+  {
+   "id": "lats-back-pec-stretch",
+   "name": "Back Pec Stretch",
+   "group": "stretching",
+   "part": "back",
+   "equipment": "bodyweight",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/lats/back-pec-stretch.gif",
+   "cue": ""
+  },
+  {
+   "id": "local-bodyweight-squats",
+   "name": "Bodyweight squats (warmup)",
+   "group": "stretching",
+   "part": "legs",
+   "equipment": "local",
+   "gif": "media/bodyweight-squats.gif",
+   "cue": ""
+  },
+  {
+   "id": "glutes-barbell-speed-squat",
+   "name": "Barbell Speed Squat",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "barbell",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/barbell-speed-squat.gif",
+   "cue": ""
+  },
+  {
+   "id": "quads-lever-leg-extension",
+   "name": "Lever Leg Extension",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "lever",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/quads/lever-leg-extension.gif",
+   "cue": ""
+  },
+  {
+   "id": "hamstrings-lever-lying-leg-curl",
+   "name": "Lever Lying Leg Curl",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "lever",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/hamstrings/lever-lying-leg-curl.gif",
+   "cue": ""
+  },
+  {
+   "id": "cardio-walk-elliptical-cross-trainer",
+   "name": "Walk Elliptical Cross Trainer",
+   "group": "exercises",
+   "part": "cardio",
+   "equipment": "machine",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/cardio/walk-elliptical-cross-trainer.gif",
    "cue": ""
   }
  ],
