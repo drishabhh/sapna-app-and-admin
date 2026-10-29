@@ -1,6 +1,6 @@
 {
- "version": 10,
- "updatedAt": "2026-10-29T13:13:53.665Z",
+ "version": 11,
+ "updatedAt": "2026-10-29T13:14:56.387Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -112,6 +112,18 @@
    "note": "No cardio only shoulder and core",
    "moves": [
     {
+     "exId": "lats-back-pec-stretch",
+     "sets": 1,
+     "reps": 10,
+     "unit": "reps"
+    },
+    {
+     "exId": "delts-rear-deltoid-stretch",
+     "sets": 1,
+     "reps": 10,
+     "unit": "reps"
+    },
+    {
      "exId": "local-shoulder-press",
      "sets": 3,
      "reps": 12,
@@ -127,18 +139,6 @@
      "exId": "delts-cable-standing-rear-delt-row-with-rope",
      "sets": 3,
      "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "delts-rear-deltoid-stretch",
-     "sets": 1,
-     "reps": 10,
-     "unit": "reps"
-    },
-    {
-     "exId": "lats-back-pec-stretch",
-     "sets": 1,
-     "reps": 10,
      "unit": "reps"
     },
     {
