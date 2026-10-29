@@ -1,6 +1,6 @@
 {
- "version": 9,
- "updatedAt": "2026-10-28T13:12:27.230Z",
+ "version": 10,
+ "updatedAt": "2026-10-29T13:13:53.665Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -104,6 +104,52 @@
    ],
    "days": [
     3
+   ]
+  },
+  {
+   "id": "plan-mvtk0ffv",
+   "title": "Shoulder and Core",
+   "note": "No cardio only shoulder and core",
+   "moves": [
+    {
+     "exId": "local-shoulder-press",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "delts-dumbbell-lateral-to-front-raise",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "delts-cable-standing-rear-delt-row-with-rope",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "delts-rear-deltoid-stretch",
+     "sets": 1,
+     "reps": 10,
+     "unit": "reps"
+    },
+    {
+     "exId": "lats-back-pec-stretch",
+     "sets": 1,
+     "reps": 10,
+     "unit": "reps"
+    },
+    {
+     "exId": "custom-leg-raise-see-the-video-cxi7",
+     "sets": 1,
+     "reps": 1,
+     "unit": "reps"
+    }
+   ],
+   "days": [
+    4
    ]
   }
  ],
@@ -223,6 +269,50 @@
    "part": "cardio",
    "equipment": "machine",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/cardio/walk-elliptical-cross-trainer.gif",
+   "cue": ""
+  },
+  {
+   "id": "local-shoulder-press",
+   "name": "Shoulder press",
+   "group": "exercises",
+   "part": "shoulders",
+   "equipment": "local",
+   "gif": "media/shoulder-press.gif",
+   "cue": ""
+  },
+  {
+   "id": "delts-dumbbell-lateral-to-front-raise",
+   "name": "Dumbbell Lateral To Front Raise",
+   "group": "exercises",
+   "part": "shoulders",
+   "equipment": "dumbbell",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/delts/dumbbell-lateral-to-front-raise.gif",
+   "cue": ""
+  },
+  {
+   "id": "delts-cable-standing-rear-delt-row-with-rope",
+   "name": "Cable Standing Rear Delt Row With Rope",
+   "group": "exercises",
+   "part": "shoulders",
+   "equipment": "cable",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/delts/cable-standing-rear-delt-row-with-rope.gif",
+   "cue": ""
+  },
+  {
+   "id": "delts-rear-deltoid-stretch",
+   "name": "Rear Deltoid Stretch",
+   "group": "stretching",
+   "part": "shoulders",
+   "equipment": "bodyweight",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/delts/rear-deltoid-stretch.gif",
+   "cue": ""
+  },
+  {
+   "id": "custom-leg-raise-see-the-video-cxi7",
+   "name": "Leg raise  See the video",
+   "group": "exercises",
+   "part": "core",
+   "gif": "https://youtube.com/shorts/TSZ7U8re_j0?si=UVgom2-I8Q5CVN0P",
    "cue": ""
   }
  ],
