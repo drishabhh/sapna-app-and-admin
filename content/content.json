@@ -1,6 +1,6 @@
 {
- "version": 11,
- "updatedAt": "2026-10-29T13:14:56.387Z",
+ "version": 12,
+ "updatedAt": "2026-10-29T13:19:12.000Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -309,11 +309,12 @@
   },
   {
    "id": "custom-leg-raise-see-the-video-cxi7",
-   "name": "Leg raise  See the video",
+   "name": "Leg raise",
    "group": "exercises",
    "part": "core",
-   "gif": "https://youtube.com/shorts/TSZ7U8re_j0?si=UVgom2-I8Q5CVN0P",
-   "cue": ""
+   "gif": "",
+   "cue": "",
+   "yt": "https://youtube.com/shorts/TSZ7U8re_j0?si=UVgom2-I8Q5CVN0P"
   }
  ],
  "foods": [
