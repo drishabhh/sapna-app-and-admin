@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { exerciseHistory, isGymDay, lastWeight, planBrief, sessionsPerWeek, todayPlan, uid } from '../lib/calc';
 import { latestWeight, sessionKcal } from '../lib/burn';
 import { Congrats } from '../congrats';
@@ -10,6 +10,7 @@ import { Plan, PlanMove, Session } from '../lib/types';
 import { FullSheet, Gif, Icon, Seg, Sheet, Stepper, toast } from '../ui';
 import { Doodle } from '../streak';
 import { Num } from '../anim';
+import { YtPlayer } from '../video';
 import { useDraft } from '../lib/drafts';
 
 export default function WorkoutScreen({ autoStart, onAutoStartHandled }: { autoStart: boolean; onAutoStartHandled: () => void }) {
@@ -121,6 +122,8 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
   const [logOpen, setLogOpen] = useDraft('wk.logOpen', false);
   const [listOpen, setListOpen] = useDraft('wk.listOpen', false);
   const yt = ex ? ytLink(ex, move) : null;
+  const [media, setMedia] = useState<'video' | 'gif'>('video');
+  useEffect(() => setMedia('video'), [move?.exId]);
 
   // Create (or resume) the session when opened.
   useEffect(() => {
@@ -215,12 +218,22 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', padding: '8px 18px 12px' }} className="stack">
-            <Gif src={gifSrc(ex)} alt={`${ex.name} demonstration`} style={{ width: '100%', height: '46vh', minHeight: 240, objectFit: 'contain', background: '#fff', borderRadius: 24 }} />
+            {yt && media === 'video' ? (
+              <YtPlayer url={yt} title={ex.name} style={{ width: '100%', height: '46vh', minHeight: 240, flex: 'none' }} />
+            ) : (
+              <Gif src={gifSrc(ex)} alt={`${ex.name} demonstration`} style={{ width: '100%', height: '46vh', minHeight: 240, objectFit: 'contain', background: '#fff', borderRadius: 24 }} />
+            )}
+            {yt && gifSrc(ex) ? (
+              <div className="chips" role="group" aria-label="Show" style={{ justifyContent: 'center' }}>
+                <button type="button" className="chip" aria-pressed={media === 'video'} onClick={() => setMedia('video')}>▶ Video</button>
+                <button type="button" className="chip" aria-pressed={media === 'gif'} onClick={() => setMedia('gif')}>Animation</button>
+              </div>
+            ) : null}
             <h1 className="h1" style={{ fontSize: 30, textAlign: 'center', marginTop: 6 }}>{ex.name}</h1>
             <p className="muted" style={{ textAlign: 'center', fontWeight: 600 }}>{move.sets} × {move.reps} {move.unit === 'min' ? 'min' : move.unit === 'sec' ? 'sec' : 'reps'}</p>
             {yt ? (
-              <a className="btn ghost yt-btn" href={yt} target="_blank" rel="noopener noreferrer" style={{ alignSelf: 'center' }}>
-                <Icon name="video" size={20} /> Watch how on YouTube
+              <a className="btn ghost sm yt-btn" href={yt} target="_blank" rel="noopener noreferrer" style={{ alignSelf: 'center' }}>
+                <Icon name="video" size={20} /> Open in YouTube app
               </a>
             ) : null}
             {sets.length ? (

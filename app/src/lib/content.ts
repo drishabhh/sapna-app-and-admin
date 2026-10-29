@@ -63,13 +63,23 @@ export async function refreshContent(current: Content, opts: { direct?: boolean 
 export function gifSrc(ex: Exercise | undefined): string {
   if (!ex) return '';
   const g = ex.gif || '';
+  if (!g || ytId(g)) return ''; // no picture (a YouTube link is a video, not a GIF)
   if (/^https:\/\//.test(g)) return g;
   if (BUNDLED_MEDIA.has(g)) return `./${g}`;
   return SITE_BASE + g.replace(/^\.?\//, '');
 }
 
-/** Only real YouTube links are shown (they open in the YouTube app). */
+/** Only real YouTube links are shown. A YouTube link saved as the GIF counts too. */
 export function ytLink(ex: Exercise | undefined, move?: { yt?: string }): string | null {
-  const u = (move?.yt || ex?.yt || '').trim();
-  return /^https:\/\/(www\.|m\.)?(youtube\.com|youtu\.be)\//i.test(u) ? u : null;
+  for (const raw of [move?.yt, ex?.yt, ex?.gif]) {
+    const u = (raw || '').trim();
+    if (/^https:\/\/(www\.|m\.)?(youtube\.com|youtu\.be)\//i.test(u) && ytId(u)) return u;
+  }
+  return null;
+}
+
+/** youtu.be/ID, watch?v=ID, /shorts/ID, /embed/ID, /live/ID → ID */
+export function ytId(url: string): string | null {
+  const m = String(url || '').match(/^https:\/\/(?:www\.|m\.)?(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|live\/|watch\?(?:.*&)?v=))([A-Za-z0-9_-]{11})/i);
+  return m ? m[1] : null;
 }
