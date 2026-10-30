@@ -874,13 +874,13 @@ function herFoodSheet(f) {
 function dayEditSheet(day, m0) {
   const w = (m0.weighIns || []).find((x) => x.date === day);
   sheet(`Water, steps & weight · ${dlabel(day, { day: 'numeric', month: 'short' })}`, `
-    <div class="g2"><label class="f">Water (glasses)<input class="input" name="water" inputmode="numeric" value="${m0.water[day] || 0}"></label><label class="f">Steps<input class="input" name="steps" inputmode="numeric" value="${m0.steps[day] || 0}"></label></div>
+    <div class="g2"><label class="f">Water (glasses of 250 ml)<input class="input" name="water" inputmode="numeric" value="${m0.water[day] || 0}"></label><label class="f">Steps<input class="input" name="steps" inputmode="numeric" value="${m0.steps[day] || 0}"></label></div>
     <label class="f">Weight (kg) <span class="faint">empty = no weigh-in</span><input class="input" name="kg" inputmode="decimal" value="${w ? w.kg : ''}"></label>
     <button class="btn" type="button" data-save>Save — send to her phone</button>`, (m, close) => {
     const g = (n) => m.querySelector(`[name="${n}"]`);
     m.querySelector('[data-save]').onclick = () => {
       const ops = []; const wa = numVal(g('water')) ?? 0, st = numVal(g('steps')) ?? 0, kgRaw = g('kg').value.trim(), kg = kgRaw ? numVal(g('kg')) : null;
-      if (wa !== (m0.water[day] || 0)) ops.push({ kind: 'water.set', date: day, value: Math.round(wa) });
+      if (wa !== (m0.water[day] || 0)) ops.push({ kind: 'water.set', date: day, value: Math.round(wa * 10) / 10 });
       if (st !== (m0.steps[day] || 0)) ops.push({ kind: 'steps.set', date: day, value: Math.round(st) });
       if (kgRaw ? kg !== (w && w.kg) : !!w) ops.push({ kind: 'weigh.set', date: day, kg: kgRaw ? Math.round(kg * 10) / 10 : null });
       close(); if (ops.length) queueOps(ops); else toast('Nothing changed');
@@ -945,6 +945,8 @@ function vSyncCard(c) {
 }
 const emergencyFile = () => `<details class="card" data-k="emerg"><summary><strong>Emergency: open a file</strong> <span class="small muted">only if sync isn’t working</span></summary><div class="stack" style="margin-top:10px"><p class="small muted">If she taps “Send my dashboard file” in her app’s Settings and sends it on WhatsApp, open it here. It stays in this browser.</p><label class="btn ghost sm" style="cursor:pointer;align-self:flex-start">Open file<input id="rep" type="file" accept="application/json,text/plain,.json,.txt" class="sr"></label></div></details>`;
 
+const fmtL = (ml) => (ml >= 1000 ? `${Math.round(ml / 10) / 100} L` : `${Math.round(ml)} ml`);
+const lastSip = (m, k) => { const ds = ((m.r.drinks || {})[k] || []).filter((x) => x.at); return ds.length ? ` · ${ds.length} drink${ds.length === 1 ? '' : 's'}, last ${new Date(ds.at(-1).at).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })}` : ''; };
 /** Her report → everything the Today/Progress/Foods/Settings views need. */
 function model() {
   const c = syncCfg(); const rep = currentReport();
@@ -999,7 +1001,7 @@ function vDay() {
   const tiles = `<div class="tiles">
     ${tile('Eaten', n0(dd.kcal), 'kcal', `of ${n0(goalK)}${burnK ? ` (+${n0(Math.round(burnK / 2))} earned)` : ''}`, pct(dd.kcal, goalK))}
     ${tile('Protein', r1(dd.protein), 'g', `goal ${T.protein} g`, pct(dd.protein, T.protein))}
-    ${tile('Water', m.water[k] || 0, 'glasses', `of ${T.water || 8}`, pct(m.water[k] || 0, T.water || 8), ed)}
+    ${tile('Water', fmtL((m.water[k] || 0) * 250), '', `of ${fmtL((T.water || 8) * 250 + (m.sessions.some((s) => s.date === k) ? 500 : 0))}${lastSip(m, k)}`, pct((m.water[k] || 0) * 250, (T.water || 8) * 250 + (m.sessions.some((s) => s.date === k) ? 500 : 0)), ed)}
     ${tile('Steps', n0(m.steps[k]), '', `${burnK ? n0(burnK) + ' kcal burned' : 'no burn logged'}${wIn ? ` · ⚖ ${wIn.kg} kg` : ''}`, null, ed)}
   </div>`;
 

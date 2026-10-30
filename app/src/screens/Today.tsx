@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { cycleInfo, isGymDay, mealFor, streakInfo, mealTotals, planBrief, todayPlan, PHASE_COPY, sessionsOn, totalsOn } from '../lib/calc';
 import { greeting, longLabel, today } from '../lib/dates';
-import { haptic } from '../lib/native';
 import { useStore } from '../lib/store';
 import { Food, Meal, MEALS } from '../lib/types';
 import { useNav } from '../nav';
@@ -14,6 +13,8 @@ import { Num } from '../anim';
 import { TTL, useDraft } from '../lib/drafts';
 import { InstantNudge } from '../power';
 import { MealSheet } from '../foodedit';
+import { WaterCard, WaterSheet } from '../water';
+import { takeWaterRequest } from '../lib/intents';
 
 export default function Today() {
   const { data, content, foods, update, exById, contentFresh } = useStore();
@@ -25,7 +26,6 @@ export default function Today() {
   const earned = Math.round(burned / 2);
   const left = content.targets.kcal + earned - t.kcal;
   const protLeft = Math.max(0, Math.round(content.targets.protein - t.protein));
-  const water = data.water[d] || 0;
   const steps = data.steps[d] || 0;
   const streak = streakInfo(data);
   const plan = todayPlan(data, content);
@@ -35,6 +35,15 @@ export default function Today() {
   const [mealOpen, setMealOpen] = useState<Meal | null>(null);
   const [stepsOpen, setStepsOpen] = useDraft('today.stepsOpen', false);
   const [stepsVal, setStepsVal] = useDraft('today.stepsVal', '', TTL.text);
+  const [waterOpen, setWaterOpen] = useDraft('today.waterOpen', false);
+  // Opened from a water reminder.
+  useEffect(() => {
+    const open = () => { if (takeWaterRequest()) setWaterOpen(true); };
+    open();
+    document.addEventListener('open-water', open);
+    return () => document.removeEventListener('open-water', open);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const kg = latestWeight(data);
   // Opened from the 11:30 pm "How many steps today?" notification.
   useEffect(() => {
@@ -46,11 +55,6 @@ export default function Today() {
   }, []);
 
   const suggestion = suggest(foods, left, protLeft);
-
-  function setWater(n: number) {
-    haptic.tap();
-    update((x) => ({ ...x, water: { ...x.water, [d]: Math.max(0, Math.min(20, n)) } }));
-  }
 
   return (
     <div className="screen" data-acc="today">
@@ -129,19 +133,7 @@ export default function Today() {
         <MealSheet date={d} meal={mealOpen} onClose={() => setMealOpen(null)} />
 
         <section className="grid2" aria-label="Water and steps">
-          <div className="card tight stack" style={{ gap: 10 }} data-acc="progress">
-            <div className="between"><strong className="row" style={{ gap: 6 }}><Icon name="glass" size={18} /> Water</strong></div>
-            <p className="big" style={{ fontSize: 30 }}><Num value={water} /><span className="small muted" style={{ fontFamily: 'var(--body)', fontWeight: 500 }}> / {content.targets.water}</span></p>
-            <div role="img" aria-label={`${water} of ${content.targets.water} glasses`} style={{ display: 'grid', gridTemplateColumns: `repeat(${content.targets.water}, minmax(0,1fr))`, gap: 3 }}>
-              {Array.from({ length: content.targets.water }, (_, i) => (
-                <span key={i} style={{ height: 16, borderRadius: 4, background: i < water ? 'var(--acc)' : 'var(--card-2)', boxShadow: i < water ? '0 0 8px var(--acc)' : 'none' }} />
-              ))}
-            </div>
-            <div className="row" style={{ gap: 8 }}>
-              <button type="button" className="icon-btn" aria-label="Remove a glass" onClick={() => setWater(water - 1)}><Icon name="minus" size={18} /></button>
-              <button type="button" className="btn sm" style={{ flex: 1, whiteSpace: 'nowrap', padding: '0 8px' }} aria-label="Add a glass" onClick={() => setWater(water + 1)}><Icon name="plus" size={18} stroke={2.6} /></button>
-            </div>
-          </div>
+          <WaterCard onOpen={() => setWaterOpen(true)} />
           <button type="button" className="card tight stack" style={{ gap: 10, textAlign: 'left', color: 'var(--text)' }} data-acc="today" onClick={() => { setStepsVal(steps ? String(steps) : ''); setStepsOpen(true); }}>
             <strong className="row" style={{ gap: 6 }}><Icon name="steps" size={18} /> Steps</strong>
             <p className="big" style={{ fontSize: 30 }}><Num value={steps} /></p>
@@ -170,6 +162,7 @@ export default function Today() {
         ) : null}
       </div>
 
+      <WaterSheet open={waterOpen} onClose={() => setWaterOpen(false)} />
       <Sheet open={stepsOpen} onClose={() => setStepsOpen(false)} label="Log steps">
         <div className="stack" style={{ gap: 14 }} data-acc="today">
           <h2 className="h2">Steps today</h2>

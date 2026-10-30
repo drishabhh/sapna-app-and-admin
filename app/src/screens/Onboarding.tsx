@@ -2,7 +2,7 @@ import { useMemo, useRef } from 'react';
 import { addDays, DOW_FULL, DOW_LETTER, today } from '../lib/dates';
 import { haptic, readBackupFile, syncReminders } from '../lib/native';
 import { useStore } from '../lib/store';
-import { Activity, DietType, Goal, Profile, Reminders, ShareCycle } from '../lib/types';
+import { Activity, DietType, Goal, Profile, BoolReminder, Reminders, ShareCycle } from '../lib/types';
 import { Icon, Seg, Stepper, toast, Toggle, useBack } from '../ui';
 import { Doodle } from '../streak';
 import { clearDrafts, TTL, useDraft } from '../lib/drafts';
@@ -248,11 +248,11 @@ export default function Onboarding() {
             {([
               ['punch', 'Daily gym punch line', '7:10 am — a two-line kick with a doodle'],
               ['meals', 'Log meals', '1:30 pm and 8:30 pm'],
-              ['water', 'Water', 'Every 2 hours, 9 am – 7 pm, with a little quote'],
+              ['water', 'Water', 'Every 2 h while you’re awake — stops once you hit your goal'],
               ['gym', 'Workout days', `${p.gymDays.map((d) => DOW_FULL[d].slice(0, 3)).join(' · ') || 'No days picked'} at 6:30 pm`],
               ['weigh', 'Weekly weigh-in', 'Friday 8 am · Monday nudge if missed'],
               ['steps', 'Night steps check-in', '11:30 pm — log today’s steps'],
-            ] as [Exclude<keyof Reminders, 'punchTime'>, string, string][]).map(([k, l, w], i, a) => (
+            ] as [BoolReminder, string, string][]).map(([k, l, w], i, a) => (
               <div key={k} className="between" style={{ padding: '14px 0', borderBottom: i < a.length - 1 ? '1px solid var(--line)' : 'none' }}>
                 <div><strong>{l}</strong><p className="small muted">{w}</p></div>
                 <Toggle label={l} on={rem[k]} onChange={(v) => setRem((r) => ({ ...r, [k]: v }))} />

@@ -3,6 +3,10 @@ import { App as CapApp } from '@capacitor/app';
 import { Capacitor, SystemBars, SystemBarsStyle } from '@capacitor/core';
 import { Launch } from './launch';
 import { haptic, syncReminders } from './lib/native';
+import { setReminderContent, snoozeWater } from './lib/notify';
+import { drinksOf, mlOn, waterPrefs } from './lib/water';
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { drink } from './water';
 import { today } from './lib/dates';
 import { StoreProvider, useStore } from './lib/store';
 import { Meal } from './lib/types';
@@ -17,7 +21,7 @@ import Today from './screens/Today';
 import WorkoutScreen from './screens/Workout';
 import { Icon, popBack, toast, ToastHost } from './ui';
 import { syncNightSteps, syncWidget } from './streak';
-import { requestSteps } from './lib/intents';
+import { requestSteps, requestWater } from './lib/intents';
 import { clearDrafts, getDraft, setDraft, useDraft } from './lib/drafts';
 import { pushReport, SYNC_EVERY_DEFAULT, useSyncCfg } from './lib/sync';
 import { syncAdminOps } from './lib/adminops';
@@ -34,7 +38,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 ];
 
 function Shell() {
-  const { ready, data, update } = useStore();
+  const { ready, data, update, content: content0 } = useStore();
   const [tab, setTab] = useDraft<Tab>('app.tab', 'today');
   const [logger, setLogger] = useDraft<{ open: boolean; meal: Meal; date?: string }>('app.logger', { open: false, meal: 'breakfast' });
   const [settings, setSettings] = useDraft('app.settings', false);
@@ -50,9 +54,12 @@ function Shell() {
 
   // Re-plan the rolling notification window whenever something that changes it moves
   // (and on every launch), so tomorrow's punch line and the Monday weigh-in nudge stay correct.
-  const remKey = ready && data.onboarded ? JSON.stringify([data.reminders, data.profile.gymDays, data.profile.name, data.weighIns.length && data.weighIns[data.weighIns.length - 1].date, today()]) : '';
+  // Water nudges also follow today's drinks (next one counts from her last glass; none once the goal is hit).
+  const td = today();
+  const remKey = ready && data.onboarded ? JSON.stringify([data.reminders, data.profile.gymDays, data.profile.name, data.weighIns.length && data.weighIns[data.weighIns.length - 1].date, td, mlOn(data, td), drinksOf(data, td).length, data.sessions.filter((s) => s.date === td && s.sets.length).length, content0.targets.water]) : '';
   useEffect(() => {
     if (!remKey) return;
+    setReminderContent(content0);
     const t = window.setTimeout(() => { syncReminders(data, { ask: false }).catch(() => {}); }, 1500);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -123,6 +130,23 @@ function Shell() {
     mq.addEventListener('change', apply);
     return () => mq.removeEventListener('change', apply);
   }, []);
+
+  // Water reminder: "+250 ml" logs it, "In 30 min" snoozes, a plain tap opens the water sheet.
+  const live = useRef({ data, content: content0 });
+  live.current = { data, content: content0 };
+  useEffect(() => {
+    if (!ready || !data.onboarded || !Capacitor.isNativePlatform()) return;
+    const sub = LocalNotifications.addListener('localNotificationActionPerformed', (a) => {
+      const extra = (a.notification.extra || {}) as Record<string, string>;
+      if (extra.kind !== 'water') return;
+      const { data: dd, content: cc } = live.current;
+      if (a.actionId === 'drink') drink(() => live.current.data, update, cc, waterPrefs(dd.reminders).cup);
+      else if (a.actionId === 'later') { snoozeWater(dd, 30); toast('OK — reminding you in 30 min'); }
+      else { setTab('today'); requestWater(); }
+    });
+    return () => { sub.then((s) => s.remove()).catch(() => {}); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, data.onboarded]);
 
   // com.rishu.sapnahealth://steps from the night notification → Today + steps sheet.
   useEffect(() => {

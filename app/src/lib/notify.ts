@@ -3,7 +3,13 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { addDays, dow, keyOf, parseKey } from './dates';
 import { lastFriday } from './calc';
 import type { DoodleName } from './mood';
-import type { AppData } from './types';
+import type { AppData, Content } from './types';
+import { fmtL, goalOn, mlOn, waterPrefs, waterSlots } from './water';
+
+/** Rishu's targets, for water goals in notifications (kept current by the app shell). */
+let targets: Pick<Content, 'targets'> = { targets: { kcal: 1300, protein: 100, water: 8 } };
+export function setReminderContent(c: Pick<Content, 'targets'>) { if (c && c.targets) targets = c; }
+export const WATER_ACTIONS = 'WATER';
 
 /**
  * All reminders are scheduled as dated one-offs over a rolling window (re-planned every time the app opens),
@@ -160,9 +166,14 @@ export function planReminders(d: AppData, now = new Date()): N[] {
       push(n * 100 + 1, at(day, ph || 7, isNaN(pm) ? 10 : pm), { channelId: CH_PUNCH, title: p.title, body: p.body, largeBody: p.body, largeIcon: 'doodle_' + p.doodle, summaryText: 'Sapna Health' } as Partial<N>);
     }
     if (rem.water) {
-      [9, 11, 13, 15, 17, 19].forEach((h, k) => {
+      // Smart: only inside her hours, counted from her last drink, nothing more once today's goal is hit.
+      const c = targets as Content;
+      const left = i === 0 ? Math.max(0, goalOn(d, c, day).ml - mlOn(d, day)) : 0;
+      waterSlots(d, c, day, now.getTime()).forEach((ts, k) => {
         const line = pickByDay(WATER_LINES, day, k * 7);
-        push(n * 100 + 10 + k, at(day, h, 0), { title: 'Water break', body: line, largeIcon: 'doodle_bottle' } as Partial<N>);
+        const title = k === 0 && i > 0 ? 'Good morning — water first 💧' : 'Water break 💧';
+        const body = i === 0 ? `${line} ${fmtL(left)} to go today.` : line;
+        push(n * 100 + 50 + k, new Date(ts), { title, body, largeIcon: 'doodle_bottle', actionTypeId: WATER_ACTIONS, extra: { kind: 'water' } } as Partial<N>);
       });
     }
     if (rem.meals) {
@@ -209,7 +220,8 @@ export async function syncReminders(d: AppData, opts: { ask?: boolean } = {}): P
   const job = (async () => {
     try {
       const pending = await LocalNotifications.getPending();
-      if (pending.notifications.length) await LocalNotifications.cancel({ notifications: pending.notifications.map((x) => ({ id: x.id })) });
+      const ours = pending.notifications.filter((x) => x.id < 900000); // keep pushes and "in 30 min" snoozes
+      if (ours.length) await LocalNotifications.cancel({ notifications: ours.map((x) => ({ id: x.id })) });
     } catch {
       /* nothing pending */
     }
@@ -221,6 +233,12 @@ export async function syncReminders(d: AppData, opts: { ask?: boolean } = {}): P
       await LocalNotifications.createChannel({ id: CH_PUNCH, name: 'Gym punch lines', description: 'Your daily kick to get to the gym', importance: 4, vibration: true });
     } catch {
       /* channels exist */
+    }
+    try {
+      const cup = waterPrefs(d.reminders).cup;
+      await LocalNotifications.registerActionTypes({ types: [{ id: WATER_ACTIONS, actions: [{ id: 'drink', title: `+${cup} ml 💧` }, { id: 'later', title: 'In 30 min' }] }] });
+    } catch {
+      /* older Android: plain notification still works */
     }
     try {
       const list = planReminders(d);
@@ -235,3 +253,10 @@ export async function syncReminders(d: AppData, opts: { ask?: boolean } = {}): P
 }
 
 export const isSyncing = () => running;
+
+/** "In 30 min" from a water notification. */
+export async function snoozeWater(d: AppData, minutes = 30) {
+  if (!Capacitor.isNativePlatform()) return;
+  const left = Math.max(0, goalOn(d, targets as Content, keyOf(new Date())).ml - mlOn(d, keyOf(new Date())));
+  await LocalNotifications.schedule({ notifications: [{ id: 990000 + Math.floor(Math.random() * 9000), channelId: CH, smallIcon: 'ic_stat_sapna', iconColor: '#FF7A59', title: 'Water break 💧', body: `As promised — a glass now. ${fmtL(left)} to go today.`, largeIcon: 'doodle_bottle', actionTypeId: WATER_ACTIONS, extra: { kind: 'water' }, schedule: { at: new Date(Date.now() + minutes * 60000), allowWhileIdle: true } } as N] }).catch(() => {});
+}

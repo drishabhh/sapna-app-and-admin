@@ -135,6 +135,7 @@ export function buildReport(d: AppData, c: Content) {
     streaks: { logging: logStreak(d), bestLogging: bestStreak(activeDays(d)), workout: ws.streak },
     food: d.food.map((f) => ({ id: f.id, foodId: f.foodId, date: f.date, meal: f.meal, name: f.name, portion: f.portion, mult: f.mult, kcal: f.kcal, protein: f.protein, at: f.at })),
     water: d.water,
+    drinks: Object.fromEntries(Object.entries(d.drinks || {}).filter(([k]) => k >= last7()[0]).map(([k, v]) => [k, v.map((x) => ({ at: x.at, ml: x.ml }))])),
     steps: d.steps,
     burned,
     weighIns: d.weighIns,

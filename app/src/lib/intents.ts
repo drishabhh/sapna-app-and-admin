@@ -9,3 +9,14 @@ export function takeStepsRequest(): boolean {
   wantSteps = false;
   return w;
 }
+
+let wantWater = false;
+export function requestWater() {
+  wantWater = true;
+  document.dispatchEvent(new Event('open-water'));
+}
+export function takeWaterRequest(): boolean {
+  const w = wantWater;
+  wantWater = false;
+  return w;
+}

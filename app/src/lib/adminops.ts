@@ -1,5 +1,6 @@
 import { AppData, CycleDay, Food, FoodEntry, Meal, Profile, Reminders } from './types';
 import { fetchAdminOps } from './sync';
+import { setGlassesOn } from './water';
 
 /**
  * Edits Rishu makes on the admin page arrive here as a list of small, validated operations.
@@ -44,9 +45,9 @@ function applyOne(d: AppData, op: AdminOp): AppData | null {
     case 'water.set': case 'steps.set': {
       if (!isDate(op.date)) return null;
       const v = num(op.value, 0, op.kind === 'water.set' ? 40 : 200000); if (v === null) return null;
-      const key = op.kind === 'water.set' ? 'water' : 'steps';
-      const map = { ...d[key] }; if (v === 0) delete map[op.date]; else map[op.date] = Math.round(v);
-      return { ...d, [key]: map };
+      if (op.kind === 'water.set') return setGlassesOn(d, op.date, v);
+      const map = { ...d.steps }; if (v === 0) delete map[op.date]; else map[op.date] = Math.round(v);
+      return { ...d, steps: map };
     }
     case 'weigh.set': {
       if (!isDate(op.date)) return null;

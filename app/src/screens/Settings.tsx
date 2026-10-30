@@ -1,3 +1,5 @@
+import { waterHours, waterTime } from '../water';
+import { waterPrefs } from '../lib/water';
 import { useRef, useState } from 'react';
 import { BUNDLED, refreshContent } from '../lib/content';
 import { DOW_FULL, DOW_LETTER, keyOf, shortLabel } from '../lib/dates';
@@ -11,7 +13,7 @@ import { Doodle, pinWidget } from '../streak';
 
 export const APP_VERSION = '1.0.0';
 
-type BoolRem = Exclude<keyof Reminders, 'punchTime'>;
+type BoolRem = import('../lib/types').BoolReminder;
 const fmt12 = (hm: string) => { const [h, m] = hm.split(':').map(Number); return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`; };
 
 export default function Settings({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -109,7 +111,7 @@ export default function Settings({ open, onClose }: { open: boolean; onClose: ()
           {([
             ['punch', 'Daily gym punch line', `Every day at ${fmt12(data.reminders.punchTime)} — with a doodle`],
             ['meals', 'Log meals', '1:30 pm and 8:30 pm'],
-            ['water', 'Water', 'Every 2 hours, 9 am – 7 pm, with a little quote'],
+            ['water', 'Water', `Every ${waterHours(waterPrefs(data.reminders).every)} h, ${waterTime(waterPrefs(data.reminders).from)}–${waterTime(waterPrefs(data.reminders).to)} · stops at your goal (set on Today → Water)`],
             ['gym', 'Workout days', '6:30 pm on gym days'],
             ['weigh', 'Weekly weigh-in', 'Friday 8 am · Monday nudge if missed'],
             ['steps', 'Night steps check-in', '11:30 pm · “remind in 15 min” button'],

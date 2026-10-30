@@ -138,6 +138,24 @@ export interface Reminders {
   punchTime: string;
   /** 11:30 pm "how many steps today?" with a 15-minute snooze */
   steps: boolean;
+  /** smart water reminders: minutes between nudges, counted from her last drink */
+  waterEvery?: number;
+  /** "HH:MM" — water nudges only between these times */
+  waterFrom?: string;
+  waterTo?: string;
+  /** her usual cup in ml (one-tap button + the notification's "+ cup" action) */
+  waterCup?: number;
+}
+
+/** The on/off reminder switches. */
+export type BoolReminder = 'meals' | 'water' | 'gym' | 'weigh' | 'punch' | 'steps';
+
+/** One drink. `at` 0 = an older count from before drinks were timed. */
+export interface Drink {
+  at: number;
+  ml: number;
+  /** added by Rishu from the admin page */
+  by?: 'rishu';
 }
 
 export interface ProgramProgress {
@@ -155,7 +173,10 @@ export interface AppData {
   profile: Profile;
   reminders: Reminders;
   food: FoodEntry[];
+  /** glasses per day (250 ml each, may be fractional) — kept in step with `drinks` */
   water: Record<string, number>;
+  /** every drink with its time, per day */
+  drinks?: Record<string, Drink[]>;
   steps: Record<string, number>;
   weighIns: { date: string; kg: number }[];
   sessions: Session[];
@@ -192,7 +213,7 @@ export function emptyData(): AppData {
     onboarded: false,
     createdAt: Date.now(),
     profile: { ...DEFAULT_PROFILE },
-    reminders: { meals: true, water: true, gym: true, weigh: true, punch: true, punchTime: '07:10', steps: true },
+    reminders: { meals: true, water: true, gym: true, weigh: true, punch: true, punchTime: '07:10', steps: true, waterEvery: 120, waterFrom: '09:00', waterTo: '21:00', waterCup: 250 },
     programs: {},
     remV: 3,
     food: [],

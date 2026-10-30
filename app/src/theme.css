@@ -415,3 +415,18 @@ p { margin: 0; }
 .yt-cap { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 99px; background: rgba(0,0,0,.6); font-weight: 700; font-size: 13px; white-space: nowrap; }
 .yt-cap svg { color: #ff3b3b; }
 .yt-btn { font-size: 14px; }
+/* ---------- Water ---------- */
+.wglass { position: relative; flex: none; border: 3px solid color-mix(in srgb, var(--acc) 55%, var(--line-2)); border-top-width: 2px; border-radius: 10px 10px 22px 22px; overflow: hidden; background: var(--card); box-shadow: inset 0 0 0 2px rgba(255,255,255,.03); }
+.wfill { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, color-mix(in srgb, var(--acc) 92%, #fff) 0%, var(--acc) 55%, color-mix(in srgb, var(--acc) 70%, #00347a) 100%); transition: height 1s cubic-bezier(.2,.8,.2,1); box-shadow: 0 0 18px color-mix(in srgb, var(--acc) 55%, transparent); }
+.wfill .wave { position: absolute; left: 0; top: -9px; width: 200%; height: 10px; background: color-mix(in srgb, var(--acc) 92%, #fff);
+  -webkit-mask: radial-gradient(circle at 12px 10px, #000 10px, transparent 10.5px) 0 0 / 24px 10px repeat-x; mask: radial-gradient(circle at 12px 10px, #000 10px, transparent 10.5px) 0 0 / 24px 10px repeat-x;
+  animation: wwave 2.2s linear infinite; }
+.wfill .wave.w2 { opacity: .45; top: -6px; animation-duration: 3.4s; animation-direction: reverse; }
+@keyframes wwave { from { transform: translateX(-24px); } to { transform: translateX(0); } }
+.wpct { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 22px; color: var(--text); text-shadow: 0 1px 6px rgba(0,0,0,.5); }
+.wweek { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 8px; }
+.wcol { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.wbar { position: relative; width: 100%; max-width: 30px; height: 70px; border-radius: 9px; background: var(--card-2); overflow: hidden; }
+.wbar i { position: absolute; left: 0; right: 0; bottom: 0; border-radius: 9px; background: color-mix(in srgb, var(--acc) 55%, transparent); transition: height .8s ease; }
+.wbar i.met { background: var(--acc); box-shadow: 0 0 10px var(--acc); }
+@media (prefers-reduced-motion: reduce) { .wfill .wave { animation: none; } }

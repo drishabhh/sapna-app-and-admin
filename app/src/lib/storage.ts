@@ -47,6 +47,7 @@ export function migrate(raw: unknown): AppData {
     reminders: { ...base.reminders, ...(d.reminders || {}) },
     food: Array.isArray(d.food) ? d.food : [],
     water: d.water && typeof d.water === 'object' ? d.water : {},
+    drinks: d.drinks && typeof d.drinks === 'object' ? d.drinks : {},
     steps: d.steps && typeof d.steps === 'object' ? d.steps : {},
     weighIns: Array.isArray(d.weighIns) ? d.weighIns : [],
     sessions: Array.isArray(d.sessions) ? d.sessions : [],
