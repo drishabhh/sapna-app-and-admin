@@ -25,13 +25,17 @@ public class StreakWidgetProvider extends AppWidgetProvider {
 
     static void refreshAll(Context ctx) {
         AppWidgetManager mgr = AppWidgetManager.getInstance(ctx);
-        int[] ids = mgr.getAppWidgetIds(new ComponentName(ctx, StreakWidgetProvider.class));
-        for (int id : ids) draw(ctx, mgr, id);
+        for (int id : ids(ctx)) draw(ctx, mgr, id);
+    }
+
+    static int[] ids(Context ctx) {
+        return AppWidgetManager.getInstance(ctx).getAppWidgetIds(new ComponentName(ctx, StreakWidgetProvider.class));
     }
 
     @Override
     public void onUpdate(Context ctx, AppWidgetManager mgr, int[] ids) {
-        for (int id : ids) draw(ctx, mgr, id);
+        // Redraw the water widget too, so the two always pick their doodles at the same moment.
+        Widgets.refreshAll(ctx);
     }
 
     @Override
@@ -43,7 +47,12 @@ public class StreakWidgetProvider extends AppWidgetProvider {
         return new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(c.getTime());
     }
 
-    static void draw(Context ctx, AppWidgetManager mgr, int id) {
+    /** What the streak widget shows right now (the water widget reads this to pick a different doodle). */
+    static final class Now {
+        MoodEngine.Mood mood; WorkoutStreak.State st; Set<Long> workouts; int[] gym; long today;
+    }
+
+    static Now current(Context ctx, Calendar now) {
         String name = "Sapna";
         Set<Long> workouts = new HashSet<>();
         int[] gym = new int[0];
@@ -66,7 +75,6 @@ public class StreakWidgetProvider extends AppWidgetProvider {
             }
         } catch (Exception ignored) {}
 
-        Calendar now = Calendar.getInstance();
         String todayKey = key(now);
         long today = WorkoutStreak.epochDay(todayKey);
         Calendar noon = (Calendar) now.clone();
@@ -74,6 +82,13 @@ public class StreakWidgetProvider extends AppWidgetProvider {
         int dayIndex = (int) Math.floor(noon.getTimeInMillis() / 86400000.0);
         WorkoutStreak.State st = WorkoutStreak.state(workouts, gym, today);
         MoodEngine.Mood mood = WorkoutStreak.mood(st, name, now.get(Calendar.HOUR_OF_DAY), dayIndex);
+        Now n = new Now(); n.mood = mood; n.st = st; n.workouts = workouts; n.gym = gym; n.today = today;
+        return n;
+    }
+
+    static void draw(Context ctx, AppWidgetManager mgr, int id) {
+        Now n = current(ctx, Calendar.getInstance());
+        MoodEngine.Mood mood = n.mood; WorkoutStreak.State st = n.st; Set<Long> workouts = n.workouts; int[] gym = n.gym; long today = n.today;
 
         int doodle = ctx.getResources().getIdentifier("doodle_" + mood.doodle, "drawable", ctx.getPackageName());
         if (doodle == 0) doodle = R.drawable.doodle_thumbs;

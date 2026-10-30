@@ -12,4 +12,13 @@
     <color name="widget_hot_end">#FFD0DC</color>
     <color name="widget_cool_start">#E7E4FF</color>
     <color name="widget_cool_end">#DDF0FA</color>
+    <color name="widget_water_start">#E2F6FF</color>
+    <color name="widget_water_end">#E9ECFF</color>
+    <color name="widget_water_hot_start">#FFE6DC</color>
+    <color name="widget_water_hot_end">#E3F1FF</color>
+    <color name="widget_water_cool_start">#E6E3FF</color>
+    <color name="widget_water_cool_end">#DDEBFA</color>
+    <color name="widget_water">#0A84C6</color>
+    <color name="widget_water_light">#5CC8F5</color>
+    <color name="widget_water_track">#260A84C6</color>
 </resources>

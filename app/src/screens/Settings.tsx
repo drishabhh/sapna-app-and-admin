@@ -9,7 +9,7 @@ import { InstantCard } from '../power';
 import { useStore } from '../lib/store';
 import { emptyData, Reminders, ShareCycle } from '../lib/types';
 import { FullSheet, Icon, Sheet, Stepper, toast, Toggle, TopBar } from '../ui';
-import { Doodle, pinWidget } from '../streak';
+import { Doodle, pinWaterWidget, pinWidget } from '../streak';
 
 export const APP_VERSION = '1.0.0';
 
@@ -102,6 +102,18 @@ export default function Settings({ open, onClose }: { open: boolean; onClose: ()
             <button type="button" className="btn sm" style={{ alignSelf: 'flex-start' }} onClick={async () => {
               const ok = await pinWidget();
               if (!ok) toast('Long-press your home screen → Widgets → Sapna Health');
+            }}>Add to home screen</button>
+          </div>
+        </section>
+
+        <section className="card row" style={{ gap: 12 }} aria-label="Water widget" data-acc="progress">
+          <Doodle name="bottle" size={78} />
+          <div className="stack" style={{ gap: 6, flex: 1, minWidth: 0 }}>
+            <h2 className="h2" style={{ fontSize: 19 }}>Water widget</h2>
+            <p className="small muted">Today’s water on your home screen. Tap <b>+ 250 ml</b> there to log a glass without opening the app.</p>
+            <button type="button" className="btn sm" style={{ alignSelf: 'flex-start' }} onClick={async () => {
+              const ok = await pinWaterWidget();
+              if (!ok) toast('Long-press your home screen → Widgets → Sapna Health → Sapna water');
             }}>Add to home screen</button>
           </div>
         </section>

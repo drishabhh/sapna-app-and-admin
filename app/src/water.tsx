@@ -4,7 +4,7 @@ import { haptic, syncReminders } from './lib/native';
 import { useStore } from './lib/store';
 import type { AppData, Content, Reminders } from './lib/types';
 import { addDrink, CUPS, drinksOf, EVERY_CHOICES, fmtL, goalOn, mlOn, removeDrink, waterPrefs, waterSlots, waterStreak } from './lib/water';
-import { Doodle } from './streak';
+import { Doodle, pinWaterWidget } from './streak';
 import type { DoodleName } from './lib/mood';
 import { Icon, Seg, Sheet, Toggle, toast } from './ui';
 
@@ -164,6 +164,10 @@ export function WaterSheet({ open, onClose }: { open: boolean; onClose: () => vo
             </>
           ) : null}
         </section>
+
+        <button type="button" className="btn ghost block" onClick={async () => { if (!(await pinWaterWidget())) toast('Long-press your home screen → Widgets → Sapna Health → Sapna water'); }}>
+          <Icon name="plus" size={18} /> Put water on my home screen
+        </button>
       </div>
     </Sheet>
   );

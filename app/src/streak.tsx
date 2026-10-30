@@ -1,7 +1,8 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import { addDays, DOW_LETTER, dow, today } from './lib/dates';
 import { workoutDays } from './lib/workoutStreak';
-import type { AppData } from './lib/types';
+import type { AppData, Content } from './lib/types';
+import { GLASS_ML, goalOn, mlOn, waterPrefs } from './lib/water';
 import { StreakInfo } from './lib/calc';
 import type { DoodleName } from './lib/mood';
 import { Icon } from './ui';
@@ -50,6 +51,9 @@ interface StreakWidgetPlugin {
   update(o: { json: string }): Promise<void>;
   configureSteps(o: { enabled: boolean; time: string; name: string; loggedOn: string }): Promise<void>;
   pin(): Promise<{ supported: boolean }>;
+  updateWater(o: { json: string }): Promise<void>;
+  takeDrinks(): Promise<{ drinks: { at: number; ml: number }[] }>;
+  pinWater(): Promise<{ supported: boolean }>;
 }
 const StreakWidget = registerPlugin<StreakWidgetPlugin>('StreakWidget');
 
@@ -85,6 +89,39 @@ export async function pinWidget(): Promise<boolean> {
   if (!Capacitor.isNativePlatform()) return false;
   try {
     return (await StreakWidget.pin()).supported;
+  } catch {
+    return false;
+  }
+}
+
+let lastWater = '';
+/** The water widget redraws itself through the day; we send today's facts whenever they change. */
+export function syncWaterWidget(d: AppData, c: Content) {
+  if (!Capacitor.isNativePlatform()) return;
+  const t = today();
+  const p = waterPrefs(d.reminders);
+  const payload = JSON.stringify({ v: 1, date: t, ml: mlOn(d, t), goal: goalOn(d, c, t).ml, base: Math.max(1, c.targets.water || 8) * GLASS_ML, cup: p.cup, from: p.from, to: p.to, name: d.profile.name || 'Sapna' });
+  if (payload === lastWater) return;
+  lastWater = payload;
+  StreakWidget.updateWater({ json: payload }).catch(() => {});
+}
+
+/** Drinks tapped on the widget while the app was closed. */
+export async function takeWidgetDrinks(): Promise<{ at: number; ml: number }[]> {
+  if (!Capacitor.isNativePlatform()) return [];
+  try {
+    const r = await StreakWidget.takeDrinks();
+    lastWater = ''; // make sure the widget gets the merged numbers back
+    return (r.drinks || []).filter((x) => x && typeof x.at === 'number' && typeof x.ml === 'number' && x.ml > 0 && x.ml <= 3000);
+  } catch {
+    return [];
+  }
+}
+
+export async function pinWaterWidget(): Promise<boolean> {
+  if (!Capacitor.isNativePlatform()) return false;
+  try {
+    return (await StreakWidget.pinWater()).supported;
   } catch {
     return false;
   }

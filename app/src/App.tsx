@@ -4,7 +4,8 @@ import { Capacitor, SystemBars, SystemBarsStyle } from '@capacitor/core';
 import { Launch } from './launch';
 import { haptic, syncReminders } from './lib/native';
 import { setReminderContent, snoozeWater } from './lib/notify';
-import { drinksOf, mlOn, waterPrefs } from './lib/water';
+import { addDrink, drinksOf, mlOn, waterPrefs } from './lib/water';
+import { keyOf } from './lib/dates';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { drink } from './water';
 import { today } from './lib/dates';
@@ -20,7 +21,7 @@ import Settings from './screens/Settings';
 import Today from './screens/Today';
 import WorkoutScreen from './screens/Workout';
 import { Icon, popBack, toast, ToastHost } from './ui';
-import { syncNightSteps, syncWidget } from './streak';
+import { syncNightSteps, syncWaterWidget, syncWidget, takeWidgetDrinks } from './streak';
 import { requestSteps, requestWater } from './lib/intents';
 import { clearDrafts, getDraft, setDraft, useDraft } from './lib/drafts';
 import { pushReport, SYNC_EVERY_DEFAULT, useSyncCfg } from './lib/sync';
@@ -118,8 +119,24 @@ function Shell() {
 
   // Keep the home-screen streak widget in step with her logs.
   useEffect(() => {
-    if (ready && data.onboarded) { syncWidget(data); syncNightSteps(data); }
-  }, [ready, data]);
+    if (ready && data.onboarded) { syncWidget(data); syncNightSteps(data); syncWaterWidget(data, content0); }
+  }, [ready, data, content0]);
+
+  // Glasses she tapped on the water widget while the app was closed → into her log (on launch and every return).
+  useEffect(() => {
+    if (!ready || !data.onboarded) return;
+    const pull = async () => {
+      const list = await takeWidgetDrinks();
+      if (!list.length) return;
+      update((d) => list.reduce((acc, x) => addDrink(acc, keyOf(new Date(x.at)), x.ml, x.at), d));
+      const total = list.reduce((s, x) => s + x.ml, 0);
+      toast(`${list.length === 1 ? 'Glass' : list.length + ' glasses'} from your widget added (+${total} ml)`);
+    };
+    pull();
+    const sub = CapApp.addListener('appStateChange', ({ isActive }) => { if (isActive) pull(); });
+    return () => { sub.then((x) => x.remove()).catch(() => {}); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, data.onboarded]);
 
   // Status / navigation bar icons follow light–dark mode.
   useEffect(() => {
@@ -151,7 +168,10 @@ function Shell() {
   // com.rishu.sapnahealth://steps from the night notification → Today + steps sheet.
   useEffect(() => {
     if (!ready || !data.onboarded) return;
-    const handle = (url?: string) => { if (url && /:\/\/steps/.test(url)) { setTab('today'); requestSteps(); } };
+    const handle = (url?: string) => {
+      if (url && /:\/\/steps/.test(url)) { setTab('today'); requestSteps(); }
+      if (url && /:\/\/water/.test(url)) { setTab('today'); requestWater(); }
+    };
     CapApp.getLaunchUrl().then((r) => handle(r?.url)).catch(() => {});
     const sub = CapApp.addListener('appUrlOpen', (e) => handle(e.url));
     return () => { sub.then((s) => s.remove()).catch(() => {}); };
