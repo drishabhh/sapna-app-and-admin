@@ -233,7 +233,7 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
             <p className="muted" style={{ textAlign: 'center', fontWeight: 600 }}>{move.sets} × {move.reps} {move.unit === 'min' ? 'min' : move.unit === 'sec' ? 'sec' : 'reps'}</p>
             {yt ? (
               <a className="btn ghost sm yt-btn" href={yt} target="_blank" rel="noopener noreferrer" style={{ alignSelf: 'center' }}>
-                <Icon name="video" size={20} /> Open in YouTube app
+                <Icon name="video" size={20} /> {/instagram\.com/i.test(yt) ? 'Open in Instagram' : 'Open in YouTube app'}
               </a>
             ) : null}
             {sets.length ? (

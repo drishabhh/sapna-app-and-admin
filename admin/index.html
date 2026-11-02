@@ -246,9 +246,10 @@ function unb64(s) { return decodeURIComponent(escape(atob(s.replace(/\n/g, '')))
 async function gh(path, opts = {}) {
   // No trailing slash for the repo itself: GitHub answers /repos/o/r/ with a 400 that has no CORS headers,
   // which the browser reports only as "Failed to fetch".
-  const url = `https://api.github.com/repos/${REPO.owner}/${REPO.name}` + (path ? '/' + path.replace(/^\/+/, '') : '');
+  let url = `https://api.github.com/repos/${REPO.owner}/${REPO.name}` + (path ? '/' + path.replace(/^\/+/, '') : '');
+  if (!opts.method || opts.method === 'GET') url += (url.includes('?') ? '&' : '?') + 't=' + Date.now(); // GitHub caches GETs for 60 s
   const token = String(S.token || '').trim();
-  const res = await fetch(url, { ...opts, headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}`, ...(opts.body ? { 'Content-Type': 'application/json' } : {}) } });
+  const res = await fetch(url, { cache: 'no-store', ...opts, headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}`, ...(opts.body ? { 'Content-Type': 'application/json' } : {}) } });
   if (res.status === 404) return null;
   const j = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(j.message || `GitHub ${res.status}`);
@@ -259,7 +260,7 @@ function renderPub() { const p = $('#pub'); p.hidden = !S.dirty || !S.content; }
 
 async function loadContent() {
   const meta = await gh(`contents/${CONTENT_PATH}?ref=${REPO.branch}`);
-  if (meta && meta.content) { S.content = JSON.parse(unb64(meta.content)); S.sha = meta.sha; if (healExercises(S.content)) S.dirty = true; }
+  if (meta && meta.content) { S.content = JSON.parse(unb64(meta.content)); S.base = JSON.parse(JSON.stringify(S.content)); S.sha = meta.sha; if (healExercises(S.content)) S.dirty = true; }
   else {
     // first run: start from the public copy (or an empty skeleton)
     const r = await fetch(SITE + CONTENT_PATH + '?t=' + Date.now()).catch(() => null);
@@ -296,18 +297,41 @@ function askToken(reason, then) {
   };
 }
 
+/** 3-way merge: start from GitHub's latest, re-apply only what changed on this page since it loaded. */
+function mergeContent(base, mine, theirs) {
+  if (!base) return mine;
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const byId = (arr) => new Map((arr || []).map((x) => [x.id, x]));
+  const list = (key) => {
+    const B = byId(base[key]), M = byId(mine[key]), T = byId(theirs[key]);
+    const out = new Map(T);
+    for (const [id, x] of M) if (!B.has(id) || !same(B.get(id), x)) out.set(id, x);   // added or edited here
+    for (const id of B.keys()) if (!M.has(id)) out.delete(id);                          // deleted here
+    const order = [...(mine[key] || []).map((x) => x.id), ...(theirs[key] || []).map((x) => x.id)];
+    return [...new Set(order)].filter((id) => out.has(id)).map((id) => out.get(id));
+  };
+  const field = (k) => (same(base[k], mine[k]) ? theirs[k] : mine[k]);
+  return { ...theirs, targets: field('targets'), message: field('message'), plans: list('plans'), foods: list('foods'), exercises: list('exercises') };
+}
+
 async function publish() {
   const btn = $('#pubBtn'); btn.disabled = true; btn.textContent = 'Publishing…';
   try {
-    const latest = await gh(`contents/${CONTENT_PATH}?ref=${REPO.branch}`);
-    const c = { ...S.content, version: (S.content.version || 0) + 1, updatedAt: new Date().toISOString() };
-    // drop exercises no plan uses any more, keep the file small
-    const used = new Set(c.plans.flatMap((p) => p.moves.map((m) => m.exId)));
-    c.exercises = c.exercises.filter((e) => used.has(e.id));
-    const body = { message: `Admin: publish plans & foods (${new Date().toISOString().slice(0, 10)})`, content: b64(JSON.stringify(c, null, 1) + '\n'), branch: REPO.branch };
-    if (latest?.sha) body.sha = latest.sha;
-    const r = await gh(`contents/${CONTENT_PATH}`, { method: 'PUT', body: JSON.stringify(body) });
-    S.content = c; S.sha = r.content.sha; S.dirty = false; S.foodChanged = new Set(); renderPub(); if (S.tab === 'foods') render();
+    let r, c;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const latest = await gh(`contents/${CONTENT_PATH}?ref=${REPO.branch}`);
+      const theirs = latest && latest.content ? JSON.parse(unb64(latest.content)) : null;
+      const merged = theirs && latest.sha !== S.sha ? mergeContent(S.base, S.content, theirs) : S.content;
+      c = { ...merged, version: Math.max(merged.version || 0, theirs?.version || 0) + 1, updatedAt: new Date().toISOString() };
+      // drop exercises no plan uses any more, keep the file small
+      const used = new Set(c.plans.flatMap((p) => p.moves.map((m) => m.exId)));
+      c.exercises = c.exercises.filter((e) => used.has(e.id));
+      const body = { message: `Admin: publish plans & foods (${new Date().toISOString().slice(0, 10)})`, content: b64(JSON.stringify(c, null, 1) + '\n'), branch: REPO.branch };
+      if (latest?.sha) body.sha = latest.sha;
+      try { r = await gh(`contents/${CONTENT_PATH}`, { method: 'PUT', body: JSON.stringify(body) }); break; }
+      catch (e) { if (attempt < 2 && /does not match|sha|conflict|409/i.test(String(e.message))) { await new Promise((ok) => setTimeout(ok, 800)); continue; } throw e; }
+    }
+    S.content = c; S.base = JSON.parse(JSON.stringify(c)); S.sha = r.content.sha; S.dirty = false; S.foodChanged = new Set(); renderPub(); if (S.tab === 'foods' || S.tab === 'workouts') render();
     toast('Published');
     notifyPublished(c);
   } catch (e) {
@@ -316,9 +340,7 @@ async function publish() {
       askToken('The token saved on this device can read the app repo but isn’t allowed to change it.', publish);
     } else if (/Bad credentials|401/i.test(m)) {
       askToken('GitHub rejected the token saved on this device (expired or deleted). Paste a new one.', publish);
-    } else if (/sha|conflict|409/i.test(m)) {
-      toastLong('The file changed on GitHub since this page loaded. Reload the page and redo the last change.');
-    } else toast('Publish failed: ' + m);
+    } else toast('Publish failed: ' + m + ' — tap Publish again.');
   }
   btn.disabled = false; btn.textContent = 'Publish';
 }
@@ -1204,7 +1226,8 @@ function vWorkouts() {
         ${e.gif ? `<img src="${esc(gif(e.gif))}" alt="" loading="lazy">` : `<span class="noimg" aria-hidden="true">${m.yt || e.yt ? '▶' : '🏋️'}</span>`}<div style="min-width:0"><strong style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.name)}</strong><span class="small muted">${e.group === 'stretching' ? 'Stretching' : 'Exercise'}</span></div>
         <div class="row" style="gap:4px"><button class="ib" type="button" data-up="${i}" aria-label="Move up">↑</button><button class="ib" type="button" data-down="${i}" aria-label="Move down">↓</button><button class="ib" type="button" data-del="${i}" aria-label="Remove ${esc(e.name)}">✕</button></div>
         <div class="nums"><label class="f">Sets<input class="input" inputmode="numeric" data-f="sets" data-i="${i}" value="${m.sets}"></label><label class="f">Reps<input class="input" inputmode="numeric" data-f="reps" data-i="${i}" value="${m.reps}"></label><label class="f">Unit<select class="input" data-f="unit" data-i="${i}">${['reps', 'min', 'sec'].map((u) => `<option ${(m.unit || 'reps') === u ? 'selected' : ''}>${u}</option>`).join('')}</select></label><label class="f">Start kg<input class="input" inputmode="decimal" data-f="kg" data-i="${i}" value="${m.kg ?? ''}" placeholder="—"></label></div>
-        <label class="f yt">▶ YouTube “how to” link<input class="input" inputmode="url" data-f="yt" data-i="${i}" value="${esc(m.yt || e.yt || '')}" placeholder="https://youtu.be/…"></label>
+        <label class="f yt">▶ How-to video — YouTube or Instagram reel<input class="input" inputmode="url" data-f="yt" data-i="${i}" value="${esc(m.yt || e.yt || '')}" placeholder="https://youtu.be/…  or  https://instagram.com/reel/…"></label>
+        ${!e.gif || String(e.id).startsWith('custom-') ? `<label class="btn ghost sm" style="cursor:pointer;grid-column:1/-1;justify-self:start">${e.gif ? 'Change GIF' : '⬆ Upload GIF'}<input type="file" accept="image/gif,image/*" class="sr" data-gifup="${i}"></label>` : ''}
       </div>`; }).join('') || '<p class="muted">No moves yet — add some from the library.</p>'}</div>
       <button class="btn danger" type="button" id="delplan" style="align-self:flex-start">Delete this plan</button>
     </div>${S.picker ? vPicker() : ''}`;
@@ -1237,20 +1260,38 @@ function vPicker() {
     <div class="chips">${['exercises', 'stretching'].map((g) => `<button class="chip" type="button" data-g="${g}" aria-pressed="${S.libGroup === g}">${g === 'exercises' ? 'Exercises' : 'Stretching'}</button>`).join('')}</div>
     <div class="chips">${parts.map((p) => `<button class="chip" type="button" data-p="${p}" aria-pressed="${S.libPart === p}">${p === 'all' ? 'All' : p[0].toUpperCase() + p.slice(1)}</button>`).join('')}</div>
     <input class="input" id="libq" type="search" placeholder="Search ${lib.length.toLocaleString()} moves — e.g. squat, curl, plank" value="${esc(S.libQ)}">
-    <div class="grid">${pool.map((g) => `<button class="ex" type="button" data-pick="${esc(g.id)}"><img src="${esc(gif(g.gif))}" alt="" loading="lazy"><span class="t">${esc(g.name)}${g.equipment ? `<span class="small muted" style="display:block;font-weight:500">${esc(g.equipment)}</span>` : ''}</span></button>`).join('') || '<p class="muted">No matches.</p>'}</div>
+    <div class="grid">${pool.map((g) => `<button class="ex" type="button" data-pick="${esc(g.id)}">${g.gif ? `<img src="${esc(gif(g.gif))}" alt="" loading="lazy">` : `<span class="ph" style="display:grid;place-items:center;font-size:28px;color:var(--acc)">${g.yt ? '▶' : '🏋️'}</span>`}<span class="t">${esc(g.name)}${g.equipment ? `<span class="small muted" style="display:block;font-weight:500">${esc(g.equipment)}</span>` : ''}</span></button>`).join('') || '<p class="muted">No matches.</p>'}</div>
     <details class="card"><summary><strong>Create your own move</strong></summary><div class="stack" style="margin-top:10px">
       <label class="f">Name<input class="input" id="cn" placeholder="e.g. Hip thrust machine"></label>
       <div class="g2"><label class="f">Type<select class="input" id="cg"><option value="exercises">Exercise</option><option value="stretching">Stretching</option></select></label><label class="f">Body part<select class="input" id="cp">${parts.slice(1).map((p) => `<option>${p}</option>`).join('')}</select></label></div>
-      <label class="f">▶ YouTube “how to” link <span class="faint">(she gets a Watch button)</span><input class="input" id="cy" inputmode="url" placeholder="https://youtube.com/shorts/…"></label>
-      <label class="f">GIF link <span class="faint">(optional — a .gif picture, not YouTube)</span><input class="input" id="cu" inputmode="url" placeholder="https://…/move.gif"></label>
+      <label class="f">▶ How-to video <span class="faint">YouTube or Instagram reel — it plays in her app</span><input class="input" id="cy" inputmode="url" placeholder="https://youtube.com/shorts/…  or  https://instagram.com/reel/…"></label>
+      <div class="f">GIF <span class="faint">(optional)</span>
+        <div class="row wrapr" style="gap:8px;margin-top:4px">${S.cgif ? `<img src="${esc(S.cgif.preview)}" alt="" style="width:64px;height:64px;border-radius:10px;object-fit:cover;background:#fff">` : ''}
+          <label class="btn ghost sm" style="cursor:pointer">${S.cgif ? 'Change GIF' : '⬆ Upload GIF'}<input id="cgf" type="file" accept="image/gif,image/*" class="sr"></label>
+          <span class="small muted" id="cgfs">${S.cgif ? 'Uploaded ✓ — shows for her about a minute after Publish' : ''}</span></div>
+        <input class="input" id="cu" inputmode="url" placeholder="…or paste a GIF link (https://…gif)" style="margin-top:6px" ${S.cgif ? 'hidden' : ''}></div>
       <label class="f">Coaching cue she'll see<input class="input" id="cc" placeholder="e.g. Squeeze at the top for a second"></label>
       <button class="btn" type="button" id="cAdd">Add to plan</button></div></details>
   </div></div>`;
 }
-const fixUrl = (u) => { u = String(u || '').trim(); return /^(www\.|m\.)?(youtube\.com|youtu\.be)\//i.test(u) ? 'https://' + u : u; };
+const fixUrl = (u) => { u = String(u || '').trim(); return /^(www\.|m\.)?(youtube\.com|youtu\.be|instagram\.com)\//i.test(u) ? 'https://' + u : u; };
 const isYt = (u) => /^https:\/\/(www\.|m\.)?(youtube\.com|youtu\.be)\//i.test(u || '');
+const isIg = (u) => /^https:\/\/(www\.)?instagram\.com\/(reel|reels|p|tv)\/[A-Za-z0-9_-]+/i.test(u || '');
+const isVideo = (u) => isYt(u) || isIg(u);
+
+/* Upload a GIF (or picture) from this phone/laptop into the app repo → served by GitHub Pages at media/custom/… */
+async function uploadGif(file, base) {
+  if (!file) return null;
+  if (!/^image\//.test(file.type)) throw new Error('Pick a GIF or picture file');
+  if (file.size > 8 * 1024 * 1024) throw new Error('That file is over 8 MB — pick a smaller GIF');
+  const ext = (file.type.split('/')[1] || 'gif').replace('jpeg', 'jpg').replace(/[^a-z0-9]/g, '').slice(0, 4) || 'gif';
+  const path = `media/custom/${slug(base || file.name.replace(/\.[^.]+$/, ''))}-${Date.now().toString(36)}.${ext}`;
+  const data = await new Promise((ok, bad) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1]); r.onerror = bad; r.readAsDataURL(file); });
+  await gh(`contents/${path}`, { method: 'PUT', body: JSON.stringify({ message: `Admin: add move GIF ${path}`, content: data, branch: REPO.branch }) });
+  return path;
+}
 /** Older plans: a YouTube link saved as the GIF → move it to the how-to video. */
-function healExercises(c) { let n = 0; (c.exercises || []).forEach((e) => { if (isYt(e.gif)) { if (!e.yt) e.yt = e.gif; e.gif = ''; n++; } }); return n; }
+function healExercises(c) { let n = 0; (c.exercises || []).forEach((e) => { if (isVideo(e.gif)) { if (!e.yt) e.yt = e.gif; e.gif = ''; n++; } }); return n; }
 function addExerciseToPlan(ex) {
   const c = S.content; const p = c.plans[S.editing];
   if (!c.exercises.some((e) => e.id === ex.id)) c.exercises.push({ id: ex.id, name: ex.name, group: ex.group, part: ex.part, equipment: ex.equipment, gif: ex.gif, cue: ex.cue || '', ...(ex.yt ? { yt: ex.yt } : {}) });
@@ -1277,9 +1318,16 @@ function wireWorkouts() {
   }));
   document.querySelectorAll('[data-f]').forEach((el) => (el.oninput = el.onchange = () => {
     const m = p.moves[+el.dataset.i]; const f = el.dataset.f; const v = el.value.trim();
-    if (f === 'yt') { const u = fixUrl(v); if (!u) delete m.yt; else if (isYt(u)) { m.yt = u; el.style.borderColor = ''; } else { el.style.borderColor = 'var(--danger)'; return; } }
+    if (f === 'yt') { const u = fixUrl(v); if (!u) delete m.yt; else if (isVideo(u)) { m.yt = u; el.style.borderColor = ''; } else { el.style.borderColor = 'var(--danger)'; return; } }
     else if (f === 'unit') m.unit = v; else if (f === 'kg') { if (v === '') delete m.kg; else m.kg = Number(v) || 0; } else m[f] = Math.max(1, parseInt(v) || 1);
     markDirty();
+  }));
+  document.querySelectorAll('[data-gifup]').forEach((inp) => (inp.onchange = async () => {
+    const f = inp.files[0]; if (!f) return;
+    const mo = p.moves[+inp.dataset.gifup]; const ex = exOf(mo.exId); if (!ex) return;
+    toast('Uploading GIF…');
+    try { ex.gif = await uploadGif(f, ex.name); markDirty(); render(); toast('GIF uploaded — Publish to send it to her'); }
+    catch (e) { toastLong('Upload failed: ' + e.message); }
   }));
   const mv = (i, d) => { const j = i + d; if (j < 0 || j >= p.moves.length) return; [p.moves[i], p.moves[j]] = [p.moves[j], p.moves[i]]; markDirty(); render(); };
   document.querySelectorAll('[data-up]').forEach((b) => (b.onclick = () => mv(+b.dataset.up, -1)));
@@ -1297,12 +1345,27 @@ function wireWorkouts() {
     const id = b.dataset.pick; const ex = S.content.exercises.find((e) => e.id === id) || (S.lib || []).find((g) => g.id === id);
     if (ex) { addExerciseToPlan(ex); S.picker = null; render(); }
   }));
+  const cgf = $('#cgf');
+  if (cgf) cgf.onchange = async () => {
+    const f = cgf.files[0]; if (!f) return;
+    const st = $('#cgfs'); st.textContent = 'Uploading…';
+    try {
+      const path = await uploadGif(f, $('#cn').value.trim() || 'move'); S.cgif = { path, preview: URL.createObjectURL(f) };
+      // update in place so the half-filled form isn't wiped by a redraw
+      st.textContent = 'Uploaded ✓ — shows for her about a minute after Publish'; $('#cu').hidden = true;
+      st.parentElement.querySelector('img')?.remove();
+      st.parentElement.insertAdjacentHTML('afterbegin', `<img src="${esc(S.cgif.preview)}" alt="" style="width:64px;height:64px;border-radius:10px;object-fit:cover;background:#fff">`);
+      toast('GIF uploaded');
+    }
+    catch (e) { st.textContent = ''; toastLong('Upload failed: ' + e.message); }
+  };
   $('#cAdd').onclick = () => {
-    const name = $('#cn').value.trim(); let url = fixUrl($('#cu').value); let yt = fixUrl($('#cy').value);
+    const name = $('#cn').value.trim(); let url = S.cgif ? S.cgif.path : fixUrl($('#cu').value); let yt = fixUrl($('#cy').value);
     if (!name) return toast('Give the move a name');
-    if (isYt(url)) { if (!yt) yt = url; url = ''; } // a YouTube link in the GIF box → it's the how-to video
-    if (yt && !isYt(yt)) return toast('That isn’t a YouTube link');
-    if (url && !/^https:\/\/.+/i.test(url)) return toast('GIF link must start with https://');
+    if (isVideo(url)) { if (!yt) yt = url; url = ''; } // a video link in the GIF box → it's the how-to video
+    if (yt && !isVideo(yt)) return toast('Paste a YouTube or Instagram reel link');
+    if (url && !S.cgif && !/^https:\/\/.+/i.test(url)) return toast('GIF link must start with https://');
+    S.cgif = null;
     addExerciseToPlan({ id: 'custom-' + slug(name) + '-' + Date.now().toString(36).slice(-4), name, group: $('#cg').value, part: $('#cp').value, gif: url, cue: $('#cc').value.trim(), ...(yt ? { yt } : {}) });
     S.picker = null; render();
   };

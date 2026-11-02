@@ -63,19 +63,27 @@ export async function refreshContent(current: Content, opts: { direct?: boolean 
 export function gifSrc(ex: Exercise | undefined): string {
   if (!ex) return '';
   const g = ex.gif || '';
-  if (!g || ytId(g)) return ''; // no picture (a YouTube link is a video, not a GIF)
+  if (!g || ytId(g) || igEmbed(g)) return ''; // no picture (a video link is a video, not a GIF)
   if (/^https:\/\//.test(g)) return g;
   if (BUNDLED_MEDIA.has(g)) return `./${g}`;
   return SITE_BASE + g.replace(/^\.?\//, '');
 }
 
-/** Only real YouTube links are shown. A YouTube link saved as the GIF counts too. */
+/** The move's how-to video: a YouTube or Instagram reel link (`yt` field; a video link saved as the GIF counts too). */
 export function ytLink(ex: Exercise | undefined, move?: { yt?: string }): string | null {
   for (const raw of [move?.yt, ex?.yt, ex?.gif]) {
     const u = (raw || '').trim();
-    if (/^https:\/\/(www\.|m\.)?(youtube\.com|youtu\.be)\//i.test(u) && ytId(u)) return u;
+    if ((/^https:\/\/(www\.|m\.)?(youtube\.com|youtu\.be)\//i.test(u) && ytId(u)) || igEmbed(u)) return u;
   }
   return null;
+}
+
+/** instagram.com/reel/ID (also /reels/, /p/, /tv/) → its embeddable player page */
+export function igEmbed(url: string): string | null {
+  const m = String(url || '').match(/^https:\/\/(?:www\.)?instagram\.com\/(reels?|p|tv)\/([A-Za-z0-9_-]+)/i);
+  if (!m) return null;
+  const kind = m[1].toLowerCase() === 'p' ? 'p' : m[1].toLowerCase() === 'tv' ? 'tv' : 'reel';
+  return `https://www.instagram.com/${kind}/${m[2]}/embed/`;
 }
 
 /** youtu.be/ID, watch?v=ID, /shorts/ID, /embed/ID, /live/ID → ID */
