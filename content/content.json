@@ -1,6 +1,6 @@
 {
- "version": 14,
- "updatedAt": "2026-11-02T13:08:11.354Z",
+ "version": 15,
+ "updatedAt": "2026-11-02T13:09:40.144Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -170,6 +170,18 @@
     },
     {
      "exId": "custom-lower-back-extension-xaur",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "biceps-dumbbell-alternate-biceps-curl",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "biceps-dumbbell-cross-body-hammer-curl",
      "sets": 3,
      "reps": 12,
      "unit": "reps"
@@ -367,6 +379,24 @@
    "group": "exercises",
    "part": "back",
    "gif": "https://share.google/images/T8euVwZWLHCzaS99c",
+   "cue": ""
+  },
+  {
+   "id": "biceps-dumbbell-alternate-biceps-curl",
+   "name": "Dumbbell Alternate Biceps Curl",
+   "group": "exercises",
+   "part": "arms",
+   "equipment": "dumbbell",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/biceps/dumbbell-alternate-biceps-curl.gif",
+   "cue": ""
+  },
+  {
+   "id": "biceps-dumbbell-cross-body-hammer-curl",
+   "name": "Dumbbell Cross Body Hammer Curl",
+   "group": "exercises",
+   "part": "arms",
+   "equipment": "dumbbell",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/biceps/dumbbell-cross-body-hammer-curl.gif",
    "cue": ""
   }
  ],
