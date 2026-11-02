@@ -1,6 +1,6 @@
 {
- "version": 13,
- "updatedAt": "2026-11-02T13:03:40.919Z",
+ "version": 14,
+ "updatedAt": "2026-11-02T13:08:11.354Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -149,6 +149,34 @@
    ],
    "days": [
     4
+   ]
+  },
+  {
+   "id": "plan-mvz9temo",
+   "title": "Back biceps",
+   "note": "Rest 1–1.5 min between sets.",
+   "moves": [
+    {
+     "exId": "feat-lat-pulldown-pro",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "local-cable-row",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "custom-lower-back-extension-xaur",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    }
+   ],
+   "days": [
+    1
    ]
   }
  ],
@@ -314,6 +342,32 @@
    "gif": "",
    "cue": "",
    "yt": "https://youtube.com/shorts/TSZ7U8re_j0?si=UVgom2-I8Q5CVN0P"
+  },
+  {
+   "id": "feat-lat-pulldown-pro",
+   "name": "Lat pulldown — pro lat bar",
+   "group": "exercises",
+   "part": "back",
+   "equipment": "cable",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/lats/cable-pulldown-pro-lat-bar.gif",
+   "cue": ""
+  },
+  {
+   "id": "local-cable-row",
+   "name": "Seated cable row",
+   "group": "exercises",
+   "part": "back",
+   "equipment": "local",
+   "gif": "media/cable-row.gif",
+   "cue": ""
+  },
+  {
+   "id": "custom-lower-back-extension-xaur",
+   "name": "Lower back extension",
+   "group": "exercises",
+   "part": "back",
+   "gif": "https://share.google/images/T8euVwZWLHCzaS99c",
+   "cue": ""
   }
  ],
  "foods": [
