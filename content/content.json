@@ -1,6 +1,6 @@
 {
  "version": 15,
- "updatedAt": "2026-11-02T13:09:40.144Z",
+ "updatedAt": "2026-11-02T13:11:39.133Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -182,6 +182,12 @@
     },
     {
      "exId": "biceps-dumbbell-cross-body-hammer-curl",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "cardio-walk-elliptical-cross-trainer",
      "sets": 3,
      "reps": 12,
      "unit": "reps"
