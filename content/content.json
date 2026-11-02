@@ -1,6 +1,6 @@
 {
- "version": 15,
- "updatedAt": "2026-11-02T13:11:39.133Z",
+ "version": 16,
+ "updatedAt": "2026-11-02T15:04:12.667Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -172,7 +172,8 @@
      "exId": "custom-lower-back-extension-xaur",
      "sets": 3,
      "reps": 12,
-     "unit": "reps"
+     "unit": "reps",
+     "yt": "https://www.instagram.com/reel/DfJ0sf5Mklq/?psln=dmp2emhpa3Q0c3ly"
     },
     {
      "exId": "biceps-dumbbell-alternate-biceps-curl",
