@@ -1,6 +1,6 @@
 {
- "version": 32,
- "updatedAt": "2026-11-03T19:06:02.223Z",
+ "version": 33,
+ "updatedAt": "2026-11-03T19:14:29.693Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -270,14 +270,20 @@
      "unit": "reps"
     },
     {
-     "exId": "quads-lever-leg-extension",
+     "exId": "glutes-dumbbell-romanian-deadlift",
      "sets": 3,
      "reps": 12,
      "unit": "reps"
     },
     {
-     "exId": "glutes-band-bent-over-hip-extension",
+     "exId": "hamstrings-lever-lying-leg-curl",
      "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "custom-dumbbell-hip-thrust-sjda",
+     "sets": 4,
      "reps": 12,
      "unit": "reps"
     },
@@ -525,24 +531,6 @@
    "cue": ""
   },
   {
-   "id": "quads-lever-leg-extension",
-   "name": "Lever Leg Extension",
-   "group": "exercises",
-   "part": "legs",
-   "equipment": "lever",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/quads/lever-leg-extension.gif",
-   "cue": ""
-  },
-  {
-   "id": "glutes-band-bent-over-hip-extension",
-   "name": "Band Bent Over Hip Extension",
-   "group": "exercises",
-   "part": "legs",
-   "equipment": "band",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/band-bent-over-hip-extension.gif",
-   "cue": ""
-  },
-  {
    "id": "local-cycle-walk",
    "name": "Cycle / treadmill walk",
    "group": "exercises",
@@ -558,6 +546,15 @@
    "part": "cardio",
    "equipment": "bodyweight",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/cardio/stationary-bike-run-v-3.gif",
+   "cue": ""
+  },
+  {
+   "id": "hamstrings-lever-lying-leg-curl",
+   "name": "Lever Lying Leg Curl",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "lever",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/hamstrings/lever-lying-leg-curl.gif",
    "cue": ""
   }
  ],
