@@ -1,6 +1,6 @@
 {
- "version": 35,
- "updatedAt": "2026-11-03T19:15:13.320Z",
+ "version": 36,
+ "updatedAt": "2026-11-03T19:17:16.731Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -84,18 +84,17 @@
      "unit": "reps"
     },
     {
-     "exId": "custom-dumbbell-hip-thrust-sjda",
-     "sets": 4,
-     "reps": 12,
-     "unit": "reps",
-     "yt": "https://youtube.com/shorts/uUuPYcK9SJI?si=sl1VlfNAkWE4FpVC"
-    },
-    {
      "exId": "custom-one-leg-lunges-w0h1",
      "sets": 3,
      "reps": 12,
      "unit": "reps",
      "yt": "https://youtube.com/shorts/JhJDKw-mVKY?si=EA365WIi1okkLrBe"
+    },
+    {
+     "exId": "glutes-band-bent-over-hip-extension",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
     },
     {
      "exId": "glutes-dumbbell-plyo-squat",
@@ -105,17 +104,17 @@
      "yt": "https://youtube.com/shorts/sQ-lwJtpwUc?si=mRTun_-ZCSINOfHJ"
     },
     {
-     "exId": "glutes-dumbbell-romanian-deadlift",
-     "sets": 3,
+     "exId": "custom-dumbbell-hip-thrust-sjda",
+     "sets": 4,
      "reps": 12,
      "unit": "reps",
-     "yt": "https://youtube.com/shorts/CBOhr6H7BEY?si=khmFAzRpaMwB0JHa"
+     "yt": "https://youtube.com/shorts/uUuPYcK9SJI?si=sl1VlfNAkWE4FpVC"
     },
     {
-     "exId": "cardio-walk-elliptical-cross-trainer",
-     "sets": 1,
-     "reps": 15,
-     "unit": "min"
+     "exId": "local-cycle-walk",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
     }
    ],
    "days": [
@@ -555,6 +554,15 @@
    "part": "legs",
    "equipment": "lever",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/hamstrings/lever-lying-leg-curl.gif",
+   "cue": ""
+  },
+  {
+   "id": "glutes-band-bent-over-hip-extension",
+   "name": "Band Bent Over Hip Extension",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "band",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/band-bent-over-hip-extension.gif",
    "cue": ""
   }
  ],
