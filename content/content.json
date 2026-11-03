@@ -1,6 +1,6 @@
 {
- "version": 17,
- "updatedAt": "2026-11-03T10:50:05.330Z",
+ "version": 18,
+ "updatedAt": "2026-11-03T15:21:26.092Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -78,28 +78,38 @@
      "unit": "reps"
     },
     {
-     "exId": "glutes-barbell-speed-squat",
+     "exId": "custom-dumbbell-hip-thrust-sjda",
      "sets": 3,
      "reps": 12,
-     "unit": "reps"
+     "unit": "reps",
+     "yt": "https://youtube.com/shorts/uUuPYcK9SJI?si=sl1VlfNAkWE4FpVC"
     },
     {
-     "exId": "quads-lever-leg-extension",
+     "exId": "custom-one-leg-lunges-w0h1",
      "sets": 3,
      "reps": 12,
-     "unit": "reps"
+     "unit": "reps",
+     "yt": "https://youtube.com/shorts/JhJDKw-mVKY?si=EA365WIi1okkLrBe"
     },
     {
-     "exId": "hamstrings-lever-lying-leg-curl",
+     "exId": "glutes-dumbbell-plyo-squat",
      "sets": 3,
      "reps": 12,
-     "unit": "reps"
+     "unit": "reps",
+     "yt": "https://youtube.com/shorts/sQ-lwJtpwUc?si=mRTun_-ZCSINOfHJ"
+    },
+    {
+     "exId": "glutes-dumbbell-romanian-deadlift",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps",
+     "yt": "https://youtube.com/shorts/CBOhr6H7BEY?si=khmFAzRpaMwB0JHa"
     },
     {
      "exId": "cardio-walk-elliptical-cross-trainer",
-     "sets": 1,
-     "reps": 15,
-     "unit": "min"
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
     }
    ],
    "days": [
@@ -283,33 +293,6 @@
    "cue": ""
   },
   {
-   "id": "glutes-barbell-speed-squat",
-   "name": "Barbell Speed Squat",
-   "group": "exercises",
-   "part": "legs",
-   "equipment": "barbell",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/barbell-speed-squat.gif",
-   "cue": ""
-  },
-  {
-   "id": "quads-lever-leg-extension",
-   "name": "Lever Leg Extension",
-   "group": "exercises",
-   "part": "legs",
-   "equipment": "lever",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/quads/lever-leg-extension.gif",
-   "cue": ""
-  },
-  {
-   "id": "hamstrings-lever-lying-leg-curl",
-   "name": "Lever Lying Leg Curl",
-   "group": "exercises",
-   "part": "legs",
-   "equipment": "lever",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/hamstrings/lever-lying-leg-curl.gif",
-   "cue": ""
-  },
-  {
    "id": "cardio-walk-elliptical-cross-trainer",
    "name": "Walk Elliptical Cross Trainer",
    "group": "exercises",
@@ -405,6 +388,40 @@
    "part": "arms",
    "equipment": "dumbbell",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/biceps/dumbbell-cross-body-hammer-curl.gif",
+   "cue": ""
+  },
+  {
+   "id": "custom-dumbbell-hip-thrust-sjda",
+   "name": "Dumbbell hip thrust",
+   "group": "exercises",
+   "part": "legs",
+   "gif": "media/custom/dumbbell-hip-thrust-mw0trfod.gif",
+   "cue": "Squeeze your glutes at top"
+  },
+  {
+   "id": "custom-one-leg-lunges-w0h1",
+   "name": "One leg lunges",
+   "group": "exercises",
+   "part": "legs",
+   "gif": "",
+   "cue": ""
+  },
+  {
+   "id": "glutes-dumbbell-plyo-squat",
+   "name": "Dumbbell Plyo Squat",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "dumbbell",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/dumbbell-plyo-squat.gif",
+   "cue": ""
+  },
+  {
+   "id": "glutes-dumbbell-romanian-deadlift",
+   "name": "Dumbbell Romanian Deadlift",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "dumbbell",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/dumbbell-romanian-deadlift.gif",
    "cue": ""
   }
  ],
