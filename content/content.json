@@ -1,6 +1,6 @@
 {
- "version": 33,
- "updatedAt": "2026-11-03T19:14:29.693Z",
+ "version": 34,
+ "updatedAt": "2026-11-03T19:15:02.459Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -295,6 +295,7 @@
     }
    ],
    "days": [
+    1,
     5
    ]
   }
