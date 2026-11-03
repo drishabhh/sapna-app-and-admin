@@ -1,6 +1,6 @@
 {
- "version": 16,
- "updatedAt": "2026-11-02T15:04:12.667Z",
+ "version": 17,
+ "updatedAt": "2026-11-03T10:50:05.330Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -28,7 +28,8 @@
      "exId": "pectorals-chest-dip",
      "sets": 3,
      "reps": 12,
-     "unit": "reps"
+     "unit": "reps",
+     "yt": "https://youtube.com/shorts/unUJQehzrGw?si=i_Q7NvvPcHzlML2u"
     },
     {
      "exId": "triceps-cable-overhead-triceps-extension-rope-attachment",
