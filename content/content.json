@@ -1,6 +1,6 @@
 {
- "version": 30,
- "updatedAt": "2026-11-03T18:58:39.129Z",
+ "version": 31,
+ "updatedAt": "2026-11-03T18:59:22.861Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -53,6 +53,12 @@
    "title": "Thick Thighs 1",
    "note": "Rest 1–1.5 min between sets.",
    "moves": [
+    {
+     "exId": "cardio-stationary-bike-run-v-3",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
     {
      "exId": "local-torso-rotations",
      "sets": 1,
@@ -537,6 +543,15 @@
    "part": "cardio",
    "equipment": "local",
    "gif": "media/cycle-walk.gif",
+   "cue": ""
+  },
+  {
+   "id": "cardio-stationary-bike-run-v-3",
+   "name": "Stationary Bike Run v3",
+   "group": "exercises",
+   "part": "cardio",
+   "equipment": "bodyweight",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/cardio/stationary-bike-run-v-3.gif",
    "cue": ""
   }
  ],
