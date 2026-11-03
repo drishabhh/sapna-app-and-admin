@@ -1,6 +1,6 @@
 {
- "version": 31,
- "updatedAt": "2026-11-03T18:59:22.861Z",
+ "version": 32,
+ "updatedAt": "2026-11-03T19:06:02.223Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -221,6 +221,12 @@
    "title": "Thick thighs 2",
    "note": "Rest 1–1.5 min between sets.",
    "moves": [
+    {
+     "exId": "cardio-stationary-bike-run-v-3",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
     {
      "exId": "local-torso-rotations",
      "sets": 1,
