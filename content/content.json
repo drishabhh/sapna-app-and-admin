@@ -1,6 +1,6 @@
 {
- "version": 18,
- "updatedAt": "2026-11-03T15:21:26.092Z",
+ "version": 19,
+ "updatedAt": "2026-11-03T15:22:48.068Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -79,7 +79,7 @@
     },
     {
      "exId": "custom-dumbbell-hip-thrust-sjda",
-     "sets": 3,
+     "sets": 4,
      "reps": 12,
      "unit": "reps",
      "yt": "https://youtube.com/shorts/uUuPYcK9SJI?si=sl1VlfNAkWE4FpVC"
@@ -107,9 +107,9 @@
     },
     {
      "exId": "cardio-walk-elliptical-cross-trainer",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
+     "sets": 1,
+     "reps": 15,
+     "unit": "min"
     }
    ],
    "days": [
