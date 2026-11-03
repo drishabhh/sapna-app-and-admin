@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <application
         android:allowBackup="true"
@@ -59,6 +60,23 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/water_widget_info" />
         </receiver>
+
+        <!-- Notes Rishu schedules for later -->
+        <receiver
+            android:name=".NoteScheduler"
+            android:exported="false" />
+
+        <!-- Our push handler: silent "schedule a note" messages, everything else → the normal push plugin -->
+        <service
+            android:name="com.capacitorjs.plugins.pushnotifications.MessagingService"
+            tools:node="remove" />
+        <service
+            android:name=".SapnaMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
 
         <receiver
             android:name=".StepsReceiver"

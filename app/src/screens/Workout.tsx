@@ -11,6 +11,9 @@ import { FullSheet, Gif, Icon, Seg, Sheet, Stepper, toast } from '../ui';
 import { Doodle } from '../streak';
 import { Num } from '../anim';
 import { YtPlayer } from '../video';
+
+/** 3 × 12 reps · or just “15 min” / “30 sec” for timed moves */
+const doseLabel = (m: PlanMove) => (m.unit === 'min' ? `${m.reps} min` : m.unit === 'sec' ? `${m.reps} sec` : `${m.sets} × ${m.reps} reps`);
 import { useDraft } from '../lib/drafts';
 
 export default function WorkoutScreen({ autoStart, onAutoStartHandled }: { autoStart: boolean; onAutoStartHandled: () => void }) {
@@ -230,7 +233,7 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
               </div>
             ) : null}
             <h1 className="h1" style={{ fontSize: 30, textAlign: 'center', marginTop: 6 }}>{ex.name}</h1>
-            <p className="muted" style={{ textAlign: 'center', fontWeight: 600 }}>{move.sets} × {move.reps} {move.unit === 'min' ? 'min' : move.unit === 'sec' ? 'sec' : 'reps'}</p>
+            <p className="muted" style={{ textAlign: 'center', fontWeight: 600 }}>{doseLabel(move)}</p>
             {yt ? (
               <a className="btn ghost sm yt-btn" href={yt} target="_blank" rel="noopener noreferrer" style={{ alignSelf: 'center' }}>
                 <Icon name="video" size={20} /> {/instagram\.com/i.test(yt) ? 'Open in Instagram' : 'Open in YouTube app'}
@@ -267,7 +270,7 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
             )}
             <div className="between">
               <button type="button" className="btn quiet" disabled={idx === 0} onClick={() => setIdx(idx - 1)}>Previous</button>
-              {isDone ? <button type="button" className="btn quiet" onClick={uncomplete}>Undo</button> : !isStretch ? <button type="button" className="btn quiet" onClick={() => setLogOpen((v) => !v)}>{logOpen ? 'Hide weights' : 'Log weight'}</button> : null}
+              {isDone ? <button type="button" className="btn quiet" onClick={uncomplete}>Undo</button> : !isStretch && move.unit !== 'min' && move.unit !== 'sec' ? <button type="button" className="btn quiet" onClick={() => setLogOpen((v) => !v)}>{logOpen ? 'Hide weights' : 'Log weight'}</button> : null}
               <button type="button" className="btn quiet" disabled={idx >= moves.length - 1} onClick={() => setIdx(idx + 1)}>Skip</button>
             </div>
           </div>
@@ -284,7 +287,7 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
                 <span className={`move-num${dn ? ' done' : i === idx ? ' now' : ''}`}>{dn ? <Icon name="check" size={14} stroke={3} /> : i + 1}</span>
                 <span style={{ flex: 1, minWidth: 0 }} className="stack">
                   <strong style={{ fontSize: 16 }}>{e?.name}</strong>
-                  <span className="small muted">{m.sets} × {m.reps} {m.unit === 'min' ? 'min' : m.unit === 'sec' ? 'sec' : 'reps'}{e?.group === 'stretching' ? ' · stretch' : ''}</span>
+                  <span className="small muted">{doseLabel(m)}{e?.group === 'stretching' ? ' · stretch' : ''}</span>
                 </span>
                 {i === idx ? <span className="pill">Now</span> : null}
               </button>

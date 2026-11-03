@@ -47,7 +47,11 @@ public class WaterWidgetProvider extends AppWidgetProvider {
     @Override
     public void onReceive(Context ctx, Intent intent) {
         super.onReceive(ctx, intent);
-        if (ACTION_DRINK.equals(intent.getAction())) drinkNow(ctx);
+        String a = intent.getAction();
+        if (ACTION_DRINK.equals(a)) { drinkNow(ctx); WaterReminder.scheduleNext(ctx); }
+        else if (WaterReminder.ACTION_FIRE.equals(a)) WaterReminder.fire(ctx);
+        else if (WaterReminder.ACTION_DRINK.equals(a)) WaterReminder.drinkFromNotification(ctx);
+        else if (WaterReminder.ACTION_LATER.equals(a)) WaterReminder.snooze(ctx, 30);
     }
 
     static String todayKey() {
@@ -67,6 +71,7 @@ public class WaterWidgetProvider extends AppWidgetProvider {
             if (!todayKey().equals(j.optString("date", ""))) {
                 j.put("date", todayKey());
                 j.put("ml", 0);
+                j.put("last", 0);
                 j.put("goal", j.optInt("base", 2000));
             }
         } catch (Exception ignored) {}
@@ -86,6 +91,7 @@ public class WaterWidgetProvider extends AppWidgetProvider {
         int before = j.optInt("ml", 0);
         try {
             j.put("ml", before + cup);
+            j.put("last", now);
             JSONArray pend = new JSONArray(p.getString(PENDING, "[]"));
             JSONObject d = new JSONObject();
             d.put("at", now);

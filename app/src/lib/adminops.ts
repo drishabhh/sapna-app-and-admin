@@ -1,6 +1,7 @@
 import { AppData, CycleDay, Food, FoodEntry, Meal, Profile, Reminders } from './types';
 import { fetchAdminOps } from './sync';
 import { setGlassesOn } from './water';
+import { cancelNote, scheduleNote } from './notes';
 
 /**
  * Edits Rishu makes on the admin page arrive here as a list of small, validated operations.
@@ -86,6 +87,14 @@ function applyOne(d: AppData, op: AdminOp): AppData | null {
       const id = str(op.foodId, 80); if (!id) return null;
       return { ...d, customFoods: d.customFoods.filter((x) => x.id !== id) };
     }
+    // Notes for later live on the phone natively (see syncAdminOps); the data itself doesn't change.
+    case 'note.schedule': {
+      const n = (op.note || {}) as Record<string, unknown>;
+      if (!str(n.id, 60) || !str(n.body, 400) || num(n.at, 0, 9e15) === null) return null;
+      return d;
+    }
+    case 'note.cancel':
+      return str(op.noteId, 60) ? d : null;
     case 'cycle.set': {
       if (!isDate(op.date)) return null;
       const cyc = { ...d.cycle };
@@ -122,7 +131,13 @@ export async function syncAdminOps(get: () => AppData, update: (fn: (d: AppData)
     const seen = new Set(get().adminApplied || []);
     if (ops.every((o) => seen.has(String(o.id)))) return 0;
     let n = 0;
-    update((d) => { const r = applyAdminOps(d, ops as AdminOp[]); n = r.applied.length; return r.data; });
+    let notes: AdminOp[] = [];
+    update((d) => { const r = applyAdminOps(d, ops as AdminOp[]); notes = r.applied.filter((o) => o.kind.startsWith('note.')); n = r.applied.length - notes.length; return r.data; });
+    await new Promise((r) => setTimeout(r, 0));
+    for (const o of notes) {
+      if (o.kind === 'note.schedule') { const x = o.note as { id: string; at: number; title?: string; body: string }; await scheduleNote({ id: x.id, at: x.at, title: x.title || 'Rishu 💌', body: x.body }); }
+      else await cancelNote(String(o.noteId));
+    }
     return n;
   } finally {
     busy = false;

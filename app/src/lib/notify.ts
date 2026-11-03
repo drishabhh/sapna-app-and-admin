@@ -165,7 +165,8 @@ export function planReminders(d: AppData, now = new Date()): N[] {
       const p = punchFor(day, name);
       push(n * 100 + 1, at(day, ph || 7, isNaN(pm) ? 10 : pm), { channelId: CH_PUNCH, title: p.title, body: p.body, largeBody: p.body, largeIcon: 'doodle_' + p.doodle, summaryText: 'Sapna Health' } as Partial<N>);
     }
-    if (rem.water) {
+    if (rem.water && !Capacitor.isNativePlatform()) {
+      // (On the phone, water nudges are native — WaterReminder.java — so "+ 250 ml" logs without opening the app.)
       // Smart: only inside her hours, counted from her last drink, nothing more once today's goal is hit.
       const c = targets as Content;
       const left = i === 0 ? Math.max(0, goalOn(d, c, day).ml - mlOn(d, day)) : 0;
@@ -236,7 +237,7 @@ export async function syncReminders(d: AppData, opts: { ask?: boolean } = {}): P
     }
     try {
       const cup = waterPrefs(d.reminders).cup;
-      await LocalNotifications.registerActionTypes({ types: [{ id: WATER_ACTIONS, actions: [{ id: 'drink', title: `+${cup} ml 💧` }, { id: 'later', title: 'In 30 min' }] }] });
+      if (!Capacitor.isNativePlatform()) await LocalNotifications.registerActionTypes({ types: [{ id: WATER_ACTIONS, actions: [{ id: 'drink', title: `+${cup} ml 💧` }, { id: 'later', title: 'In 30 min' }] }] });
     } catch {
       /* older Android: plain notification still works */
     }

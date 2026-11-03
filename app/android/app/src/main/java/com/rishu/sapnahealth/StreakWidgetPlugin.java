@@ -46,14 +46,37 @@ public class StreakWidgetPlugin extends Plugin {
     @PluginMethod
     public void updateWater(PluginCall call) {
         String json = call.getString("json");
-        if (json == null || json.length() > 5000) {
+        if (json == null || json.length() > 20000) {
             call.reject("bad payload");
             return;
         }
         Context ctx = getContext();
-        ctx.getSharedPreferences(WaterWidgetProvider.PREFS, Context.MODE_PRIVATE).edit().putString(WaterWidgetProvider.KEY, json).apply();
+        ctx.getSharedPreferences(WaterWidgetProvider.PREFS, Context.MODE_PRIVATE).edit().putString(WaterWidgetProvider.KEY, json).commit();
         Widgets.refreshAll(ctx);
+        WaterReminder.scheduleNext(ctx);
         call.resolve();
+    }
+
+    /** A note Rishu scheduled (backup route through the encrypted sync — the push route lands in the same place). */
+    @PluginMethod
+    public void scheduleNote(PluginCall call) {
+        Double at = call.getDouble("at");
+        NoteScheduler.schedule(getContext(), call.getString("id"), at == null ? 0 : at.longValue(), call.getString("title"), call.getString("body"));
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void cancelNote(PluginCall call) {
+        NoteScheduler.cancel(getContext(), call.getString("id"));
+        call.resolve();
+    }
+
+    /** Upcoming and recently shown notes, for Rishu's dashboard. */
+    @PluginMethod
+    public void listNotes(PluginCall call) {
+        JSObject ret = new JSObject();
+        try { ret.put("notes", new JSArray(NoteScheduler.notes(getContext()).toString())); } catch (Exception e) { ret.put("notes", new JSArray()); }
+        call.resolve(ret);
     }
 
     /** Drinks she logged from the widget while the app was closed — handed over once, then cleared. */

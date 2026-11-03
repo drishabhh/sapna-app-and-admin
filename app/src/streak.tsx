@@ -2,7 +2,8 @@ import { Capacitor, registerPlugin } from '@capacitor/core';
 import { addDays, DOW_LETTER, dow, today } from './lib/dates';
 import { workoutDays } from './lib/workoutStreak';
 import type { AppData, Content } from './lib/types';
-import { GLASS_ML, goalOn, mlOn, waterPrefs } from './lib/water';
+import { drinksOf, GLASS_ML, goalOn, mlOn, waterPrefs } from './lib/water';
+import { WATER_LINES } from './lib/notify';
 import { StreakInfo } from './lib/calc';
 import type { DoodleName } from './lib/mood';
 import { Icon } from './ui';
@@ -100,7 +101,10 @@ export function syncWaterWidget(d: AppData, c: Content) {
   if (!Capacitor.isNativePlatform()) return;
   const t = today();
   const p = waterPrefs(d.reminders);
-  const payload = JSON.stringify({ v: 1, date: t, ml: mlOn(d, t), goal: goalOn(d, c, t).ml, base: Math.max(1, c.targets.water || 8) * GLASS_ML, cup: p.cup, from: p.from, to: p.to, name: d.profile.name || 'Sapna' });
+  const last = Math.max(0, ...drinksOf(d, t).map((x) => x.at));
+  // Also drives the native water nudges ("+ 250 ml" on the notification logs without opening the app).
+  const payload = JSON.stringify({ v: 2, date: t, ml: mlOn(d, t), goal: goalOn(d, c, t).ml, base: Math.max(1, c.targets.water || 8) * GLASS_ML, cup: p.cup, from: p.from, to: p.to, name: d.profile.name || 'Sapna',
+    enabled: !!d.reminders.water, every: p.every, last, lines: WATER_LINES });
   if (payload === lastWater) return;
   lastWater = payload;
   StreakWidget.updateWater({ json: payload }).catch(() => {});

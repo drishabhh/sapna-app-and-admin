@@ -628,18 +628,21 @@ async function fcmDirect(sa, msg) {
 }
 
 /** Returns 'instant' | 'queued'. Throws with a readable message. */
-async function sendPush(title, body, data = {}) {
+async function sendPush(title, body, data = {}, opts = {}) {
   const p = herPush();
   if (!p) throw new Error('Her phone hasn’t registered for notifications yet — she needs app 1.7 and to open it once with live sync on.');
   const strData = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, String(v)]));
   const sa = fcmSa();
   if (sa) {
     try {
-      await fcmDirect(sa, { message: { token: p.token, notification: { title, body }, data: strData, android: { priority: 'HIGH', notification: { channel_id: 'rishu', icon: 'ic_stat_sapna', color: '#FF7A59', sound: 'default' } } } });
+      const message = opts.dataOnly
+        ? { token: p.token, data: strData, android: { priority: 'HIGH' } }
+        : { token: p.token, notification: { title, body }, data: strData, android: { priority: 'HIGH', notification: { channel_id: 'rishu', icon: 'ic_stat_sapna', color: '#FF7A59', sound: 'default' } } };
+      await fcmDirect(sa, { message });
       return 'instant';
     } catch (e) { console.warn('Instant push failed, using GitHub route:', e.message); }
   }
-  await gh('dispatches', { method: 'POST', body: JSON.stringify({ event_type: 'sapna-push', client_payload: { token: p.token, title, body, data: strData } }) });
+  await gh('dispatches', { method: 'POST', body: JSON.stringify({ event_type: 'sapna-push', client_payload: { token: p.token, title, body, data: strData, ...(opts.dataOnly ? { dataOnly: true } : {}) } }) });
   return 'queued';
 }
 const sentMsg = (how) => (how === 'instant' ? 'Sent — she has it now' : 'Sent — reaches her phone in ~20 s');
@@ -658,11 +661,40 @@ async function notifyPublished(c) {
 function vPushCard() {
   const p = herPush();
   const seen = p && p.seen && p.seen.at ? `Last opened ${new Date(p.seen.at).toLocaleString('en-IN', { weekday: 'short', hour: 'numeric', minute: '2-digit' })}${p.seen.title ? ' — “' + esc(p.seen.title) + '”' : ''}` : '';
+  const notes = noteList();
+  const whenLbl = (t) => { const d = new Date(t); const k = dkey(d), td = dkey(new Date()); const day = k === td ? 'Today' : k === dadd(td, 1) ? 'Tomorrow' : d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' }); return `${day}, ${d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })}`; };
+  const quick = noteQuickTimes();
   return `<div class="card stack" id="pushcard"><div class="between"><h2>Send her a note</h2><span class="pill">${p ? 'Notifications on' : 'Not set up yet'}</span></div>
-    ${p ? `<textarea class="input" id="pnote" maxlength="180" placeholder="e.g. Proud of you — don’t skip leg day 😄"></textarea>
-      <div class="row wrapr"><button class="btn sm" type="button" id="psend">Send to her phone</button><span class="small muted">${seen}</span></div>`
+    ${p ? `<textarea class="input" id="pnote" maxlength="180" placeholder="e.g. Proud of you — don’t skip leg day 😄">${esc(S.noteDraft || '')}</textarea>
+      <div class="row wrapr"><button class="btn sm" type="button" id="psend">Send now</button><button class="btn ghost sm" type="button" id="plater" aria-pressed="${!!S.noteLater}">⏰ Schedule for later</button><span class="small muted">${seen}</span></div>
+      ${S.noteLater ? `<div class="stack" style="gap:8px;border-top:1px solid var(--line);padding-top:10px">
+        <div class="chips">${quick.map(([l, t]) => `<button class="chip" type="button" data-pwhen="${t}" aria-pressed="${S.noteAt && Math.abs(new Date(S.noteAt).getTime() - t) < 60000}">${l}</button>`).join('')}</div>
+        <label class="f">Or pick a time<input class="input" id="pat" type="datetime-local" value="${esc(S.noteAt || '')}"></label>
+        <button class="btn" type="button" id="psched">Schedule note</button>
+        <p class="small muted">Shows on her phone at that time, even with the app closed (needs her app 1.7.7+).</p></div>` : ''}
+      ${notes.length ? `<div class="stack" style="gap:6px;border-top:1px solid var(--line);padding-top:10px"><p class="eyebrow">Scheduled</p>${notes.map((n) => `<div class="between small" style="align-items:flex-start"><span style="min-width:0"><b>${esc(whenLbl(n.at))}</b> <span class="${n.status === 'shown' ? 'ok' : 'muted'}">${n.status === 'shown' ? '✓ shown' : n.status === 'onphone' ? '✓ set on her phone' : '⏳ waiting for her phone'}</span><span class="muted" style="display:block">${esc(n.body)}</span></span>${n.status !== 'shown' ? `<button class="btn ghost sm" type="button" data-ncancel="${esc(n.id)}">Cancel</button>` : ''}</div>`).join('')}</div>` : ''}`
       : `<p class="small muted">Once she installs app 1.7 and opens it with live sync on, you can ping her here — and every Publish tells her automatically.</p>`}
   </div>`;
+}
+const toLocalInput = (t) => { const d = new Date(t); return `${dkey(d)}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
+function noteQuickTimes() {
+  const now = new Date(); const at = (dayOff, h, m = 0) => { const d = new Date(now); d.setDate(d.getDate() + dayOff); d.setHours(h, m, 0, 0); return d.getTime(); };
+  const inHour = new Date(Math.ceil((Date.now() + 3600000) / 900000) * 900000).getTime();
+  const out = [['In 1 hour', inHour]];
+  if (now.getHours() < 20) out.push(['Tonight 9 pm', at(0, 21)]);
+  out.push(['Tomorrow 7 am', at(1, 7)], ['Tomorrow 6 pm', at(1, 18)]);
+  return out;
+}
+/** Scheduled notes: what her phone reports + what's still on its way. */
+function noteList() {
+  const r = S.syncReport; const phone = (r && Array.isArray(r.notes)) ? r.notes : [];
+  const pend = pendingOps();
+  const cancelled = new Set(pend.filter((o) => o.kind === 'note.cancel').map((o) => o.noteId));
+  const m = new Map();
+  pend.filter((o) => o.kind === 'note.schedule').forEach((o) => m.set(o.note.id, { ...o.note, status: 'waiting' }));
+  phone.forEach((n) => m.set(n.id, { ...n, status: n.fired ? 'shown' : 'onphone' }));
+  const dayAgo = Date.now() - 86400000;
+  return [...m.values()].filter((n) => !cancelled.has(n.id) && (n.status !== 'shown' || (n.shownAt || n.at) > dayAgo)).sort((a, b) => a.at - b.at);
 }
 
 /* --- Edit her data from here (two-way) ---
@@ -764,6 +796,8 @@ function opLabel(op) {
     case 'reminders.patch': return 'Update her reminders';
     case 'customFood.upsert': return `Save “${esc(op.food.name)}” to her foods`;
     case 'customFood.delete': return `Remove “${esc(op.name || '')}” from her foods`;
+    case 'note.schedule': return `Note for ${esc(new Date(op.note.at).toLocaleString('en-IN', { weekday: 'short', hour: 'numeric', minute: '2-digit' }))}`;
+    case 'note.cancel': return 'Cancel a scheduled note';
     default: return esc(op.kind);
   }
 }
@@ -1125,14 +1159,37 @@ function wireShared() {
       .then((r) => { S.syncExists = r.ok; if (r.ok && (S.tab === 'day' || S.tab === 'settings')) render(); }).catch(() => { S.syncExists = false; });
   }
   document.querySelectorAll('[data-link]').forEach((b) => (b.onclick = showLink));
+  const pn = $('#pnote'); if (pn) pn.oninput = () => { S.noteDraft = pn.value; };
   const ps = $('#psend');
   if (ps) ps.onclick = async () => {
     const msg = $('#pnote').value.trim(); if (!msg) return toast('Write something first');
     ps.disabled = true; ps.textContent = 'Sending…';
-    try { toast(sentMsg(await sendPush('Rishu 💌', msg, { kind: 'note', tab: 'today' }))); $('#pnote').value = ''; }
+    try { toast(sentMsg(await sendPush('Rishu 💌', msg, { kind: 'note', tab: 'today' }))); $('#pnote').value = ''; S.noteDraft = ''; }
     catch (e) { toastLong(e.message); }
-    ps.disabled = false; ps.textContent = 'Send to her phone';
+    ps.disabled = false; ps.textContent = 'Send now';
   };
+  const pl = $('#plater'); if (pl) pl.onclick = () => { S.noteLater = !S.noteLater; if (S.noteLater && !S.noteAt) S.noteAt = toLocalInput(noteQuickTimes()[0][1]); const y = scrollY; render(); scrollTo(0, y); };
+  document.querySelectorAll('[data-pwhen]').forEach((b) => (b.onclick = () => { S.noteAt = toLocalInput(+b.dataset.pwhen); const y = scrollY; render(); scrollTo(0, y); }));
+  const pat = $('#pat'); if (pat) pat.onchange = () => { S.noteAt = pat.value; };
+  const psc = $('#psched');
+  if (psc) psc.onclick = async () => {
+    const msg = ($('#pnote').value || '').trim(); if (!msg) return toast('Write the note first');
+    const at = new Date($('#pat').value).getTime();
+    if (!at || at < Date.now() + 60000) return toast('Pick a time at least a minute from now');
+    const note = { id: 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), at, title: 'Rishu 💌', body: msg.slice(0, 400) };
+    psc.disabled = true; psc.textContent = 'Scheduling…';
+    // 1) silent push: her phone sets the alarm right away, app open or not  2) encrypted sync: backup if the push is lost
+    try { await sendPush('', '', { kind: 'schedule', id: note.id, at: note.at, title: note.title, body: note.body }, { dataOnly: true }); } catch { /* the sync route still delivers it */ }
+    S.noteDraft = ''; S.noteLater = false; S.noteAt = '';
+    await queueOps([{ kind: 'note.schedule', note }], `Scheduled — she gets it ${new Date(at).toLocaleString('en-IN', { weekday: 'short', hour: 'numeric', minute: '2-digit' })}`);
+  };
+  document.querySelectorAll('[data-ncancel]').forEach((b) => (b.onclick = async () => {
+    const id = b.dataset.ncancel; if (!confirm('Cancel this scheduled note?')) return;
+    b.disabled = true;
+    try { await sendPush('', '', { kind: 'unschedule', id }, { dataOnly: true }); } catch { /* sync route below */ }
+    S.remoteOps = (S.remoteOps || []).filter((o) => !(o.kind === 'note.schedule' && o.note && o.note.id === id));
+    await queueOps([{ kind: 'note.cancel', noteId: id }], 'Note cancelled');
+  }));
   const refresh = async () => { await fetchSync(); if (LIVE_TABS.includes(S.tab)) { const y = scrollY; render(); scrollTo(0, y); } };
   if (c && LIVE_TABS.includes(S.tab) && S.sync.status !== 'loading' && (!S.sync.fetchedAt || Date.now() - S.sync.fetchedAt > 60000)) refresh();
   [$('#srefresh'), $('#sretry')].forEach((rb) => { if (rb) rb.onclick = () => { S.sync.fetchedAt = 0; rb.disabled = true; rb.innerHTML = rb.id === 'srefresh' ? '<span class="spin"></span>' : 'Checking…'; refresh(); }; });
@@ -1222,10 +1279,13 @@ function vWorkouts() {
       <div class="f">Show this plan on<div class="chips" style="margin-top:6px">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d, i) => `<button class="chip" type="button" data-day="${i}" aria-pressed="${(p.days || []).includes(i)}">${d}</button>`).join('')}</div><span class="small muted">No day picked = it rotates with your other undated plans on her gym days.</span></div>
       <label class="f">Note for Sapna<textarea class="input" id="pn">${esc(p.note || '')}</textarea></label>
       <div class="between"><h2>Moves (${p.moves.length})</h2><button class="btn sm" type="button" id="add">+ Add from library</button></div>
-      <div class="stack" style="gap:8px">${p.moves.map((m, i) => { const e = exOf(m.exId) || { name: m.exId, gif: '' }; return `<div class="move">
+      <div class="stack" style="gap:8px">${p.moves.map((m, i) => { const e = exOf(m.exId) || { name: m.exId, gif: '' }; const cat = moveCat(m); const head = i === 0 || moveCat(p.moves[i - 1]) !== cat ? `<p class="eyebrow" style="margin:${i ? '10px' : '0'} 0 0">${CAT_LABEL[cat]}</p>` : ''; return `${head}<div class="move">
         ${e.gif ? `<img src="${esc(gif(e.gif))}" alt="" loading="lazy">` : `<span class="noimg" aria-hidden="true">${m.yt || e.yt ? '▶' : '🏋️'}</span>`}<div style="min-width:0"><strong style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.name)}</strong><span class="small muted">${e.group === 'stretching' ? 'Stretching' : 'Exercise'}</span></div>
         <div class="row" style="gap:4px"><button class="ib" type="button" data-up="${i}" aria-label="Move up">↑</button><button class="ib" type="button" data-down="${i}" aria-label="Move down">↓</button><button class="ib" type="button" data-del="${i}" aria-label="Remove ${esc(e.name)}">✕</button></div>
-        <div class="nums"><label class="f">Sets<input class="input" inputmode="numeric" data-f="sets" data-i="${i}" value="${m.sets}"></label><label class="f">Reps<input class="input" inputmode="numeric" data-f="reps" data-i="${i}" value="${m.reps}"></label><label class="f">Unit<select class="input" data-f="unit" data-i="${i}">${['reps', 'min', 'sec'].map((u) => `<option ${(m.unit || 'reps') === u ? 'selected' : ''}>${u}</option>`).join('')}</select></label><label class="f">Start kg<input class="input" inputmode="decimal" data-f="kg" data-i="${i}" value="${m.kg ?? ''}" placeholder="—"></label></div>
+        ${(() => { const unitSel = `<label class="f">Unit<select class="input" data-f="unit" data-i="${i}">${[['reps', 'reps'], ['min', 'minutes'], ['sec', 'seconds']].map(([u, l]) => `<option value="${u}" ${(m.unit || 'reps') === u ? 'selected' : ''}>${l}</option>`).join('')}</select></label>`;
+          return isTimed(m)
+            ? `<div class="nums" style="grid-template-columns:repeat(2,minmax(0,1fr))">${unitSel}<label class="f">${m.unit === 'min' ? 'Minutes' : 'Seconds'}<input class="input" inputmode="numeric" data-f="reps" data-i="${i}" value="${m.reps}"></label></div>`
+            : `<div class="nums">${unitSel}<label class="f">Sets<input class="input" inputmode="numeric" data-f="sets" data-i="${i}" value="${m.sets}"></label><label class="f">Reps<input class="input" inputmode="numeric" data-f="reps" data-i="${i}" value="${m.reps}"></label><label class="f">Start kg<input class="input" inputmode="decimal" data-f="kg" data-i="${i}" value="${m.kg ?? ''}" placeholder="—"></label></div>`; })()}
         <label class="f yt">▶ How-to video — YouTube or Instagram reel<input class="input" inputmode="url" data-f="yt" data-i="${i}" value="${esc(m.yt || e.yt || '')}" placeholder="https://youtu.be/…  or  https://instagram.com/reel/…"></label>
         ${!e.gif || String(e.id).startsWith('custom-') ? `<label class="btn ghost sm" style="cursor:pointer;grid-column:1/-1;justify-self:start">${e.gif ? 'Change GIF' : '⬆ Upload GIF'}<input type="file" accept="image/gif,image/*" class="sr" data-gifup="${i}"></label>` : ''}
       </div>`; }).join('') || '<p class="muted">No moves yet — add some from the library.</p>'}</div>
@@ -1257,7 +1317,7 @@ function vPicker() {
     .slice(0, 60);
   return `<div class="modal" id="pk"><div class="sheet stack" role="dialog" aria-label="Exercise library">
     <div class="between"><h2>Add a move</h2><button class="ib" type="button" id="pkClose" aria-label="Close">✕</button></div>
-    <div class="chips">${['exercises', 'stretching'].map((g) => `<button class="chip" type="button" data-g="${g}" aria-pressed="${S.libGroup === g}">${g === 'exercises' ? 'Exercises' : 'Stretching'}</button>`).join('')}</div>
+    <div class="chips">${['stretching', 'exercises'].map((g) => `<button class="chip" type="button" data-g="${g}" aria-pressed="${S.libGroup === g}">${g === 'exercises' ? 'Exercises' : 'Stretching'}</button>`).join('')}</div>
     <div class="chips">${parts.map((p) => `<button class="chip" type="button" data-p="${p}" aria-pressed="${S.libPart === p}">${p === 'all' ? 'All' : p[0].toUpperCase() + p.slice(1)}</button>`).join('')}</div>
     <input class="input" id="libq" type="search" placeholder="Search ${lib.length.toLocaleString()} moves — e.g. squat, curl, plank" value="${esc(S.libQ)}">
     <div class="grid">${pool.map((g) => `<button class="ex" type="button" data-pick="${esc(g.id)}">${g.gif ? `<img src="${esc(gif(g.gif))}" alt="" loading="lazy">` : `<span class="ph" style="display:grid;place-items:center;font-size:28px;color:var(--acc)">${g.yt ? '▶' : '🏋️'}</span>`}<span class="t">${esc(g.name)}${g.equipment ? `<span class="small muted" style="display:block;font-weight:500">${esc(g.equipment)}</span>` : ''}</span></button>`).join('') || '<p class="muted">No matches.</p>'}</div>
@@ -1292,16 +1352,30 @@ async function uploadGif(file, base) {
 }
 /** Older plans: a YouTube link saved as the GIF → move it to the how-to video. */
 function healExercises(c) { let n = 0; (c.exercises || []).forEach((e) => { if (isVideo(e.gif)) { if (!e.yt) e.yt = e.gif; e.gif = ''; n++; } }); return n; }
+/** Order in a plan: warm-up stretches first, then exercises, cardio always last. */
+const moveCat = (m) => { const e = exOf(m.exId); return e && e.group === 'stretching' ? 0 : e && e.part === 'cardio' ? 2 : 1; };
+const CAT_LABEL = ['Warm-up stretches', 'Exercises', 'Cardio'];
+function orderMoves(p) {
+  const before = p.moves.map((m) => m.exId).join();
+  p.moves = p.moves.map((m, i) => ({ m, i })).sort((a, b) => moveCat(a.m) - moveCat(b.m) || a.i - b.i).map((x) => x.m);
+  return before !== p.moves.map((m) => m.exId).join();
+}
+const isTimed = (m) => m.unit === 'min' || m.unit === 'sec';
 function addExerciseToPlan(ex) {
   const c = S.content; const p = c.plans[S.editing];
   if (!c.exercises.some((e) => e.id === ex.id)) c.exercises.push({ id: ex.id, name: ex.name, group: ex.group, part: ex.part, equipment: ex.equipment, gif: ex.gif, cue: ex.cue || '', ...(ex.yt ? { yt: ex.yt } : {}) });
-  const st = ex.group === 'stretching';
-  p.moves.push({ exId: ex.id, sets: st ? 1 : 3, reps: st ? 10 : 12, unit: 'reps' });
-  markDirty(); toast(`${ex.name} added`);
+  const st = ex.group === 'stretching', cardio = ex.part === 'cardio';
+  p.moves.push(cardio ? { exId: ex.id, sets: 1, reps: 15, unit: 'min' } : { exId: ex.id, sets: st ? 1 : 3, reps: st ? 10 : 12, unit: 'reps' });
+  orderMoves(p);
+  markDirty(); toast(`${ex.name} added${st ? ' to the warm-up' : cardio ? ' at the end' : ''}`);
 }
 function wireWorkouts() {
   const c = S.content;
-  document.querySelectorAll('[data-edit]').forEach((b) => (b.onclick = () => { S.editing = +b.dataset.edit; render(); scrollTo(0, 0); }));
+  document.querySelectorAll('[data-edit]').forEach((b) => (b.onclick = () => {
+    S.editing = +b.dataset.edit;
+    if (orderMoves(c.plans[S.editing])) { markDirty(); toast('Tidied: stretches first, cardio last — Publish to save'); }
+    render(); scrollTo(0, 0);
+  }));
   const np = $('#newplan'); if (np) np.onclick = () => { c.plans.push({ id: 'plan-' + Date.now().toString(36), title: 'New plan', note: 'Rest 1–1.5 min between sets.', moves: [] }); S.editing = c.plans.length - 1; markDirty(); render(); };
   if (S.editing == null) return;
   const p = c.plans[S.editing];
@@ -1319,7 +1393,12 @@ function wireWorkouts() {
   document.querySelectorAll('[data-f]').forEach((el) => (el.oninput = el.onchange = () => {
     const m = p.moves[+el.dataset.i]; const f = el.dataset.f; const v = el.value.trim();
     if (f === 'yt') { const u = fixUrl(v); if (!u) delete m.yt; else if (isVideo(u)) { m.yt = u; el.style.borderColor = ''; } else { el.style.borderColor = 'var(--danger)'; return; } }
-    else if (f === 'unit') m.unit = v; else if (f === 'kg') { if (v === '') delete m.kg; else m.kg = Number(v) || 0; } else m[f] = Math.max(1, parseInt(v) || 1);
+    else if (f === 'unit') {
+      const wasTimed = isTimed(m); m.unit = v;
+      if (isTimed(m)) { m.sets = 1; delete m.kg; if (!wasTimed || m.reps > (v === 'min' ? 180 : 900)) m.reps = v === 'min' ? (moveCat(m) === 2 ? 15 : 5) : 30; }
+      else if (wasTimed) { const st = moveCat(m) === 0; m.sets = st ? 1 : 3; m.reps = st ? 10 : 12; }
+      markDirty(); const y = scrollY; render(); scrollTo(0, y); return;
+    } else if (f === 'kg') { if (v === '') delete m.kg; else m.kg = Number(v) || 0; } else m[f] = Math.max(1, parseInt(v) || 1);
     markDirty();
   }));
   document.querySelectorAll('[data-gifup]').forEach((inp) => (inp.onchange = async () => {
@@ -1329,12 +1408,12 @@ function wireWorkouts() {
     try { ex.gif = await uploadGif(f, ex.name); markDirty(); render(); toast('GIF uploaded — Publish to send it to her'); }
     catch (e) { toastLong('Upload failed: ' + e.message); }
   }));
-  const mv = (i, d) => { const j = i + d; if (j < 0 || j >= p.moves.length) return; [p.moves[i], p.moves[j]] = [p.moves[j], p.moves[i]]; markDirty(); render(); };
+  const mv = (i, d) => { const j = i + d; if (j < 0 || j >= p.moves.length) return; if (moveCat(p.moves[i]) !== moveCat(p.moves[j])) return toast('Stretches stay first and cardio stays last'); [p.moves[i], p.moves[j]] = [p.moves[j], p.moves[i]]; markDirty(); render(); };
   document.querySelectorAll('[data-up]').forEach((b) => (b.onclick = () => mv(+b.dataset.up, -1)));
   document.querySelectorAll('[data-down]').forEach((b) => (b.onclick = () => mv(+b.dataset.down, 1)));
   document.querySelectorAll('[data-del]').forEach((b) => (b.onclick = () => { p.moves.splice(+b.dataset.del, 1); markDirty(); render(); }));
   $('#delplan').onclick = () => { if (confirm(`Delete “${p.title}”?`)) { c.plans.splice(S.editing, 1); S.editing = null; markDirty(); render(); } };
-  $('#add').onclick = async () => { S.picker = true; render(); await loadLib(); if (S.picker) render(); };
+  $('#add').onclick = async () => { S.libGroup = p.moves.some((m) => moveCat(m) === 0) ? 'exercises' : 'stretching'; S.picker = true; render(); await loadLib(); if (S.picker) render(); };
   if (!S.picker) return;
   $('#pkClose').onclick = () => { S.picker = null; render(); };
   $('#pk').onclick = (e) => { if (e.target.id === 'pk') { S.picker = null; render(); } };

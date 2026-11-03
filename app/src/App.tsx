@@ -28,6 +28,7 @@ import { pushReport, SYNC_EVERY_DEFAULT, useSyncCfg } from './lib/sync';
 import { syncAdminOps } from './lib/adminops';
 import { PullToRefresh } from './pull';
 import { initPush } from './lib/push';
+import { refreshNotes } from './lib/notes';
 import { buildReport } from './lib/native';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
@@ -132,8 +133,8 @@ function Shell() {
       const total = list.reduce((s, x) => s + x.ml, 0);
       toast(`${list.length === 1 ? 'Glass' : list.length + ' glasses'} from your widget added (+${total} ml)`);
     };
-    pull();
-    const sub = CapApp.addListener('appStateChange', ({ isActive }) => { if (isActive) pull(); });
+    pull(); refreshNotes();
+    const sub = CapApp.addListener('appStateChange', ({ isActive }) => { if (isActive) { pull(); refreshNotes(); } });
     return () => { sub.then((x) => x.remove()).catch(() => {}); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, data.onboarded]);

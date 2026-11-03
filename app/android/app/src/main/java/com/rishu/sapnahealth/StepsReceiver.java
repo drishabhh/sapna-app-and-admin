@@ -19,6 +19,8 @@ public class StepsReceiver extends BroadcastReceiver {
         }
         // BOOT_COMPLETED / MY_PACKAGE_REPLACED / TIME_SET: alarms are wiped, re-arm.
         StepsReminder.scheduleDaily(c);
-        StreakWidgetProvider.refreshAll(c);
+        Widgets.refreshAll(c);
+        WaterReminder.scheduleNext(c);
+        NoteScheduler.rescheduleAll(c);
     }
 }
