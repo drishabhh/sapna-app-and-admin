@@ -1,6 +1,6 @@
 {
- "version": 27,
- "updatedAt": "2026-11-03T18:42:30.979Z",
+ "version": 28,
+ "updatedAt": "2026-11-03T18:58:06.721Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -209,6 +209,73 @@
    ],
    "days": [
     4
+   ]
+  },
+  {
+   "id": "plan-mw11c49a",
+   "title": "Thick thighs 2",
+   "note": "Rest 1–1.5 min between sets.",
+   "moves": [
+    {
+     "exId": "local-torso-rotations",
+     "sets": 1,
+     "reps": 10,
+     "unit": "reps"
+    },
+    {
+     "exId": "local-leg-swings",
+     "sets": 1,
+     "reps": 10,
+     "unit": "reps"
+    },
+    {
+     "exId": "lats-back-pec-stretch",
+     "sets": 1,
+     "reps": 10,
+     "unit": "reps"
+    },
+    {
+     "exId": "delts-rear-deltoid-stretch",
+     "sets": 1,
+     "reps": 10,
+     "unit": "reps"
+    },
+    {
+     "exId": "local-bodyweight-squats",
+     "sets": 1,
+     "reps": 10,
+     "unit": "reps"
+    },
+    {
+     "exId": "custom-child-pose-fpoz",
+     "sets": 1,
+     "reps": 10,
+     "unit": "reps"
+    },
+    {
+     "exId": "glutes-barbell-full-squat",
+     "sets": 4,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "quads-lever-leg-extension",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "glutes-band-bent-over-hip-extension",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "local-cycle-walk",
+     "sets": 1,
+     "reps": 20,
+     "unit": "min"
+    }
    ]
   }
  ],
@@ -424,6 +491,50 @@
    "part": "legs",
    "equipment": "dumbbell",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/dumbbell-romanian-deadlift.gif",
+   "cue": ""
+  },
+  {
+   "id": "custom-child-pose-fpoz",
+   "name": "Child pose",
+   "group": "stretching",
+   "part": "legs",
+   "gif": "media/custom/child-pose-mw11ezq2.gif",
+   "cue": "Hold 10 sec each child pose and cobra stretch"
+  },
+  {
+   "id": "glutes-barbell-full-squat",
+   "name": "Barbell Full Squat",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "barbell",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/barbell-full-squat.gif",
+   "cue": ""
+  },
+  {
+   "id": "quads-lever-leg-extension",
+   "name": "Lever Leg Extension",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "lever",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/quads/lever-leg-extension.gif",
+   "cue": ""
+  },
+  {
+   "id": "glutes-band-bent-over-hip-extension",
+   "name": "Band Bent Over Hip Extension",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "band",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/band-bent-over-hip-extension.gif",
+   "cue": ""
+  },
+  {
+   "id": "local-cycle-walk",
+   "name": "Cycle / treadmill walk",
+   "group": "exercises",
+   "part": "cardio",
+   "equipment": "local",
+   "gif": "media/cycle-walk.gif",
    "cue": ""
   }
  ],
