@@ -1,6 +1,6 @@
 {
- "version": 37,
- "updatedAt": "2026-11-04T07:41:15.395Z",
+ "version": 38,
+ "updatedAt": "2026-11-04T07:41:51.697Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -226,13 +226,13 @@
    "note": "Rest 1–1.5 min between sets.",
    "moves": [
     {
-     "exId": "cardio-stationary-bike-run-v-3",
-     "sets": 3,
-     "reps": 12,
+     "exId": "local-torso-rotations",
+     "sets": 1,
+     "reps": 10,
      "unit": "reps"
     },
     {
-     "exId": "local-torso-rotations",
+     "exId": "custom-leg-swing-57l3",
      "sets": 1,
      "reps": 10,
      "unit": "reps"
@@ -288,6 +288,12 @@
     {
      "exId": "custom-dumbbell-hip-thrust-sjda",
      "sets": 4,
+     "reps": 12,
+     "unit": "reps"
+    },
+    {
+     "exId": "cardio-stationary-bike-run-v-3",
+     "sets": 3,
      "reps": 12,
      "unit": "reps"
     },
