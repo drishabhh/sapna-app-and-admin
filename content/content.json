@@ -1,6 +1,6 @@
 {
- "version": 39,
- "updatedAt": "2026-11-04T07:49:24.163Z",
+ "version": 40,
+ "updatedAt": "2026-11-04T08:14:44.042Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -100,7 +100,10 @@
      "exId": "glutes-band-bent-over-hip-extension",
      "sets": 3,
      "reps": 12,
-     "unit": "reps"
+     "unit": "reps",
+     "alt": {
+      "exId": "hamstrings-lever-lying-leg-curl"
+     }
     },
     {
      "exId": "glutes-dumbbell-plyo-squat",
