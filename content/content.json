@@ -1,6 +1,6 @@
 {
- "version": 38,
- "updatedAt": "2026-11-04T07:41:51.697Z",
+ "version": 39,
+ "updatedAt": "2026-11-04T07:49:24.163Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -53,6 +53,12 @@
    "title": "Thick Thighs 1",
    "note": "Rest 1–1.5 min between sets.",
    "moves": [
+    {
+     "exId": "custom-cycle-fci6",
+     "sets": 1,
+     "reps": 15,
+     "unit": "min"
+    },
     {
      "exId": "local-torso-rotations",
      "sets": 1,
@@ -111,16 +117,10 @@
      "yt": "https://youtube.com/shorts/uUuPYcK9SJI?si=sl1VlfNAkWE4FpVC"
     },
     {
-     "exId": "cardio-stationary-bike-run-v-3",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
      "exId": "local-cycle-walk",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
+     "sets": 1,
+     "reps": 15,
+     "unit": "min"
     }
    ],
    "days": [
@@ -584,6 +584,14 @@
    "part": "legs",
    "gif": "media/custom/leg-swing-mw1t4j35.gif",
    "cue": ""
+  },
+  {
+   "id": "custom-cycle-fci6",
+   "name": "Cycle",
+   "group": "stretching",
+   "part": "cardio",
+   "gif": "",
+   "cue": "3min"
   }
  ],
  "foods": [
