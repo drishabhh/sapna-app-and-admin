@@ -1,6 +1,6 @@
 {
- "version": 36,
- "updatedAt": "2026-11-03T19:17:16.731Z",
+ "version": 37,
+ "updatedAt": "2026-11-04T07:41:15.395Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -54,13 +54,13 @@
    "note": "Rest 1–1.5 min between sets.",
    "moves": [
     {
-     "exId": "cardio-stationary-bike-run-v-3",
-     "sets": 3,
-     "reps": 12,
+     "exId": "local-torso-rotations",
+     "sets": 1,
+     "reps": 10,
      "unit": "reps"
     },
     {
-     "exId": "local-torso-rotations",
+     "exId": "custom-leg-swing-57l3",
      "sets": 1,
      "reps": 10,
      "unit": "reps"
@@ -109,6 +109,12 @@
      "reps": 12,
      "unit": "reps",
      "yt": "https://youtube.com/shorts/uUuPYcK9SJI?si=sl1VlfNAkWE4FpVC"
+    },
+    {
+     "exId": "cardio-stationary-bike-run-v-3",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
     },
     {
      "exId": "local-cycle-walk",
@@ -563,6 +569,14 @@
    "part": "legs",
    "equipment": "band",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/band-bent-over-hip-extension.gif",
+   "cue": ""
+  },
+  {
+   "id": "custom-leg-swing-57l3",
+   "name": "Leg swing",
+   "group": "stretching",
+   "part": "legs",
+   "gif": "media/custom/leg-swing-mw1t4j35.gif",
    "cue": ""
   }
  ],
