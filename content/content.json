@@ -1,6 +1,6 @@
 {
- "version": 40,
- "updatedAt": "2026-11-04T08:14:44.042Z",
+ "version": 41,
+ "updatedAt": "2026-11-04T08:43:21.692Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -56,7 +56,7 @@
     {
      "exId": "custom-cycle-fci6",
      "sets": 1,
-     "reps": 15,
+     "reps": 3,
      "unit": "min"
     },
     {
@@ -87,6 +87,12 @@
      "exId": "local-bodyweight-squats",
      "sets": 1,
      "reps": 20,
+     "unit": "reps"
+    },
+    {
+     "exId": "custom-child-pose-fpoz",
+     "sets": 1,
+     "reps": 10,
      "unit": "reps"
     },
     {
