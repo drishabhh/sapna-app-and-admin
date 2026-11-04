@@ -125,8 +125,9 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
   const ex = curId ? exById[curId] : undefined;
   const isStretch = ex?.group === 'stretching';
   const sets = session ? session.sets.filter((x) => x.exId === curId) : [];
-  const [showVid, setShowVid] = useState(false);
-  useEffect(() => setShowVid(false), [curId]);
+  const [showVid, setShowVid] = useState(false); // backup mode: the player opens on "Watch how"
+  const [vidOn, setVidOn] = useState(false); // a video is playing → offer the YouTube/Instagram app as a fallback
+  useEffect(() => { setShowVid(false); setVidOn(false); }, [curId]);
   const doneMove = (m: PlanMove) => !!session?.completed?.includes(m.exId);
   const [logOpen, setLogOpen] = useDraft('wk.logOpen', false);
   const [listOpen, setListOpen] = useDraft('wk.listOpen', false);
@@ -249,11 +250,11 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
                   })}
                 </div>
                 <p className="small muted" style={{ textAlign: 'center' }}>Machine busy? Tap the other one — same {move.unit === 'min' || move.unit === 'sec' ? 'time' : 'sets and reps'}.</p>
-                {yt ? (showVid ? <YtPlayer url={yt} title={ex.name} style={{ width: '100%', height: '40vh', minHeight: 220, flex: 'none' }} />
+                {yt ? (showVid ? <YtPlayer url={yt} title={ex.name} autoPlay onPlay={() => setVidOn(true)} style={{ width: '100%', height: '40vh', minHeight: 220, flex: 'none' }} />
                   : <button type="button" className="btn ghost sm yt-btn" style={{ alignSelf: 'center' }} onClick={() => setShowVid(true)}><Icon name="video" size={20} /> Watch how — {ex.name}</button>) : null}
               </>
             ) : yt && media === 'video' ? (
-              <YtPlayer url={yt} title={ex.name} style={{ width: '100%', height: '46vh', minHeight: 240, flex: 'none' }} />
+              <YtPlayer url={yt} title={ex.name} onPlay={() => setVidOn(true)} style={{ width: '100%', height: '46vh', minHeight: 240, flex: 'none' }} />
             ) : (
               <Gif src={gifSrc(ex)} alt={`${ex.name} demonstration`} style={{ width: '100%', height: '46vh', minHeight: 240, objectFit: 'contain', background: '#fff', borderRadius: 24 }} />
             )}
@@ -265,9 +266,9 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
             ) : null}
             <h1 className="h1" style={{ fontSize: 30, textAlign: 'center', marginTop: 6 }}>{ex.name}</h1>
             <p className="muted" style={{ textAlign: 'center', fontWeight: 600 }}>{doseLabel(move)}</p>
-            {yt ? (
-              <a className="btn ghost sm yt-btn" href={yt} target="_blank" rel="noopener noreferrer" style={{ alignSelf: 'center' }}>
-                <Icon name="video" size={20} /> {/instagram\.com/i.test(yt) ? 'Open in Instagram' : 'Open in YouTube app'}
+            {yt && vidOn ? (
+              <a className="btn quiet sm" href={yt} target="_blank" rel="noopener noreferrer" style={{ alignSelf: 'center' }}>
+                Not playing? Open in {/instagram\.com/i.test(yt) ? 'Instagram' : 'YouTube'}
               </a>
             ) : null}
             {sets.length ? (

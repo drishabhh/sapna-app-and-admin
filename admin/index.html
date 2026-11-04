@@ -1288,11 +1288,13 @@ function vWorkouts() {
             ? `<div class="nums" style="grid-template-columns:repeat(2,minmax(0,1fr))">${unitSel}<label class="f">${m.unit === 'min' ? 'Minutes' : 'Seconds'}<input class="input" inputmode="numeric" data-f="reps" data-i="${i}" value="${m.reps}"></label></div>`
             : `<div class="nums">${unitSel}<label class="f">Sets<input class="input" inputmode="numeric" data-f="sets" data-i="${i}" value="${m.sets}"></label><label class="f">Reps<input class="input" inputmode="numeric" data-f="reps" data-i="${i}" value="${m.reps}"></label><label class="f">Start kg<input class="input" inputmode="decimal" data-f="kg" data-i="${i}" value="${m.kg ?? ''}" placeholder="—"></label></div>`; })()}
         <label class="f yt">▶ How-to video — YouTube or Instagram reel<input class="input" inputmode="url" data-f="yt" data-i="${i}" value="${esc(m.yt || e.yt || '')}" placeholder="https://youtu.be/…  or  https://instagram.com/reel/…"></label>
+        <button class="btn ghost sm" type="button" data-vprev="yt" data-i="${i}" data-t="${esc(e.name)}" style="grid-column:1/-1;justify-self:start">▶ Preview video</button>
         ${(() => { const a = m.alt && exOf(m.alt.exId); return a ? `<div class="altbox">
             <div class="row" style="gap:10px">${a.gif ? `<img src="${esc(gif(a.gif))}" alt="" loading="lazy">` : `<span class="noimg" aria-hidden="true">${m.alt.yt || a.yt ? '▶' : '🏋️'}</span>`}
               <div style="flex:1;min-width:0"><span class="eyebrow">Backup · if busy</span><strong style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.name)}</strong><span class="small muted">Same ${isTimed(m) ? 'time' : 'sets × reps'} · she picks on the day</span></div>
               <button class="ib" type="button" data-altadd="${i}" aria-label="Change backup">✎</button><button class="ib" type="button" data-altdel="${i}" aria-label="Remove backup">✕</button></div>
-            <label class="f" style="margin-top:6px">▶ Backup’s how-to video (optional)<input class="input" inputmode="url" data-f="altyt" data-i="${i}" value="${esc(m.alt.yt || a.yt || '')}" placeholder="YouTube or Instagram reel link"></label></div>`
+            <label class="f" style="margin-top:6px">▶ Backup’s how-to video (optional)<input class="input" inputmode="url" data-f="altyt" data-i="${i}" value="${esc(m.alt.yt || a.yt || '')}" placeholder="YouTube or Instagram reel link"></label>
+            <button class="btn ghost sm" type="button" data-vprev="altyt" data-i="${i}" data-t="${esc(a.name)}" style="margin-top:6px">▶ Preview video</button></div>`
           : `<button class="btn ghost sm" type="button" data-altadd="${i}" style="grid-column:1/-1;justify-self:start">＋ Add a backup (if the machine is busy)</button>`; })()}
         ${!e.gif || String(e.id).startsWith('custom-') ? `<label class="btn ghost sm" style="cursor:pointer;grid-column:1/-1;justify-self:start">${e.gif ? 'Change GIF' : '⬆ Upload GIF'}<input type="file" accept="image/gif,image/*" class="sr" data-gifup="${i}"></label>` : ''}
       </div>`; }).join('') || '<p class="muted">No moves yet — add some from the library.</p>'}</div>
@@ -1332,6 +1334,7 @@ function vPicker() {
       <label class="f">Name<input class="input" id="cn" placeholder="e.g. Hip thrust machine"></label>
       <div class="g2"><label class="f">Type<select class="input" id="cg"><option value="exercises">Exercise</option><option value="stretching">Stretching</option></select></label><label class="f">Body part<select class="input" id="cp">${parts.slice(1).map((p) => `<option>${p}</option>`).join('')}</select></label></div>
       <label class="f">▶ How-to video <span class="faint">YouTube or Instagram reel — it plays in her app</span><input class="input" id="cy" inputmode="url" placeholder="https://youtube.com/shorts/…  or  https://instagram.com/reel/…"></label>
+      <button class="btn ghost sm" type="button" id="cyprev" style="align-self:flex-start">▶ Preview video</button>
       <div class="f">GIF <span class="faint">(optional)</span>
         <div class="row wrapr" style="gap:8px;margin-top:4px">${S.cgif ? `<img src="${esc(S.cgif.preview)}" alt="" style="width:64px;height:64px;border-radius:10px;object-fit:cover;background:#fff">` : ''}
           <label class="btn ghost sm" style="cursor:pointer">${S.cgif ? 'Change GIF' : '⬆ Upload GIF'}<input id="cgf" type="file" accept="image/gif,image/*" class="sr"></label>
@@ -1345,6 +1348,21 @@ const fixUrl = (u) => { u = String(u || '').trim(); return /^(www\.|m\.)?(youtub
 const isYt = (u) => /^https:\/\/(www\.|m\.)?(youtube\.com|youtu\.be)\//i.test(u || '');
 const isIg = (u) => /^https:\/\/(www\.)?instagram\.com\/(reel|reels|p|tv)\/[A-Za-z0-9_-]+/i.test(u || '');
 const isVideo = (u) => isYt(u) || isIg(u);
+const ytIdOf = (u) => { const m = String(u || '').match(/^https:\/\/(?:www\.|m\.)?(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|live\/|watch\?(?:.*&)?v=))([A-Za-z0-9_-]{11})/i); return m ? m[1] : null; };
+const igEmbedOf = (u) => { const m = String(u || '').match(/^https:\/\/(?:www\.)?instagram\.com\/(reels?|p|tv)\/([A-Za-z0-9_-]+)/i); if (!m) return null; const k = m[1].toLowerCase(); return `https://www.instagram.com/${k === 'p' ? 'p' : k === 'tv' ? 'tv' : 'reel'}/${m[2]}/embed/`; };
+/** Watch the link exactly as she will — before you publish it. */
+function previewVideo(raw, title) {
+  const url = fixUrl(raw);
+  if (!url) return toast('Paste a YouTube or Instagram reel link first');
+  const id = ytIdOf(url), ig = id ? null : igEmbedOf(url);
+  if (!id && !ig) return toast('That isn’t a YouTube or Instagram reel link');
+  const tall = !!ig || /\/shorts\//i.test(url);
+  const src = id ? `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&playsinline=1&rel=0&modestbranding=1` : ig;
+  sheet(`Preview · ${title || 'how-to video'}`, `
+    <div style="position:relative;width:${tall ? 'min(100%,340px)' : '100%'};aspect-ratio:${tall ? '9/16' : '16/9'};max-height:70vh;margin:0 auto;border-radius:16px;overflow:hidden;background:#000">
+      <iframe src="${esc(src)}" title="Video preview" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe></div>
+    <div class="between wrapr"><span class="small muted">This is what she sees when she taps ▶ in her app.</span><a class="btn ghost sm" href="${esc(url)}" target="_blank" rel="noopener">Open on ${id ? 'YouTube' : 'Instagram'}</a></div>`, () => {});
+}
 
 /* Upload a GIF (or picture) from this phone/laptop into the app repo → served by GitHub Pages at media/custom/… */
 async function uploadGif(file, base) {
@@ -1433,6 +1451,10 @@ function wireWorkouts() {
   document.querySelectorAll('[data-down]').forEach((b) => (b.onclick = () => mv(+b.dataset.down, 1)));
   document.querySelectorAll('[data-del]').forEach((b) => (b.onclick = () => { p.moves.splice(+b.dataset.del, 1); markDirty(); render(); }));
   $('#delplan').onclick = () => { if (confirm(`Delete “${p.title}”?`)) { c.plans.splice(S.editing, 1); S.editing = null; markDirty(); render(); } };
+  document.querySelectorAll('[data-vprev]').forEach((b) => (b.onclick = () => {
+    const inp = document.querySelector(`[data-f="${b.dataset.vprev}"][data-i="${b.dataset.i}"]`);
+    previewVideo(inp ? inp.value : '', b.dataset.t);
+  }));
   document.querySelectorAll('[data-altadd]').forEach((b) => (b.onclick = async () => {
     const i = +b.dataset.altadd; const e = exOf(p.moves[i].exId) || {};
     S.libGroup = e.group === 'stretching' ? 'stretching' : 'exercises'; S.libPart = ['chest', 'back', 'shoulders', 'arms', 'legs', 'core', 'cardio'].includes(e.part) ? e.part : 'all'; S.libQ = '';
@@ -1450,6 +1472,7 @@ function wireWorkouts() {
     const id = b.dataset.pick; const ex = S.content.exercises.find((e) => e.id === id) || (S.lib || []).find((g) => g.id === id);
     if (ex) { pickExercise(ex); S.picker = null; render(); }
   }));
+  const cyp = $('#cyprev'); if (cyp) cyp.onclick = () => previewVideo($('#cy').value, $('#cn').value.trim());
   const cgf = $('#cgf');
   if (cgf) cgf.onchange = async () => {
     const f = cgf.files[0]; if (!f) return;

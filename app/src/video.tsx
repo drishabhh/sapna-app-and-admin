@@ -7,12 +7,13 @@ import { Icon } from './ui';
  * Shows the YouTube thumbnail with a big play button; tap → the video plays inside the app.
  * (Not loaded until she taps, so it costs no data while she's just lifting.)
  */
-export function YtPlayer({ url, title, style }: { url: string; title: string; style?: React.CSSProperties }) {
+export function YtPlayer({ url, title, style, autoPlay = false, onPlay }: { url: string; title: string; style?: React.CSSProperties; autoPlay?: boolean; onPlay?: () => void }) {
   const id = ytId(url);
   const ig = id ? null : igEmbed(url);
-  const [playing, setPlaying] = useState(false);
+  const [playing, setPlayingRaw] = useState(autoPlay);
+  const setPlaying = (v: boolean) => { setPlayingRaw(v); if (v && onPlay) onPlay(); };
   const [thumbOk, setThumbOk] = useState(true);
-  useEffect(() => { setPlaying(false); setThumbOk(true); }, [url]);
+  useEffect(() => { setPlayingRaw(autoPlay); setThumbOk(true); if (autoPlay && onPlay) onPlay(); }, [url]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!id && !ig) return null;
   const box: React.CSSProperties = { ...style, position: 'relative', overflow: 'hidden', background: ig && playing ? '#fff' : '#000', borderRadius: 24, border: 'none', padding: 0 };
   if (ig && !playing) {
