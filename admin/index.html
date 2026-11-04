@@ -250,7 +250,7 @@ async function gh(path, opts = {}) {
   let url = `https://api.github.com/repos/${REPO.owner}/${REPO.name}` + (path ? '/' + path.replace(/^\/+/, '') : '');
   if (!opts.method || opts.method === 'GET') url += (url.includes('?') ? '&' : '?') + 't=' + Date.now(); // GitHub caches GETs for 60 s
   const token = String(S.token || '').trim();
-  const res = await fetch(url, { cache: 'no-store', ...opts, headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}`, ...(opts.body ? { 'Content-Type': 'application/json' } : {}) } });
+  const res = await fetch(url, { cache: 'no-store', ...opts, headers: { Accept: 'application/vnd.github+json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(opts.body ? { 'Content-Type': 'application/json' } : {}) } });
   if (res.status === 404) return null;
   const j = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(j.message || `GitHub ${res.status}`);
@@ -337,7 +337,9 @@ async function publish() {
     notifyPublished(c);
   } catch (e) {
     const m = String(e.message || '');
-    if (/not accessible by personal access token|Resource not accessible|403/i.test(m)) {
+    if (!S.token) {
+      askToken('To publish plans from this device, add your GitHub token once (the “sapna-sync” one works). Viewing and editing her data already works with Sapna’s code.', publish);
+    } else if (/not accessible by personal access token|Resource not accessible|403/i.test(m)) {
       askToken('The token saved on this device can read the app repo but isn’t allowed to change it.', publish);
     } else if (/Bad credentials|401/i.test(m)) {
       askToken('GitHub rejected the token saved on this device (expired or deleted). Paste a new one.', publish);
@@ -359,21 +361,44 @@ async function loadLib() {
 function app(html) { $('#app').innerHTML = html; }
 
 function viewSetup(err = '') {
-  app(`<div class="stack" style="gap:18px;max-width:520px">
+  app(`<div class="stack" style="gap:18px;max-width:520px;margin:0 auto">
     <p class="eyebrow">Sapna Health</p><h1>Admin</h1>
-    <div class="card stack" style="border-color:color-mix(in srgb,var(--acc) 45%,transparent)"><strong>Already using the admin on another device?</strong><p class="small muted">There: <b>Targets → Link another device</b>, then scan the QR with this device’s camera. Everything is set up — skip the rest of this page.</p></div>
-    <p class="muted">First time? Paste a GitHub token so this page can publish plans to Sapna's app. It's saved only in this browser.</p>
-    <div class="card stack small muted"><strong style="color:var(--text)">Make the token once (2 min)</strong>
-      <span>GitHub → Settings → Developer settings → <b>Fine-grained tokens</b> → Generate.</span>
-      <span>Repository access: <b>Only select repositories → sapna-app-and-admin</b>.</span>
-      <span>Permissions → Repository → <b>Contents: Read and write</b>. Nothing else.</span></div>
-    <label class="f">GitHub token<input class="input" id="tok" type="password" autocomplete="off" placeholder="github_pat_…"></label>
-    ${err ? `<p style="color:var(--danger)">${esc(err)}</p>` : ''}
-    <button class="btn" id="save" type="button">Connect</button></div>`);
+    <div class="card stack" style="border-color:color-mix(in srgb,var(--acc) 45%,transparent)">
+      <h2>Paste Sapna’s code</h2>
+      <p class="small muted">In <b>Sapna’s app</b>: Settings → <b>Live sync with Rishu</b> → <b>Share code with Rishu</b>. Paste it here — this device then sees and edits everything from her phone.</p>
+      <textarea class="input mono" id="sc0" placeholder="SAPNA-SYNC-1:…" spellcheck="false" autocapitalize="off"></textarea>
+      ${err ? `<p class="small" style="color:var(--danger)">${esc(err)}</p>` : ''}
+      <button class="btn" id="sc0go" type="button">Connect</button>
+    </div>
+    <details class="card"><summary class="small" style="cursor:pointer"><b>First time ever?</b> <span class="muted">Set up with a GitHub token</span></summary><div class="stack" style="margin-top:10px">
+      <p class="small muted">Only needed once, before Sapna’s phone has a code. GitHub → Settings → Developer settings → <b>Fine-grained tokens</b> → Generate · Repository access: <b>sapna-app-and-admin</b> and <b>sapna-sync</b> · Permissions → <b>Contents: Read and write</b>.</p>
+      <label class="f">GitHub token<input class="input" id="tok" type="password" autocomplete="off" placeholder="github_pat_…"></label>
+      <button class="btn ghost" id="save" type="button">Connect with token</button></div></details>
+  </div>`);
+  $('#sc0go').onclick = async () => {
+    const raw = $('#sc0').value.trim();
+    const lm = raw.match(/#link=([A-Za-z0-9_-]+)/); // a "Link another device" link pasted here works too
+    if (lm) { location.hash = 'link=' + lm[1]; location.reload(); return; }
+    const pc = parsePairing(raw);
+    if (!pc) return viewSetup('That isn’t Sapna’s code — it starts with SAPNA-SYNC-1:');
+    const btn = $('#sc0go'); btn.disabled = true; btn.textContent = 'Checking…';
+    try {
+      const res = await syncGh(pc, `/contents/${SYNC_FILE}?ref=${encodeURIComponent(pc.b)}&t=${Date.now()}`, 'application/vnd.github.raw');
+      if (res.status === 401) throw new Error('The access inside this code has expired. Make a new code (Settings → Live sync → Update token) and send it to Sapna.');
+      if (res.ok) { try { await decryptEnv(await res.text(), pc.k); } catch { throw new Error('This code doesn’t unlock her data — ask her to share the code again.'); } }
+      else if (res.status !== 404) throw new Error('GitHub ' + res.status);
+      localStorage.setItem(LS_SYNC, JSON.stringify(pc));
+      // the same access usually covers publishing too (one token for both repos) — then nothing else to paste
+      if (await canWrite(pc.t).catch(() => false)) { S.token = pc.t; localStorage.setItem(LS_TOKEN, pc.t); }
+      S.sync = { status: 'idle' }; S.syncReport = null; S.tab = 'day';
+      await boot();
+      toast(S.token ? 'Connected — everything from her phone is here' : 'Connected — you can see and edit her data');
+    } catch (e) { viewSetup(e.message); }
+  };
   $('#save').onclick = async () => {
     S.token = $('#tok').value.trim();
     try { const r = await gh(''); if (!r) throw new Error("This token can't see sapna-app-and-admin."); if (!(await canWrite(S.token))) throw new Error("This token can read sapna-app-and-admin but can't write it. Edit the token: add sapna-app-and-admin under Repository access and set Contents: Read and write."); localStorage.setItem(LS_TOKEN, S.token); await boot(); }
-    catch (e) { viewSetup(e.message); }
+    catch (e) { S.token = ''; viewSetup(e.message); }
   };
 }
 
@@ -999,10 +1024,11 @@ function wireEdits(m0) {
 function vSyncCard(c) {
   const code = pairingCode(c);
   return `<div class="card stack"><div class="between"><h2>Live sync</h2><span class="pill">${esc(c.o)}/${esc(c.r)}</span></div>
-    ${S.showPair ? `<p class="small muted">Send this to Sapna. In her app: <b>Settings → Live sync with Rishu → paste → Connect</b>. It contains the key to her data — share it only with her.</p>
+    <p class="small muted">One code does it all: it’s in Sapna’s app (Settings → Live sync → <b>Share code with Rishu</b>). Paste it on any new device to see everything.</p>
+    ${S.showPair ? `<p class="small muted">The same code, from this device. It holds the key to her data — share it only with her or your own devices.</p>
       <textarea class="input mono" id="pcode" readonly>${esc(code)}</textarea>
       <div class="row wrapr"><button class="btn sm" type="button" id="pcopy">Copy code</button>${navigator.share ? '<button class="btn ghost sm" type="button" id="pshare">Share…</button>' : ''}<button class="btn ghost sm" type="button" id="phide">Hide</button></div>`
-      : `<div class="row wrapr"><button class="btn sm" type="button" data-link>Link another device</button><button class="btn ghost sm" type="button" id="pshow">Show pairing code</button><button class="btn ghost sm" type="button" id="supd">Update token</button><button class="btn danger sm" type="button" id="soff">Disconnect this browser</button></div>`}
+      : `<div class="row wrapr"><button class="btn sm" type="button" data-link>Link another device</button><button class="btn ghost sm" type="button" id="pshow">Show Sapna’s code</button><button class="btn ghost sm" type="button" id="supd">Update token</button><button class="btn danger sm" type="button" id="soff">Disconnect this browser</button></div>`}
     ${S.syncTokenDead || S.showUpd ? `<div class="card warn stack" style="gap:8px"><strong>Update the sync token</strong>
       <p class="small muted">Paste the current value of your token that has <b>sapna-sync</b> with Contents: Read and write. Her encryption key stays the same — she just pastes the new code (Settings → Live sync → Paste new code).</p>
       <input class="input" id="sutok" type="password" autocomplete="off" placeholder="github_pat_…">
@@ -1720,7 +1746,8 @@ function vSettings() {
       <div class="card stack"><h2>Link another device</h2><p class="small muted">Open this admin on another phone or laptop already set up — publishing and her live data — by scanning a QR. Nothing to paste.</p><button class="btn" type="button" data-link style="align-self:flex-start">Show QR & link</button></div>
       ${emergencyFile()}
       <div class="card stack small muted"><strong style="color:var(--text)">GitHub token & publishing</strong><span>Published version ${S.content.version || 0} · ${S.content.updatedAt ? new Date(S.content.updatedAt).toLocaleString('en-IN') : 'never'}</span>
-        <div class="row wrapr"><button class="btn ghost sm" type="button" id="chtok">Change token (keeps changes)</button><button class="btn danger sm" type="button" id="logout">Forget token on this device</button></div></div>
+        ${S.token ? '' : '<p class="small" style="color:var(--amber)">This device has only Sapna’s code: you can see and edit her data. To publish plans, add your GitHub token.</p>'}
+        <div class="row wrapr"><button class="btn ghost sm" type="button" id="chtok">${S.token ? 'Change token (keeps changes)' : 'Add GitHub token to publish'}</button>${S.token ? '<button class="btn danger sm" type="button" id="logout">Forget token on this device</button>' : ''}</div></div>
     </section></div>`;
 }
 function wireSettings() {
@@ -1737,7 +1764,7 @@ function wireSettings() {
   };
   const fo = $('#fcmoff'); if (fo) fo.onclick = () => { localStorage.removeItem(LS_FCM); render(); };
   $('#chtok').onclick = () => askToken('Paste a token with write access to sapna-app-and-admin.', null);
-  $('#logout').onclick = () => { if (!confirm('Forget the GitHub token on this device? You’ll need to paste it (or scan a link) again.')) return; localStorage.removeItem(LS_TOKEN); S.token = ''; viewSetup(); };
+  const lo = $('#logout'); if (lo) lo.onclick = () => { if (!confirm('Forget the GitHub token on this device? You’ll need to paste it (or scan a link) again.')) return; localStorage.removeItem(LS_TOKEN); S.token = ''; viewSetup(); };
 }
 
 const LIVE_TABS = ['day', 'progress', 'foods', 'settings'];
@@ -1756,7 +1783,7 @@ async function boot() {
   const linked = sessionStorage.getItem('sapna_admin_linked'); sessionStorage.removeItem('sapna_admin_linked');
   if (linked === '1') setTimeout(() => toast('This device is linked — nothing to paste'), 400);
   if (linked === 'bad') setTimeout(() => toast('That link was incomplete — copy it again'), 400);
-  if (!S.token) return viewSetup();
+  if (!S.token && !syncCfg()) return viewSetup();
   app('<p class="muted">Loading…</p>');
   try { await loadContent(); render(); }
   catch (e) { viewSetup(e.message); }

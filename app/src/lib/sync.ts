@@ -101,6 +101,11 @@ export function parsePairing(code: string): SyncCfg | null {
   }
 }
 
+/** Her code to give Rishu: the same code she paired with — on any new device it opens her whole dashboard. */
+export function pairingCodeOf(c: SyncCfg): string {
+  return 'SAPNA-SYNC-1:' + b64uEnc(new TextEncoder().encode(JSON.stringify({ o: c.o, r: c.r, b: c.b, t: c.t, k: c.k })));
+}
+
 /* ---------------- crypto ---------------- */
 
 function b64uEnc(buf: ArrayBuffer | Uint8Array): string {
