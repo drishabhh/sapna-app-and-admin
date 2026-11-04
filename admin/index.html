@@ -839,11 +839,20 @@ function editFoodSheet(f) {
   });
 }
 
+/** Her most-logged foods that still exist (library or her own foods) — deleted foods drop out, edits show. */
 function herRecents() {
   const r = S.syncReport; if (!r || !r.food) return [];
-  const by = {};
-  r.food.slice(-300).forEach((f) => { const k = f.name.toLowerCase(); const m = f.mult || 1; const x = by[k] || (by[k] = { n: 0, name: f.name, portion: f.portion || '1 serving', kcal: Math.round(f.kcal / m), protein: Math.round((f.protein / m) * 10) / 10, id: f.foodId }); x.n++; });
-  return Object.values(by).sort((a, b) => b.n - a.n).slice(0, 10);
+  const hers = ((overlayReport(r) || {}).customFoods || []);
+  const current = [...hers.map((f) => ({ ...f, hers: true })), ...(S.content?.foods || [])];
+  const byId = new Map(current.map((f) => [f.id, f]));
+  const byName = new Map(current.map((f) => [String(f.name).trim().toLowerCase(), f]));
+  const counts = new Map();
+  r.food.slice(-300).forEach((e) => {
+    const f = (e.foodId && byId.get(e.foodId)) || byName.get(String(e.name).trim().toLowerCase());
+    if (!f) return; // deleted since — don't suggest it
+    const c = counts.get(f.id) || { ...f, n: 0 }; c.n++; counts.set(f.id, c);
+  });
+  return [...counts.values()].sort((a, b) => b.n - a.n).slice(0, 10);
 }
 function addFoodSheet(day, meal0) {
   const h = new Date().getHours();
