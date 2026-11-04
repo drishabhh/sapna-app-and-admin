@@ -1,6 +1,6 @@
 {
- "version": 41,
- "updatedAt": "2026-11-04T08:43:21.692Z",
+ "version": 42,
+ "updatedAt": "2026-11-04T09:27:08.570Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -604,6 +604,16 @@
   }
  ],
  "foods": [
+  {
+   "id": "food-overnight-pintola-high-protein-chocolate-m122",
+   "name": "Overnight Pintola High Protein Chocolate Oats with Country D",
+   "portion": "1 bowl (6 teaspoons Pintola High Protein Chocolate Oats, approximately 15g + 450ml Country",
+   "kcal": 485,
+   "protein": 31.9,
+   "carbs": 52.4,
+   "fat": 18.3,
+   "fiber": 5
+  },
   {
    "id": "pkg-thf-zero-maida-ww-bread",
    "name": "The Health Factory — Zero Maida Simply Whole Wheat Bread",
