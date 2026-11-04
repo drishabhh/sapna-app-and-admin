@@ -118,15 +118,21 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
   const [summary, setSummary] = useDraft<Session | null>('wk.summary', null);
   const moves = plan.moves.filter((m) => exById[m.exId]);
   const move = moves[Math.min(idx, moves.length - 1)];
-  const ex = move ? exById[move.exId] : undefined;
+  // Backup for a busy machine: both show; whichever she picks is what she logs.
+  const altEx = move?.alt ? exById[move.alt.exId] : undefined;
+  const doingAlt = !!(move && altEx && session?.swaps?.[move.exId] === move.alt!.exId);
+  const curId = move ? (doingAlt ? move.alt!.exId : move.exId) : undefined;
+  const ex = curId ? exById[curId] : undefined;
   const isStretch = ex?.group === 'stretching';
-  const sets = session ? session.sets.filter((x) => x.exId === move?.exId) : [];
+  const sets = session ? session.sets.filter((x) => x.exId === curId) : [];
+  const [showVid, setShowVid] = useState(false);
+  useEffect(() => setShowVid(false), [curId]);
   const doneMove = (m: PlanMove) => !!session?.completed?.includes(m.exId);
   const [logOpen, setLogOpen] = useDraft('wk.logOpen', false);
   const [listOpen, setListOpen] = useDraft('wk.listOpen', false);
-  const yt = ex ? ytLink(ex, move) : null;
+  const yt = ex ? ytLink(ex, doingAlt ? move?.alt : move) : null;
   const [media, setMedia] = useState<'video' | 'gif'>('video');
-  useEffect(() => setMedia('video'), [move?.exId]);
+  useEffect(() => setMedia('video'), [curId]);
 
   // Create (or resume) the session when opened.
   useEffect(() => {
@@ -151,22 +157,28 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
   useEffect(() => {
     if (!move) return;
     if (restoredPrefill.current) { restoredPrefill.current = false; return; }
-    const last = lastWeight(data, move.exId, session?.id);
+    const last = lastWeight(data, curId || move.exId, session?.id);
     const mine = sets[sets.length - 1];
     setKg(mine ? mine.kg : last ? last.kg : move.kg || 0);
     setReps(mine ? mine.reps : move.reps);
     setLogOpen(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [move?.exId, open]);
+  }, [curId, open]);
 
   if (!open) return null;
 
   const patch = (fn: (s: Session) => Session) => update((x) => ({ ...x, sessions: x.sessions.map((s) => (s.id === session!.id ? fn(s) : s)) }));
 
+  /** plan move or its backup (the machine was busy) */
+  function choose(alt: boolean) {
+    if (!session || !move || !move.alt) return;
+    haptic.tap();
+    patch((s) => { const sw = { ...(s.swaps || {}) }; if (alt) sw[move.exId] = move.alt!.exId; else delete sw[move.exId]; return { ...s, swaps: sw }; });
+  }
   /** optional: record one set with weight × reps */
   function logSet() {
-    if (!session || !move) return;
-    const set = { exId: move.exId, set: sets.length + 1, kg: isStretch ? 0 : kg, reps, at: Date.now() };
+    if (!session || !move || !curId) return;
+    const set = { exId: curId, set: sets.length + 1, kg: isStretch ? 0 : kg, reps, at: Date.now() };
     patch((s) => ({ ...s, sets: [...s.sets, set] }));
     haptic.tap();
     toast(`Set ${set.set} logged`);
@@ -174,7 +186,7 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
   /** she says she did it. Stretches move on by themselves; lifts wait for her. */
   function complete() {
     if (!session || !move) return;
-    const extra = sets.length ? [] : [{ exId: move.exId, set: 1, kg: isStretch ? 0 : kg, reps: move.reps, at: Date.now() }];
+    const extra = sets.length ? [] : [{ exId: curId || move.exId, set: 1, kg: isStretch ? 0 : kg, reps: move.reps, at: Date.now() }];
     patch((s) => ({ ...s, sets: [...s.sets, ...extra], completed: [...new Set([...(s.completed || []), move.exId])] }));
     haptic.success();
     if (isStretch && idx < moves.length - 1) setTimeout(() => setIdx(idx + 1), 450);
@@ -221,12 +233,31 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', padding: '8px 18px 12px' }} className="stack">
-            {yt && media === 'video' ? (
+            {altEx && exById[move.exId] ? (
+              <>
+                <div className="pick2" role="group" aria-label="Pick one">
+                  {([[false, exById[move.exId]], [true, altEx]] as const).map(([isAlt, e]) => {
+                    const on = isAlt === doingAlt;
+                    return (
+                      <button key={String(isAlt)} type="button" className={`pick${on ? ' on' : ''}`} aria-pressed={on} onClick={() => choose(isAlt)}>
+                        <span className="pick-tag">{isAlt ? 'If busy' : 'Plan'}</span>
+                        <Gif src={gifSrc(e)} alt={`${e.name} demonstration`} style={{ width: '100%', height: '25vh', minHeight: 140, objectFit: 'contain', background: '#fff', borderRadius: 14 }} />
+                        <strong>{e.name}</strong>
+                        <span className={on ? 'pick-on' : 'small muted'}>{on ? '✓ Doing this' : 'Tap to do this'}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="small muted" style={{ textAlign: 'center' }}>Machine busy? Tap the other one — same {move.unit === 'min' || move.unit === 'sec' ? 'time' : 'sets and reps'}.</p>
+                {yt ? (showVid ? <YtPlayer url={yt} title={ex.name} style={{ width: '100%', height: '40vh', minHeight: 220, flex: 'none' }} />
+                  : <button type="button" className="btn ghost sm yt-btn" style={{ alignSelf: 'center' }} onClick={() => setShowVid(true)}><Icon name="video" size={20} /> Watch how — {ex.name}</button>) : null}
+              </>
+            ) : yt && media === 'video' ? (
               <YtPlayer url={yt} title={ex.name} style={{ width: '100%', height: '46vh', minHeight: 240, flex: 'none' }} />
             ) : (
               <Gif src={gifSrc(ex)} alt={`${ex.name} demonstration`} style={{ width: '100%', height: '46vh', minHeight: 240, objectFit: 'contain', background: '#fff', borderRadius: 24 }} />
             )}
-            {yt && gifSrc(ex) ? (
+            {!altEx && yt && gifSrc(ex) ? (
               <div className="chips" role="group" aria-label="Show" style={{ justifyContent: 'center' }}>
                 <button type="button" className="chip" aria-pressed={media === 'video'} onClick={() => setMedia('video')}>▶ Video</button>
                 <button type="button" className="chip" aria-pressed={media === 'gif'} onClick={() => setMedia('gif')}>Animation</button>
@@ -286,7 +317,8 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
               <button key={m.exId} type="button" className="list-row" style={{ padding: 10 }} aria-current={i === idx ? 'step' : undefined} onClick={() => { setIdx(i); setListOpen(false); }}>
                 <span className={`move-num${dn ? ' done' : i === idx ? ' now' : ''}`}>{dn ? <Icon name="check" size={14} stroke={3} /> : i + 1}</span>
                 <span style={{ flex: 1, minWidth: 0 }} className="stack">
-                  <strong style={{ fontSize: 16 }}>{e?.name}</strong>
+                  <strong style={{ fontSize: 16 }}>{session?.swaps?.[m.exId] ? exById[session.swaps[m.exId]]?.name : e?.name}</strong>
+                  {m.alt && exById[m.alt.exId] ? <span className="small muted">{session?.swaps?.[m.exId] ? `instead of ${e?.name}` : `or ${exById[m.alt.exId].name} if busy`}</span> : null}
                   <span className="small muted">{doseLabel(m)}{e?.group === 'stretching' ? ' · stretch' : ''}</span>
                 </span>
                 {i === idx ? <span className="pill">Now</span> : null}

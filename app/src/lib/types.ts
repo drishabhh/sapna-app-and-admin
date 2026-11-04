@@ -39,6 +39,8 @@ export interface PlanMove {
   kg?: number;
   /** YouTube link for this move (overrides the exercise's own link) */
   yt?: string;
+  /** Rishu's backup for when the machine is busy — same sets × reps; she picks on the day */
+  alt?: { exId: string; yt?: string };
 }
 
 export interface Plan {
@@ -92,8 +94,10 @@ export interface Session {
   endedAt?: number;
   sets: SetEntry[];
   kind?: 'gym' | 'home';
-  /** exercise ids she marked as done (lifts are never auto-completed) */
+  /** exercise ids she marked as done (lifts are never auto-completed) — always the plan's move id */
   completed?: string[];
+  /** plan move id → the backup she did instead (machine busy) */
+  swaps?: Record<string, string>;
   /** estimated kcal burned */
   kcal?: number;
   programId?: string;

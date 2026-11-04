@@ -432,3 +432,11 @@ p { margin: 0; }
 @media (prefers-reduced-motion: reduce) { .wfill .wave { animation: none; } }
 .ig-poster { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%) !important; }
 .ig-play { width: 72px; height: 72px; border-radius: 50%; background: rgba(255,255,255,.95); color: #d6249f; display: grid; place-items: center; padding-left: 4px; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+/* busy machine: plan move or its backup */
+.pick2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.pick { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 8px; border-radius: 20px; border: 2px solid var(--line); background: var(--card); color: var(--text); text-align: left; transition: border-color .2s, transform .2s; }
+.pick.on { border-color: var(--acc); box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc) 22%, transparent); }
+.pick:not(.on) { opacity: .78; }
+.pick strong { font-size: 15px; line-height: 1.2; }
+.pick-tag { position: absolute; top: 14px; left: 14px; z-index: 1; padding: 3px 9px; border-radius: 99px; background: rgba(12,12,16,.75); color: #fff; font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.pick-on { color: var(--acc-t); font-weight: 800; font-size: 13px; }
