@@ -1,6 +1,6 @@
 {
- "version": 42,
- "updatedAt": "2026-11-04T09:27:08.570Z",
+ "version": 43,
+ "updatedAt": "2026-11-05T09:53:00.939Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -187,6 +187,24 @@
    "title": "Back biceps",
    "note": "Rest 1–1.5 min between sets.",
    "moves": [
+    {
+     "exId": "custom-jumping-jacks-a6rc",
+     "sets": 1,
+     "reps": 15,
+     "unit": "reps"
+    },
+    {
+     "exId": "lats-back-pec-stretch",
+     "sets": 1,
+     "reps": 10,
+     "unit": "reps"
+    },
+    {
+     "exId": "custom-child-pose-fpoz",
+     "sets": 1,
+     "reps": 10,
+     "unit": "reps"
+    },
     {
      "exId": "feat-lat-pulldown-pro",
      "sets": 3,
@@ -601,6 +619,14 @@
    "part": "cardio",
    "gif": "",
    "cue": "3min"
+  },
+  {
+   "id": "custom-jumping-jacks-a6rc",
+   "name": "Jumping Jacks",
+   "group": "stretching",
+   "part": "cardio",
+   "gif": "https://media.baamboozle.com/uploads/images/674871/2b14d5a4-8213-4ee1-91fa-6bbf393c05be.gif",
+   "cue": ""
   }
  ],
  "foods": [
