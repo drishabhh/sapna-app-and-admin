@@ -78,7 +78,7 @@ final class StepsReminder {
     /** Post the prompt unless she already logged steps today. */
     static void fire(Context c) {
         SharedPreferences p = prefs(c);
-        if (!p.getBoolean("enabled", true)) return;
+        if (!p.getBoolean("enabled", true) || AppLock.on(c)) return;
         if (today().equals(p.getString("loggedOn", ""))) return;
         String name = p.getString("name", "Sapna");
 

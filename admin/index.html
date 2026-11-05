@@ -312,7 +312,7 @@ function mergeContent(base, mine, theirs) {
     return [...new Set(order)].filter((id) => out.has(id)).map((id) => out.get(id));
   };
   const field = (k) => (same(base[k], mine[k]) ? theirs[k] : mine[k]);
-  return { ...theirs, targets: field('targets'), message: field('message'), plans: list('plans'), foods: list('foods'), exercises: list('exercises') };
+  return { ...theirs, targets: field('targets'), message: field('message'), lock: field('lock'), plans: list('plans'), foods: list('foods'), exercises: list('exercises') };
 }
 
 async function publish() {
@@ -1726,7 +1726,7 @@ function vSettings() {
       ${r.reminders ? `<div class="between" style="align-items:flex-start"><span class="muted">Reminders on</span><span style="text-align:right">${Object.entries(r.reminders).filter(([, v]) => v === true).map(([k]) => ({ punch: 'gym punch line', meals: 'meals', water: 'water', gym: 'workout days', weigh: 'weigh-in', steps: 'night steps' }[k] || k)).join(', ') || 'none'}</span></div>` : ''}
       </div></div>` : '';
   return hdr('Sapna Health · Admin', 'Settings') + `<div class="setgrid">
-    <section class="stack" style="gap:12px"><p class="eyebrow sec">Her app · goes out when you Publish</p>
+    <section class="stack" style="gap:12px">${vAppSwitch()}<p class="eyebrow sec">Her app · goes out when you Publish</p>
       <div class="card stack"><h2>Daily targets</h2><div class="g3">
         <label class="f">Calories<input class="input" id="tk" inputmode="numeric" value="${t.kcal}"></label>
         <label class="f">Protein g<input class="input" id="tp" inputmode="numeric" value="${t.protein}"></label>
@@ -1750,7 +1750,50 @@ function vSettings() {
         <div class="row wrapr"><button class="btn ghost sm" type="button" id="chtok">${S.token ? 'Change token (keeps changes)' : 'Add GitHub token to publish'}</button>${S.token ? '<button class="btn danger sm" type="button" id="logout">Forget token on this device</button>' : ''}</div></div>
     </section></div>`;
 }
+/* --- On/off switch for her app (needs her app 1.8.1+) --- */
+function vAppSwitch() {
+  const L = S.content.lock || {}; const off = !!L.on;
+  const seen = S.syncReport && S.syncReport.lock; const at = Date.parse(L.at || '') || 0;
+  const confirmed = seen && seen.at === at && !!seen.on === off;
+  const when = at ? new Date(at).toLocaleString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '';
+  return `<div class="card stack" id="appswitch" style="${off ? 'border-color:color-mix(in srgb,var(--danger) 55%,transparent)' : ''}">
+    <div class="between"><h2>Her app</h2><span class="pill" style="${off ? 'background:color-mix(in srgb,var(--danger) 18%,transparent);color:var(--danger)' : 'background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)'}">${off ? 'Switched off' : 'On'}</span></div>
+    ${off ? `<p class="small muted">Off since ${esc(when)}. She sees ${L.message ? `only: “${esc(L.message)}”` : 'a blank screen'} and gets no reminders.</p>
+      <p class="small">${confirmed ? '<span class="ok">✓ Her phone has switched off.</span>' : '⏳ Reaches her phone within seconds — or the next time she opens the app.'}</p>
+      <button class="btn" type="button" id="lockoff">Turn her app back on</button>`
+    : `<p class="small muted">Switch her app off any time. She’ll see a blank screen — or one line from you — and no reminders. Nothing is deleted; switching it back on brings everything back.</p>
+      <label class="f">Text on her screen <span class="faint">(optional)</span><textarea class="input" id="lockmsg" maxlength="300" placeholder="Leave empty for a blank screen">${esc(S.lockDraft || '')}</textarea></label>
+      <button class="btn danger" type="button" id="lockon">Turn her app off</button>`}
+    ${at && !off && confirmed === false && seen && seen.on ? '<p class="small">⏳ Switching back on — reaches her phone within seconds.</p>' : ''}
+  </div>`;
+}
+/** Publishes only the switch (nothing else you're editing) and pings her phone silently so it applies right away. */
+async function publishLock(on, message) {
+  if (!S.token) return askToken('To switch her app off or on from this device, add your GitHub token once.', () => publishLock(on, message));
+  const lock = { on, message: on ? String(message || '').slice(0, 300) : '', at: new Date().toISOString() };
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const latest = await gh(`contents/${CONTENT_PATH}?ref=${REPO.branch}`);
+      const theirs = latest && latest.content ? JSON.parse(unb64(latest.content)) : { ...S.content };
+      const c = { ...theirs, lock, version: (theirs.version || 0) + 1, updatedAt: new Date().toISOString() };
+      const body = { message: `Admin: switch app ${on ? 'off' : 'on'}`, content: b64(JSON.stringify(c, null, 1) + '\n'), branch: REPO.branch, ...(latest?.sha ? { sha: latest.sha } : {}) };
+      await gh(`contents/${CONTENT_PATH}`, { method: 'PUT', body: JSON.stringify(body) });
+      break;
+    } catch (e) {
+      if (attempt < 2 && /does not match|sha|conflict|409/i.test(String(e.message))) { await new Promise((ok) => setTimeout(ok, 800)); continue; }
+      return toastLong('Couldn’t switch: ' + e.message);
+    }
+  }
+  // your other unpublished edits stay as they are; the next Publish merges around this change
+  S.content.lock = lock; if (S.base) S.base.lock = JSON.parse(JSON.stringify(lock)); S.lockDraft = '';
+  try { await sendPush('', '', { kind: 'lock', on: on ? '1' : '0', message: lock.message, at: Date.parse(lock.at) }, { dataOnly: true }); } catch { /* she gets it next time the app opens */ }
+  const y = scrollY; render(); scrollTo(0, y);
+  toast(on ? 'Her app is switched off' : 'Her app is back on');
+}
 function wireSettings() {
+  const lm = $('#lockmsg'); if (lm) lm.oninput = () => { S.lockDraft = lm.value; };
+  const lon = $('#lockon'); if (lon) lon.onclick = () => { if (!confirm('Switch Sapna’s app off now? She’ll only see ' + ($('#lockmsg').value.trim() ? 'your text' : 'a blank screen') + ' until you switch it back on. Nothing is deleted.')) return; lon.disabled = true; lon.textContent = 'Switching off…'; publishLock(true, $('#lockmsg').value.trim()); };
+  const loff = $('#lockoff'); if (loff) loff.onclick = () => { loff.disabled = true; loff.textContent = 'Switching on…'; publishLock(false, ''); };
   const t = S.content.targets;
   $('#tk').oninput = (e) => { t.kcal = Math.max(800, parseInt(e.target.value) || 0); markDirty(); };
   $('#tp').oninput = (e) => { t.protein = Math.max(20, parseInt(e.target.value) || 0); markDirty(); };

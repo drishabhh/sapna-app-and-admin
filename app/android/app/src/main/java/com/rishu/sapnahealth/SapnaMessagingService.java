@@ -20,6 +20,13 @@ public class SapnaMessagingService extends MessagingService {
             NoteScheduler.schedule(this, d.get("id"), at, d.get("title"), d.get("body"));
             return;
         }
+        if ("lock".equals(kind)) {
+            long at = 0;
+            try { at = Long.parseLong(d.get("at")); } catch (Exception ignored) {}
+            AppLock.save(this, "1".equals(d.get("on")) || "true".equals(d.get("on")), d.get("message"), at);
+            super.onMessageReceived(msg); // if the app is open, it switches right away
+            return;
+        }
         if ("unschedule".equals(kind)) {
             NoteScheduler.cancel(this, d.get("id"));
             return;

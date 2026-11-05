@@ -62,6 +62,8 @@ export interface Content {
   exercises: Exercise[];
   foods: Food[];
   message?: string;
+  /** Rishu's on/off switch: while on, the app shows a blank screen with `message` (if any) */
+  lock?: { on: boolean; message?: string; at?: string };
 }
 
 export interface FoodEntry {

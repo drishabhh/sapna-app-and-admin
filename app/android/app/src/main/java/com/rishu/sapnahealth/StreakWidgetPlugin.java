@@ -93,6 +93,24 @@ public class StreakWidgetPlugin extends Plugin {
         call.resolve(ret);
     }
 
+    /** Rishu's on/off switch: {on, message, at}. */
+    @PluginMethod
+    public void getLock(PluginCall call) {
+        android.content.SharedPreferences p = AppLock.prefs(getContext());
+        JSObject ret = new JSObject();
+        ret.put("on", p.getBoolean("on", false));
+        ret.put("message", p.getString("message", ""));
+        ret.put("at", p.getLong("at", 0));
+        call.resolve(ret);
+    }
+
+    @PluginMethod
+    public void setLock(PluginCall call) {
+        Double at = call.getDouble("at");
+        AppLock.save(getContext(), Boolean.TRUE.equals(call.getBoolean("on", false)), call.getString("message", ""), at == null ? 0 : at.longValue());
+        call.resolve();
+    }
+
     @PluginMethod
     public void pinWater(PluginCall call) {
         call.resolve(pinFor(WaterWidgetProvider.class));

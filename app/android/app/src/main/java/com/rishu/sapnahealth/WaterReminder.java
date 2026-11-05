@@ -83,7 +83,7 @@ final class WaterReminder {
         JSONObject j = WaterWidgetProvider.state(c);
         AlarmManager am = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
         PendingIntent fire = pi(c, ACTION_FIRE, RC_FIRE);
-        if (!j.optBoolean("enabled", false)) {
+        if (!j.optBoolean("enabled", false) || AppLock.on(c)) {
             if (am != null) am.cancel(fire);
             return;
         }
@@ -106,7 +106,7 @@ final class WaterReminder {
 
     static void fire(Context c) {
         JSONObject j = WaterWidgetProvider.state(c);
-        if (!j.optBoolean("enabled", false)) return;
+        if (!j.optBoolean("enabled", false) || AppLock.on(c)) return;
         int ml = j.optInt("ml", 0), goal = Math.max(250, j.optInt("goal", 2000)), cup = j.optInt("cup", 250);
         if (ml >= goal) { scheduleNext(c); return; }
         int left = goal - ml;

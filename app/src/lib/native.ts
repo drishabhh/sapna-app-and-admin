@@ -1,3 +1,4 @@
+import { lockForReport } from './lock';
 import { notesForReport } from './notes';
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
@@ -137,6 +138,7 @@ export function buildReport(d: AppData, c: Content) {
     food: d.food.map((f) => ({ id: f.id, foodId: f.foodId, date: f.date, meal: f.meal, name: f.name, portion: f.portion, mult: f.mult, kcal: f.kcal, protein: f.protein, at: f.at })),
     water: d.water,
     notes: notesForReport(),
+    lock: lockForReport(),
     drinks: Object.fromEntries(Object.entries(d.drinks || {}).filter(([k]) => k >= last7()[0]).map(([k, v]) => [k, v.map((x) => ({ at: x.at, ml: x.ml }))])),
     steps: d.steps,
     burned,

@@ -29,6 +29,7 @@ import { syncAdminOps } from './lib/adminops';
 import { PullToRefresh } from './pull';
 import { initPush } from './lib/push';
 import { refreshNotes } from './lib/notes';
+import { effectiveLock, Lock, readNativeLock, setLockForReport, storeNativeLock } from './lib/lock';
 import { buildReport } from './lib/native';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
@@ -40,7 +41,28 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 ];
 
 function Shell() {
-  const { ready, data, update, content: content0 } = useStore();
+  const { ready, data, update, content: content0, reloadContent: reloadContent0 } = useStore();
+  // Rishu's on/off switch (published content + silent push stored natively; newer wins).
+  const [nlock, setNlock] = useState<Lock | null>(null);
+  const [lockChecked, setLockChecked] = useState(!Capacitor.isNativePlatform());
+  useEffect(() => {
+    readNativeLock().then((l) => { setNlock(l); setLockChecked(true); });
+    const sub = CapApp.addListener('appStateChange', ({ isActive }) => { if (isActive) readNativeLock().then(setNlock); });
+    return () => { sub.then((x) => x.remove()).catch(() => {}); };
+  }, []);
+  const lock = effectiveLock(content0, nlock);
+  useEffect(() => {
+    setLockForReport(lock);
+    if (!nlock || nlock.at !== lock.at) storeNativeLock(lock); // so reminders also stop/resume with the app closed
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lock.on, lock.at, lock.message]);
+  useEffect(() => {
+    if (!lock.on) return; // while off: check straight with GitHub every minute, so switching back on is quick
+    const t = window.setInterval(() => { reloadContent0({ direct: true }); readNativeLock().then(setNlock); }, 60000);
+    return () => window.clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lock.on]);
+  const quiet = (d: typeof data) => (lock.on ? { ...d, reminders: { ...d.reminders, meals: false, water: false, gym: false, weigh: false, punch: false, steps: false } } : d);
   const [tab, setTab] = useDraft<Tab>('app.tab', 'today');
   const [logger, setLogger] = useDraft<{ open: boolean; meal: Meal; date?: string }>('app.logger', { open: false, meal: 'breakfast' });
   const [settings, setSettings] = useDraft('app.settings', false);
@@ -58,11 +80,11 @@ function Shell() {
   // (and on every launch), so tomorrow's punch line and the Monday weigh-in nudge stay correct.
   // Water nudges also follow today's drinks (next one counts from her last glass; none once the goal is hit).
   const td = today();
-  const remKey = ready && data.onboarded ? JSON.stringify([data.reminders, data.profile.gymDays, data.profile.name, data.weighIns.length && data.weighIns[data.weighIns.length - 1].date, td, mlOn(data, td), drinksOf(data, td).length, data.sessions.filter((s) => s.date === td && s.sets.length).length, content0.targets.water]) : '';
+  const remKey = ready && data.onboarded ? JSON.stringify([data.reminders, data.profile.gymDays, data.profile.name, data.weighIns.length && data.weighIns[data.weighIns.length - 1].date, td, mlOn(data, td), drinksOf(data, td).length, data.sessions.filter((s) => s.date === td && s.sets.length).length, content0.targets.water, lock.on]) : '';
   useEffect(() => {
     if (!remKey) return;
     setReminderContent(content0);
-    const t = window.setTimeout(() => { syncReminders(data, { ask: false }).catch(() => {}); }, 1500);
+    const t = window.setTimeout(() => { syncReminders(quiet(data), { ask: false }).catch(() => {}); }, 1500);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remKey]);
@@ -108,7 +130,7 @@ function Shell() {
   useEffect(() => {
     if (!ready || !data.onboarded) return;
     initPush({
-      onReceived: (d) => { if (d.kind === 'plan') reloadContent({ direct: true }).then((fresh) => { if (fresh) toast('New plan from Rishu is here'); }); },
+      onReceived: (d) => { if (d.kind === 'lock') { readNativeLock().then(setNlock); reloadContent({ direct: true }); return; } if (d.kind === 'plan') reloadContent({ direct: true }).then((fresh) => { if (fresh) toast('New plan from Rishu is here'); }); },
       onTapped: (d) => {
         const t = (d.tab as Tab) || (d.kind === 'plan' ? 'workout' : 'today');
         setTab(t);
@@ -120,8 +142,9 @@ function Shell() {
 
   // Keep the home-screen streak widget in step with her logs.
   useEffect(() => {
-    if (ready && data.onboarded) { syncWidget(data); syncNightSteps(data); syncWaterWidget(data, content0); }
-  }, [ready, data, content0]);
+    if (ready && data.onboarded) { syncWidget(data); syncNightSteps(quiet(data)); syncWaterWidget(quiet(data), content0); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, data, content0, lock.on]);
 
   // Glasses she tapped on the water widget while the app was closed → into her log (on launch and every return).
   useEffect(() => {
@@ -216,7 +239,8 @@ function Shell() {
 
   // One stable <Launch/> at a fixed position so its timing state survives the ready → onboarded → app transitions.
   let view: ReactElement;
-  if (!ready) view = <div className="app" style={{ background: 'var(--bg)' }} />;
+  if (!ready || !lockChecked) view = <div className="app" style={{ background: 'var(--bg)' }} />;
+  else if (lock.on) view = <LockScreen message={lock.message} />;
   else if (!data.onboarded) view = <div className="app"><Onboarding /><ToastHost /></div>;
   else view = (
     <NavCtx.Provider value={nav}>
@@ -244,6 +268,15 @@ function Shell() {
     </NavCtx.Provider>
   );
   return <>{view}<Launch ready={ready} onboarded={data.onboarded} /></>;
+}
+
+/** The app is switched off by Rishu: a blank screen, with his one line of text if he wrote one. */
+function LockScreen({ message }: { message: string }) {
+  return (
+    <div className="app" role="main" aria-label="Paused" style={{ background: '#000', display: 'grid', placeItems: 'center', padding: 32, minHeight: '100dvh' }}>
+      {message ? <p style={{ color: '#e9e6ee', fontSize: 20, lineHeight: 1.5, textAlign: 'center', maxWidth: 320, whiteSpace: 'pre-wrap', margin: 0 }}>{message}</p> : null}
+    </div>
+  );
 }
 
 export default function App() {
