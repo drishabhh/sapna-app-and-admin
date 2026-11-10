@@ -1,4 +1,4 @@
-import { ReactElement, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, ReactElement, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { App as CapApp } from '@capacitor/app';
 import { Capacitor, SystemBars, SystemBarsStyle } from '@capacitor/core';
 import { Launch } from './launch';
@@ -12,14 +12,21 @@ import { today } from './lib/dates';
 import { StoreProvider, useStore } from './lib/store';
 import { Meal } from './lib/types';
 import { Nav, NavCtx, Tab } from './nav';
-import CycleScreen from './screens/Cycle';
 import FoodScreen from './screens/Food';
 import { FoodLogger } from './screens/FoodLogger';
-import Onboarding from './screens/Onboarding';
-import ProgressScreen from './screens/Progress';
-import Settings from './screens/Settings';
 import Today from './screens/Today';
-import WorkoutScreen from './screens/Workout';
+import { cacheMedia } from './lib/mediacache';
+import { gifSrc } from './lib/content';
+// Opens faster: Today and Food load first; the rest load right after, in the background.
+const loadCycle = () => import('./screens/Cycle');
+const loadProgress = () => import('./screens/Progress');
+const loadWorkout = () => import('./screens/Workout');
+const loadSettings = () => import('./screens/Settings');
+const CycleScreen = lazy(loadCycle);
+const ProgressScreen = lazy(loadProgress);
+const WorkoutScreen = lazy(loadWorkout);
+const Settings = lazy(loadSettings);
+const Onboarding = lazy(() => import('./screens/Onboarding'));
 import { Icon, popBack, toast, ToastHost } from './ui';
 import { syncNightSteps, syncWaterWidget, syncWidget, takeWidgetDrinks } from './streak';
 import { requestSteps, requestWater } from './lib/intents';
@@ -66,6 +73,8 @@ function Shell() {
   const [tab, setTab] = useDraft<Tab>('app.tab', 'today');
   const [logger, setLogger] = useDraft<{ open: boolean; meal: Meal; date?: string }>('app.logger', { open: false, meal: 'breakfast' });
   const [settings, setSettings] = useDraft('app.settings', false);
+  const [settingsUsed, setSettingsUsed] = useState(settings); // mount Settings once it's first opened
+  useEffect(() => { if (settings) setSettingsUsed(true); }, [settings]);
   const [autoStart, setAutoStart] = useState(false);
   // The file copy of drafts (loaded with her data) can be newer than localStorage — re-read once ready.
   useEffect(() => {
@@ -139,6 +148,29 @@ function Shell() {
     }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, data.onboarded]);
+
+  // Load the other screens once the first one is on screen, so every tab still opens instantly.
+  useEffect(() => {
+    if (!ready) return;
+    // One screen per quiet moment, so a quick first tap is never stuck behind the background loading.
+    const queue = [loadWorkout, loadProgress, loadCycle, loadSettings];
+    const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
+    const next = () => { const f = queue.shift(); if (!f) return; f().finally(() => window.setTimeout(step, 250)); };
+    const step = () => { if (w.requestIdleCallback) w.requestIdleCallback(next, { timeout: 3000 }); else next(); };
+    const t = window.setTimeout(step, 1200);
+    return () => { queue.length = 0; window.clearTimeout(t); };
+  }, [ready]);
+
+  // Keep every GIF in her plans (and their backups) on the phone, for gyms with no signal.
+  const mediaKey = content0.plans.flatMap((p) => p.moves.flatMap((m) => [m.exId, m.alt?.exId || ''])).join() + content0.updatedAt;
+  useEffect(() => {
+    if (!ready) return;
+    const ex = new Map(content0.exercises.map((e) => [e.id, e]));
+    const list = content0.plans.flatMap((p) => p.moves.flatMap((m) => [m.exId, m.alt?.exId].filter(Boolean) as string[])).map((id) => gifSrc(ex.get(id))).filter(Boolean);
+    const t = window.setTimeout(() => { cacheMedia(list); }, 2500);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, mediaKey]);
 
   // Keep the home-screen streak widget in step with her logs.
   useEffect(() => {
@@ -241,16 +273,18 @@ function Shell() {
   let view: ReactElement;
   if (!ready || !lockChecked) view = <div className="app" style={{ background: 'var(--bg)' }} />;
   else if (lock.on) view = <LockScreen message={lock.message} />;
-  else if (!data.onboarded) view = <div className="app"><Onboarding /><ToastHost /></div>;
+  else if (!data.onboarded) view = <div className="app"><Suspense fallback={null}><Onboarding /></Suspense><ToastHost /></div>;
   else view = (
     <NavCtx.Provider value={nav}>
       <div className="app">
         <PullToRefresh key={tab} tab={tab} />
         {tab === 'today' && <Today />}
         {tab === 'food' && <FoodScreen />}
-        {tab === 'workout' && <WorkoutScreen autoStart={autoStart} onAutoStartHandled={() => setAutoStart(false)} />}
-        {tab === 'cycle' && <CycleScreen />}
-        {tab === 'progress' && <ProgressScreen />}
+        <Suspense fallback={<div className="screen" />}>
+          {tab === 'workout' && <WorkoutScreen autoStart={autoStart} onAutoStartHandled={() => setAutoStart(false)} />}
+          {tab === 'cycle' && <CycleScreen />}
+          {tab === 'progress' && <ProgressScreen />}
+        </Suspense>
 
         <nav className="tabbar" aria-label="Main" data-acc={tab}>
           {TABS.map((t) => (
@@ -262,7 +296,7 @@ function Shell() {
         </nav>
 
         <FoodLogger open={logger.open} meal={logger.meal} date={logger.date} onClose={() => { clearDrafts('log.'); setLogger((l) => ({ ...l, open: false })); }} />
-        <Settings open={settings} onClose={() => setSettings(false)} />
+        {settingsUsed ? <Suspense fallback={null}><Settings open={settings} onClose={() => setSettings(false)} /></Suspense> : null}
         <ToastHost />
       </div>
     </NavCtx.Provider>

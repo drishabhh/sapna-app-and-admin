@@ -1,3 +1,4 @@
+import { useCachedSrc } from './lib/mediacache';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { haptic } from './lib/native';
@@ -165,7 +166,8 @@ export function Seg<T extends string>({ value, options, onChange, label }: { val
 }
 
 /* ---------- Exercise GIF with offline fallback ---------- */
-export function Gif({ src, alt, style, className }: { src: string; alt: string; style?: React.CSSProperties; className?: string }) {
+export function Gif({ src: remote, alt, style, className }: { src: string; alt: string; style?: React.CSSProperties; className?: string }) {
+  const src = useCachedSrc(remote); // the on-phone copy when there is one (gyms with no signal)
   const [bad, setBad] = useState(false);
   useEffect(() => setBad(false), [src]);
   if (bad || !src) {

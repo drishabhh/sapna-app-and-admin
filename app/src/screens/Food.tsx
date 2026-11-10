@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import { mealTotals, totalsOn } from '../lib/calc';
+import { mealTotals, totalsOn, uid } from '../lib/calc';
 import { addDays, longLabel, today } from '../lib/dates';
 import { useStore } from '../lib/store';
-import { MEALS } from '../lib/types';
+import { MEALS, type Meal } from '../lib/types';
 import { useNav } from '../nav';
-import { Bar, Icon } from '../ui';
+import { Bar, Icon, toast } from '../ui';
 import { FoodEditSheet } from '../foodedit';
 import { Num } from '../anim';
 
 export default function FoodScreen() {
-  const { data, content } = useStore();
+  const { data, content, update } = useStore();
   const nav = useNav();
   // Always opens on today (a remembered day kept showing yesterday after midnight).
   const [day, setDay] = useState(today());
@@ -17,6 +17,13 @@ export default function FoodScreen() {
   const edit = editId ? data.food.find((f) => f.id === editId) || null : null;
   const t = totalsOn(data, day);
   const isToday = day === today();
+  // "Same as yesterday": one tap logs yesterday's meal again (most people eat the same breakfast).
+  const yesterdayOf = (meal: Meal) => data.food.filter((e) => e.date === addDays(day, -1) && e.meal === meal);
+  const repeatYesterday = (meal: Meal) => {
+    const y = yesterdayOf(meal); const now = Date.now();
+    update((d) => ({ ...d, food: [...d.food, ...y.map((e, i) => ({ ...e, id: uid(), date: day, at: now + i }))] }));
+    toast(`Logged ${y.length} item${y.length > 1 ? 's' : ''} from yesterday`);
+  };
 
   return (
     <div className="screen" data-acc="food">
@@ -56,6 +63,12 @@ export default function FoodScreen() {
                 <div><h2 className="h3" style={{ fontSize: 17 }}>{m.label}</h2><p className="small muted">{mt.kcal} kcal · {mt.protein} g protein</p></div>
                 <button type="button" className="icon-btn solid" aria-label={`Add to ${m.label}`} onClick={() => nav.openLogger(m.id, day)}><Icon name="plus" size={20} stroke={2.6} /></button>
               </div>
+              {!mt.entries.length && yesterdayOf(m.id).length ? (
+                <button type="button" className="again" onClick={() => repeatYesterday(m.id)}>
+                  <Icon name="history" size={16} /> Same as yesterday
+                  <span className="small muted">{(() => { const y = yesterdayOf(m.id); return `${y[0].name}${y.length > 1 ? ` +${y.length - 1}` : ''} · ${y.reduce((s, e) => s + e.kcal, 0)} kcal`; })()}</span>
+                </button>
+              ) : null}
               {mt.entries.length ? (
                 <div className="stack" style={{ gap: 0, marginTop: 8 }}>
                   {mt.entries.map((e) => (
