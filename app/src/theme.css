@@ -460,3 +460,8 @@ p { margin: 0; }
 .confetti i{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;animation:confetti 1.5s cubic-bezier(.2,.6,.4,1) forwards}
 @keyframes confetti{to{top:105%;transform:translateX(30px) rotate(540deg);opacity:.2}}
 @media (prefers-reduced-motion:reduce){.confetti{display:none}}
+
+/* Cycle guide */
+.guide-ic{flex:none;width:34px;height:34px;border-radius:12px;display:grid;place-items:center;font-size:17px;background:color-mix(in srgb,var(--acc) 14%,var(--card-2))}
+.chip.sm{min-height:32px;padding:0 12px;font-size:13px}
+.cycle-line{padding:8px 10px;border-radius:12px;background:color-mix(in srgb,var(--pink,#ff8fb1) 10%,transparent);gap:8px}

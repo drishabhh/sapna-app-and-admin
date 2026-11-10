@@ -86,6 +86,10 @@ export function coach(d: AppData, ex: Exercise | undefined, move: PlanMove, plan
   if (c && c.phase === 'period' && (c.day <= 2 || flow === 'heavy')) {
     return tip('easy', last.kg, `Period days — same as last time is a win. Go lighter if your body says so.`);
   }
+  const sym = d.profile.cycleEnabled ? d.cycle[on]?.symptoms || [] : [];
+  if (sym.includes('Low energy') || sym.includes('Cramps')) {
+    return tip('easy', last.kg, `You logged ${sym.includes('Cramps') ? 'cramps' : 'low energy'} today — same weight as last time, and stop early if you need to.`);
+  }
   if (pw?.deload) {
     return tip('deload', Math.min(pk ?? last.kg, r(last.kg * 0.85, step)), `Easy week ${pw.week} in Rishu’s plan — lighter on purpose, so you come back stronger.`);
   }

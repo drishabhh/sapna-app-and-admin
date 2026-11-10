@@ -1098,7 +1098,7 @@ function vDay() {
     ${tile('Eaten', n0(dd.kcal), 'kcal', `of ${n0(goalK)}${burnK ? ` (+${n0(Math.round(burnK / 2))} earned)` : ''}`, pct(dd.kcal, goalK))}
     ${tile('Protein', r1(dd.protein), 'g', `goal ${T.protein} g`, pct(dd.protein, T.protein))}
     ${tile('Water', fmtL((m.water[k] || 0) * 250), '', `of ${fmtL((T.water || 8) * 250 + (m.sessions.some((s) => s.date === k) ? 500 : 0))}${lastSip(m, k)}`, pct((m.water[k] || 0) * 250, (T.water || 8) * 250 + (m.sessions.some((s) => s.date === k) ? 500 : 0)), ed)}
-    ${tile('Steps', n0(m.steps[k]), '', `${burnK ? n0(burnK) + ' kcal burned' : 'no burn logged'}${wIn ? ` · ⚖ ${wIn.kg} kg` : ''}`, null, ed)}
+    ${tile('Steps', n0(m.steps[k]), '', `${m.r && m.r.stepsAuto ? '⌁ Samsung · ' : ''}${burnK ? n0(burnK) + ' kcal burned' : 'no burn logged'}${wIn ? ` · ⚖ ${wIn.kg} kg` : ''}`, null, ed)}
   </div>`;
 
   const items = m.food.filter((f) => f.date === k).sort((a, b) => (a.at || 0) - (b.at || 0));

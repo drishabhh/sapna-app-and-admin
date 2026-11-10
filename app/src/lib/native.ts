@@ -140,6 +140,7 @@ export function buildReport(d: AppData, c: Content) {
     notes: notesForReport(),
     lock: lockForReport(),
     alerts: d.alerts ? { topic: d.alerts.topic, workout: d.alerts.workout, pr: d.alerts.pr } : null,
+    stepsAuto: !!d.health?.on,
     drinks: Object.fromEntries(Object.entries(d.drinks || {}).filter(([k]) => k >= last7()[0]).map(([k, v]) => [k, v.map((x) => ({ at: x.at, ml: x.ml }))])),
     steps: d.steps,
     burned,

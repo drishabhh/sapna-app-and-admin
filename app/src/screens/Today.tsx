@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { cycleInfo, isGymDay, mealFor, streakInfo, mealTotals, planBrief, todayPlan, PHASE_COPY, sessionsOn, totalsOn } from '../lib/calc';
-import { greeting, longLabel, today } from '../lib/dates';
+import { cycleInfo, isGymDay, mealFor, streakInfo, mealTotals, planBrief, todayPlan, sessionsOn, totalsOn } from '../lib/calc';
+import { greeting, longLabel, timeLabel, today } from '../lib/dates';
+import { healthNative } from '../lib/health';
+import { useLinkSteps } from '../stepsui';
 import { useStore } from '../lib/store';
 import { Food, Meal, MEALS } from '../lib/types';
 import { useNav } from '../nav';
@@ -14,10 +16,12 @@ import { TTL, useDraft } from '../lib/drafts';
 import { InstantNudge } from '../power';
 import { MealSheet } from '../foodedit';
 import { WaterCard, WaterSheet } from '../water';
+import { CycleTodayCard } from '../cycleui';
 import { takeWaterRequest } from '../lib/intents';
 
 export default function Today() {
   const { data, content, foods, update, exById, contentFresh } = useStore();
+  const linkSteps = useLinkSteps();
   const nav = useNav();
   const d = today();
   const t = totalsOn(data, d);
@@ -137,7 +141,7 @@ export default function Today() {
           <button type="button" className="card tight stack" style={{ gap: 10, textAlign: 'left', color: 'var(--text)' }} data-acc="today" onClick={() => { setStepsVal(steps ? String(steps) : ''); setStepsOpen(true); }}>
             <strong className="row" style={{ gap: 6 }}><Icon name="steps" size={18} /> Steps</strong>
             <p className="big" style={{ fontSize: 30 }}><Num value={steps} /></p>
-            <p className="small muted">{steps ? `≈ ${stepsKcal(steps, kg)} kcal burned` : 'Log tonight at 11:30 pm'}</p>
+            <p className="small muted">{steps ? `≈ ${stepsKcal(steps, kg)} kcal burned` : data.health?.on ? 'From Samsung Health' : 'Log tonight at 11:30 pm'}</p>
           </button>
         </section>
 
@@ -154,19 +158,21 @@ export default function Today() {
           ) : <p className="muted" style={{ marginTop: 6 }}>Rishu is designing today’s plan — it shows up here once he publishes it.</p>}
         </section>
 
-        {cyc ? (
-          <button type="button" className="card" data-acc="cycle" style={{ textAlign: 'left', color: 'var(--text)' }} onClick={() => nav.go('cycle')}>
-            <div className="between"><p className="eyebrow" style={{ color: 'var(--acc-t)' }}>Cycle · day {cyc.day}</p><span className="pill">{PHASE_COPY[cyc.phase].label}</span></div>
-            <p style={{ marginTop: 8 }}>{PHASE_COPY[cyc.phase].tip}</p>
-          </button>
-        ) : null}
+        {cyc ? <CycleTodayCard /> : null}
       </div>
 
       <WaterSheet open={waterOpen} onClose={() => setWaterOpen(false)} />
       <Sheet open={stepsOpen} onClose={() => setStepsOpen(false)} label="Log steps">
         <div className="stack" style={{ gap: 14 }} data-acc="today">
           <h2 className="h2">Steps today</h2>
-          <p className="muted small">Your whole day, night walk included — copy the number from Samsung Health. Calories are worked out for you.</p>
+          {data.health?.on ? (
+            <p className="muted small">Comes in by itself from Samsung Health{data.health.at ? ` · updated ${timeLabel(data.health.at)}` : ''}. Typing a number here keeps yours for today.</p>
+          ) : (
+            <>
+              <p className="muted small">Your whole day, night walk included — copy the number from Samsung Health. Calories are worked out for you.</p>
+              {healthNative() ? <button type="button" className="btn ghost block" onClick={async () => { const r = await linkSteps(); if (r === 'ok') setStepsOpen(false); }}><Icon name="steps" size={18} /> Fill this in automatically from Samsung Health</button> : null}
+            </>
+          )}
           <input className="input" inputMode="numeric" autoFocus value={stepsVal} onChange={(e) => setStepsVal(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="e.g. 6500" style={{ fontSize: 26, fontFamily: 'var(--display)', fontWeight: 800 }} />
           <div className="chips" aria-label="Quick add">
             {[1000, 2000, 3000].map((n) => <button key={n} type="button" className="chip" onClick={() => setStepsVal(String(Number(stepsVal || 0) + n))}>+{n.toLocaleString('en-IN')} night walk</button>)}
@@ -174,7 +180,7 @@ export default function Today() {
           <p className="small" style={{ fontWeight: 700 }}>{Number(stepsVal || 0) ? `≈ ${stepsKcal(Number(stepsVal), kg)} kcal burned · ${(Number(stepsVal) * 0.00072).toFixed(1)} km` : '\u00a0'}</p>
           <button type="button" className="btn lg block" onClick={() => {
             const n = Number(stepsVal || 0);
-            update((x) => ({ ...x, steps: { ...x.steps, [d]: n } }));
+            update((x) => ({ ...x, steps: { ...x.steps, [d]: n }, stepsSrc: { ...(x.stepsSrc || {}), [d]: 'me' } }));
             setStepsOpen(false);
             toast('Steps saved');
           }}>Save</button>

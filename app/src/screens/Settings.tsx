@@ -2,12 +2,14 @@ import { waterHours, waterTime } from '../water';
 import { waterPrefs } from '../lib/water';
 import { useRef, useState } from 'react';
 import { BUNDLED, refreshContent } from '../lib/content';
-import { DOW_FULL, DOW_LETTER, keyOf, shortLabel } from '../lib/dates';
+import { DOW_FULL, DOW_LETTER, keyOf, shortLabel, timeLabel } from '../lib/dates';
 import { haptic, readBackupFile, saveBackup, shareBackup, syncReminders } from '../lib/native';
 import { SyncCard } from '../syncui';
 import { InstantCard } from '../power';
 import { useStore } from '../lib/store';
 import { emptyData, Reminders, ShareCycle } from '../lib/types';
+import { healthNative, openHealthSettings } from '../lib/health';
+import { useLinkSteps, useUnlinkSteps } from '../stepsui';
 import { FullSheet, Icon, Sheet, Stepper, toast, Toggle, TopBar } from '../ui';
 import { Doodle, pinWaterWidget, pinWidget } from '../streak';
 
@@ -17,6 +19,8 @@ type BoolRem = import('../lib/types').BoolReminder;
 const fmt12 = (hm: string) => { const [h, m] = hm.split(':').map(Number); return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`; };
 
 export default function Settings({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const linkSteps = useLinkSteps();
+  const unlinkSteps = useUnlinkSteps();
   const { data, content, update, replaceAll } = useStore();
   const p = data.profile;
   const fileRef = useRef<HTMLInputElement>(null);
@@ -93,6 +97,29 @@ export default function Settings({ open, onClose }: { open: boolean; onClose: ()
             ))}
           </div>
         </section>
+
+        {healthNative() ? (
+          <section className="card stack" style={{ gap: 8 }} aria-label="Steps from Samsung Health" data-acc="today">
+            <div className="between">
+              <div className="row" style={{ gap: 8 }}><span className="acc-t"><Icon name="steps" /></span><h2 className="h2" style={{ fontSize: 19 }}>Steps from Samsung Health</h2></div>
+              {data.health?.on ? <span className="pill">On</span> : null}
+            </div>
+            {data.health?.on ? (
+              <>
+                <p className="small muted">Your steps come in by themselves{data.health.at ? ` · last ${timeLabel(data.health.at)}` : ''}. Not updating? In Samsung Health → Settings → Health Connect, make sure Steps is shared.</p>
+                <div className="row" style={{ gap: 8 }}>
+                  <button type="button" className="btn ghost sm" onClick={() => openHealthSettings()}>Health Connect settings</button>
+                  <button type="button" className="btn quiet sm" onClick={unlinkSteps}>Disconnect</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="small muted">No more typing steps at night — they fill in from Samsung Health through Android’s Health Connect. Only your step count is read; it’s never shared beyond Rishu.</p>
+                <button type="button" className="btn sm" style={{ alignSelf: 'flex-start' }} onClick={() => linkSteps()}>Connect</button>
+              </>
+            )}
+          </section>
+        ) : null}
 
         <section className="card row" style={{ gap: 12 }} aria-label="Streak widget" data-acc="workout">
           <Doodle name="thumbs" size={78} />

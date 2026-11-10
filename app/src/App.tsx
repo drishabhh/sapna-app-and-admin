@@ -17,6 +17,7 @@ import { FoodLogger } from './screens/FoodLogger';
 import Today from './screens/Today';
 import { cacheMedia } from './lib/mediacache';
 import { flushAlerts } from './lib/alerts';
+import { useStepsSync } from './stepsui';
 import { gifSrc } from './lib/content';
 // Opens faster: Today and Food load first; the rest load right after, in the background.
 const loadCycle = () => import('./screens/Cycle');
@@ -50,6 +51,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 
 function Shell() {
   const { ready, data, update, content: content0, reloadContent: reloadContent0 } = useStore();
+  useStepsSync(); // Samsung Health steps, when connected
   // Rishu's on/off switch (published content + silent push stored natively; newer wins).
   const [nlock, setNlock] = useState<Lock | null>(null);
   const [lockChecked, setLockChecked] = useState(!Capacitor.isNativePlatform());

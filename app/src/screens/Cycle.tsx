@@ -7,6 +7,7 @@ import { Flow } from '../lib/types';
 import { Icon, Ring, toast } from '../ui';
 import { Num } from '../anim';
 import { useDraft } from '../lib/drafts';
+import { GuideCard } from '../cycleui';
 
 const SYMPTOMS = ['Cramps', 'Bloating', 'Headache', 'Low energy', 'Mood swings', 'Cravings', 'Acne', 'Back pain', 'Tender breasts'];
 const FLOWS: { v: Flow; l: string }[] = [{ v: 'none', l: 'None' }, { v: 'light', l: 'Light' }, { v: 'medium', l: 'Medium' }, { v: 'heavy', l: 'Heavy' }];
@@ -88,12 +89,7 @@ export default function CycleScreen() {
 
         {!inPeriodToday ? <button type="button" className="btn block" onClick={periodStartedToday}><Icon name="drop" size={18} /> My period started today</button> : null}
 
-        {info ? (
-          <section className="grid2">
-            <div className="card tight"><p className="eyebrow acc-t">How you may feel</p><p className="small" style={{ marginTop: 6 }}>{PHASE_COPY[info.phase].tip}</p></div>
-            <div className="card tight" data-acc="workout"><p className="eyebrow acc-t">At the gym</p><p className="small" style={{ marginTop: 6 }}>{PHASE_COPY[info.phase].gym}</p></div>
-          </section>
-        ) : null}
+        {info ? <GuideCard /> : null}
 
         <section className="card stack" style={{ gap: 12 }} aria-label="Calendar">
           <div className="between">

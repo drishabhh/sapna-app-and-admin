@@ -220,6 +220,10 @@ export interface AppData {
   /** ids of edits from Rishu's admin already applied on this phone */
   adminApplied?: string[];
   alerts?: AlertPrefs;
+  /** steps come from Samsung Health (Health Connect) */
+  health?: { on: boolean; at?: number };
+  /** days whose steps were typed by hand (Health Connect leaves those alone) */
+  stepsSrc?: Record<string, 'me'>;
 }
 
 export const DEFAULT_PROFILE: Profile = {

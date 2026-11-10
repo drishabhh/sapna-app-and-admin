@@ -48,7 +48,7 @@ function applyOne(d: AppData, op: AdminOp): AppData | null {
       const v = num(op.value, 0, op.kind === 'water.set' ? 40 : 200000); if (v === null) return null;
       if (op.kind === 'water.set') return setGlassesOn(d, op.date, v);
       const map = { ...d.steps }; if (v === 0) delete map[op.date]; else map[op.date] = Math.round(v);
-      return { ...d, steps: map };
+      return op.kind === 'steps.set' ? { ...d, steps: map, stepsSrc: { ...(d.stepsSrc || {}), [op.date]: 'me' } } : { ...d, steps: map };
     }
     case 'weigh.set': {
       if (!isDate(op.date)) return null;

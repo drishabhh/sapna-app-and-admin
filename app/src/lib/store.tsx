@@ -78,6 +78,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const update = useCallback((fn: (d: AppData) => AppData) => {
     const next = fn(dataRef.current);
+    if (next === dataRef.current) return; // nothing changed — skip the save
     dataRef.current = next;
     setData(next);
     if (timer.current) window.clearTimeout(timer.current);

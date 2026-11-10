@@ -14,6 +14,7 @@ import { YtPlayer } from '../video';
 import { bestOf, coach, isBest, restFor, type Tip } from '../lib/coach';
 import { sendAlert } from '../lib/alerts';
 import { cancelRestAlarm, scheduleRestAlarm } from '../lib/rest';
+import { CycleGymLine } from '../cycleui';
 
 /** 3 × 12 reps · or just “15 min” / “30 sec” for timed moves */
 const doseLabel = (m: PlanMove) => (m.unit === 'min' ? `${m.reps} min` : m.unit === 'sec' ? `${m.reps} sec` : `${m.sets} × ${m.reps} reps`);
@@ -94,6 +95,7 @@ function TodayTile({ plan, onStart }: { plan: Plan | null; onStart: () => void }
         <span className="chip static">~{mins} min</span>
       </div>
       {plan.note ? <p className="small muted row" style={{ marginTop: 12, alignItems: 'flex-start' }}><Icon name="glass" size={18} /> {plan.note}</p> : null}
+      {!done ? <CycleGymLine /> : null}
       {done && !active ? (
         <p className="ok-t" style={{ fontWeight: 700, marginTop: 14 }}><Icon name="check" size={16} stroke={3} /> Workout logged. Rest up.</p>
       ) : (
