@@ -445,3 +445,18 @@ p { margin: 0; }
 .again{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;width:100%;margin-top:10px;padding:10px 12px;border-radius:14px;border:1px dashed color-mix(in srgb,var(--acc,var(--coral)) 55%,transparent);background:color-mix(in srgb,var(--acc,var(--coral)) 9%,transparent);color:inherit;font:inherit;font-weight:600;text-align:left;cursor:pointer}
 .again .small{flex-basis:100%;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .again:active{transform:scale(.98)}
+
+/* Gym coach */
+.coach{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:18px;background:color-mix(in srgb,var(--acc) 10%,var(--card));border:1px solid color-mix(in srgb,var(--acc) 30%,transparent);text-align:left}
+.coach strong{font-size:16px;display:flex;align-items:center;flex-wrap:wrap}
+.coach-ic{flex:none;width:34px;height:34px;border-radius:12px;display:grid;place-items:center;font-weight:900;font-size:18px;background:var(--acc);color:#0c0c10}
+.coach.k-down .coach-ic{background:var(--amber,#FFB547)}
+.coach.k-easy .coach-ic,.coach.k-deload .coach-ic{background:#C7B8FF}
+.rest{position:relative;overflow:hidden;display:flex;align-items:center;gap:8px;padding:8px 10px 8px 14px;border-radius:16px;background:var(--card-2);border:1px solid var(--line)}
+.rest-fill{position:absolute;left:0;top:0;bottom:0;background:color-mix(in srgb,var(--acc) 22%,transparent);transition:width .25s linear}
+.rest-t{position:relative;flex:1;font-weight:600}.rest-t b{font-size:20px;font-variant-numeric:tabular-nums;margin-left:4px}
+.rest .chip{position:relative;min-height:34px}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:80;overflow:hidden}
+.confetti i{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;animation:confetti 1.5s cubic-bezier(.2,.6,.4,1) forwards}
+@keyframes confetti{to{top:105%;transform:translateX(30px) rotate(540deg);opacity:.2}}
+@media (prefers-reduced-motion:reduce){.confetti{display:none}}

@@ -52,7 +52,10 @@ label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:70
 .ex.on{border:2px solid var(--acc)}
 .move{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px;border-radius:16px;background:var(--card);border:1px solid var(--line)}
 .move img,.move .noimg{width:52px;height:52px;border-radius:10px;object-fit:cover;background:#fff}.move .noimg{display:flex;align-items:center;justify-content:center;background:var(--card2);font-size:22px;color:var(--acc)}
-.nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;grid-column:1/-1}
+.nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:6px;grid-column:1/-1}
+.prog{border:1px solid color-mix(in srgb,var(--acc) 35%,var(--line));background:color-mix(in srgb,var(--acc) 5%,var(--card))}
+.prbadge{display:inline-flex;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:800;background:color-mix(in srgb,#FFD166 22%,transparent);color:#FFD166;margin-left:6px}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
 .move .yt{grid-column:1/-1;font-size:13px}
 .altbox{grid-column:1/-1;border:1px dashed color-mix(in srgb,var(--acc) 55%,var(--line2));border-radius:14px;padding:10px;background:color-mix(in srgb,var(--acc) 6%,transparent)}.altbox img,.altbox .noimg{width:44px;height:44px;border-radius:9px;object-fit:cover;background:#fff;flex:none}.altbox .noimg{display:grid;place-items:center;background:var(--card2);color:var(--acc)}.move .yt input{min-height:40px}
 .nums input,.nums select{min-height:40px;text-align:center;padding:0 4px}
@@ -824,6 +827,7 @@ function opLabel(op) {
     case 'customFood.delete': return `Remove “${esc(op.name || '')}” from her foods`;
     case 'note.schedule': return `Note for ${esc(new Date(op.note.at).toLocaleString('en-IN', { weekday: 'short', hour: 'numeric', minute: '2-digit' }))}`;
     case 'note.cancel': return 'Cancel a scheduled note';
+    case 'alerts.set': return op.alerts && op.alerts.topic ? 'Turn on alerts to your phone' : 'Turn off alerts';
     default: return esc(op.kind);
   }
 }
@@ -1184,7 +1188,8 @@ function vProgress() {
 
 function sessBody(s) {
   const by = {}; (s.sets || []).forEach((x) => (by[x.name] = by[x.name] || []).push(x));
-  return `<div class="stack small" style="gap:6px;margin-top:8px">${Object.entries(by).map(([n, sets]) => `<div class="between"><span>${esc(n)}</span><span class="muted">${sets.map((x) => (x.kg ? `${x.kg}×${x.reps}` : `${x.reps}`)).join(' · ')}</span></div>`).join('') || '<span class="muted">No sets recorded.</span>'}</div>`;
+  const pr = new Set((s.prs || []).map((x) => x.name));
+  return `<div class="stack small" style="gap:6px;margin-top:8px">${Object.entries(by).map(([n, sets]) => `<div class="between"><span>${esc(n)}${pr.has(n) ? '<span class="prbadge">NEW BEST</span>' : ''}</span><span class="muted">${sets.map((x) => (x.kg ? `${x.kg}×${x.reps}` : `${x.reps}`)).join(' · ')}</span></div>`).join('') || '<span class="muted">No sets recorded.</span>'}</div>`;
 }
 
 function wireShared() {
@@ -1314,6 +1319,7 @@ function vWorkouts() {
       <label class="f">What she's hitting today (one line she sees on the tile)<input class="input" id="pf" placeholder="e.g. Glutes + hamstrings, light core" value="${esc(p.focus || '')}"></label>
       <div class="f">Show this plan on<div class="chips" style="margin-top:6px">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d, i) => `<button class="chip" type="button" data-day="${i}" aria-pressed="${(p.days || []).includes(i)}">${d}</button>`).join('')}</div><span class="small muted">No day picked = it rotates with your other undated plans on her gym days.</span></div>
       <label class="f">Note for Sapna<textarea class="input" id="pn">${esc(p.note || '')}</textarea></label>
+      ${vProgram(p)}
       <div class="between"><h2>Moves (${p.moves.length})</h2><button class="btn sm" type="button" id="add">+ Add from library</button></div>
       <div class="stack" style="gap:8px">${p.moves.map((m, i) => { const e = exOf(m.exId) || { name: m.exId, gif: '' }; const cat = moveCat(m); const head = i === 0 || moveCat(p.moves[i - 1]) !== cat ? `<p class="eyebrow" style="margin:${i ? '10px' : '0'} 0 0">${CAT_LABEL[cat]}</p>` : ''; return `${head}<div class="move">
         ${e.gif ? `<img src="${esc(gif(e.gif))}" alt="" loading="lazy">` : `<span class="noimg" aria-hidden="true">${m.yt || e.yt ? '▶' : '🏋️'}</span>`}<div style="min-width:0"><strong style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.name)}</strong><span class="small muted">${e.group === 'stretching' ? 'Stretching' : 'Exercise'}</span></div>
@@ -1321,7 +1327,7 @@ function vWorkouts() {
         ${(() => { const unitSel = `<label class="f">Unit<select class="input" data-f="unit" data-i="${i}">${[['reps', 'reps'], ['min', 'minutes'], ['sec', 'seconds']].map(([u, l]) => `<option value="${u}" ${(m.unit || 'reps') === u ? 'selected' : ''}>${l}</option>`).join('')}</select></label>`;
           return isTimed(m)
             ? `<div class="nums" style="grid-template-columns:repeat(2,minmax(0,1fr))">${unitSel}<label class="f">${m.unit === 'min' ? 'Minutes' : 'Seconds'}<input class="input" inputmode="numeric" data-f="reps" data-i="${i}" value="${m.reps}"></label></div>`
-            : `<div class="nums">${unitSel}<label class="f">Sets<input class="input" inputmode="numeric" data-f="sets" data-i="${i}" value="${m.sets}"></label><label class="f">Reps<input class="input" inputmode="numeric" data-f="reps" data-i="${i}" value="${m.reps}"></label><label class="f">Start kg<input class="input" inputmode="decimal" data-f="kg" data-i="${i}" value="${m.kg ?? ''}" placeholder="—"></label></div>`; })()}
+            : `<div class="nums">${unitSel}<label class="f">Sets<input class="input" inputmode="numeric" data-f="sets" data-i="${i}" value="${m.sets}"></label><label class="f">Reps<input class="input" inputmode="numeric" data-f="reps" data-i="${i}" value="${m.reps}"></label><label class="f">Start kg<input class="input" inputmode="decimal" data-f="kg" data-i="${i}" value="${m.kg ?? ''}" placeholder="—"></label>${cat === 1 ? `<label class="f">Rest<select class="input" data-f="rest" data-i="${i}">${[45, 60, 75, 90, 120, 180].map((r) => `<option value="${r}" ${(m.rest || 75) === r ? 'selected' : ''}>${r < 120 ? r + 's' : r / 60 + ' min'}</option>`).join('')}</select></label>` : ''}</div>${progLine(p, m)}`; })()}
         <label class="f yt">▶ How-to video — YouTube or Instagram reel<input class="input" inputmode="url" data-f="yt" data-i="${i}" value="${esc(m.yt || e.yt || '')}" placeholder="https://youtu.be/…  or  https://instagram.com/reel/…"></label>
         <button class="btn ghost sm" type="button" data-vprev="yt" data-i="${i}" data-t="${esc(e.name)}" style="grid-column:1/-1;justify-self:start">▶ Preview video</button>
         ${(() => { const a = m.alt && exOf(m.alt.exId); return a ? `<div class="altbox">
@@ -1441,6 +1447,52 @@ function addExerciseToPlan(ex) {
   orderMoves(p);
   markDirty(); toast(`${ex.name} added${st ? ' to the warm-up' : cardio ? ' at the end' : ''}`);
 }
+/* --- Progressive program: + kg every week with easy (deload) weeks; her app's coach follows it --- */
+function progWeek(p, on = dkey(new Date())) {
+  const g = p.program; if (!g || !/^\d{4}-\d{2}-\d{2}$/.test(g.start)) return null;
+  const week = Math.max(1, Math.floor((dparse(on) - dparse(g.start)) / 864e5 / 7) + 1);
+  return { week, deload: g.deloadEvery > 1 && week % g.deloadEvery === 0 };
+}
+function progKg(p, m, weekOffset = 0) {
+  const g = p.program; if (!g || !m.kg) return null;
+  const w0 = progWeek(p); if (!w0) return null; const week = w0.week + weekOffset;
+  const D = g.deloadEvery > 1 ? g.deloadEvery : 0; const before = week - 1;
+  const steps = D ? before - Math.floor(before / D) : before;
+  const kg = m.kg + steps * (g.stepKg || 0); const deload = D && week % D === 0;
+  const e = exOf(m.exId); const st = e && e.equipment === 'dumbbell' && kg < 10 ? 1 : 2.5;
+  return { kg: deload ? Math.round((kg * 0.8) / st) * st : kg, deload, week };
+}
+function progLine(p, m) {
+  if (!p.program) return '';
+  if (!m.kg) return `<p class="small muted" style="grid-column:1/-1;margin:0">Set a start kg to put this move on the weekly plan — otherwise the coach goes by her logs.</p>`;
+  const a = progKg(p, m), b = progKg(p, m, 1);
+  return `<p class="small" style="grid-column:1/-1;margin:0;color:var(--acc)">Week ${a.week}: ${a.kg} kg${a.deload ? ' (easy week)' : ''} → week ${b.week}: ${b.kg} kg${b.deload ? ' (easy week)' : ''}</p>`;
+}
+function vProgram(p) {
+  const g = p.program; const w = progWeek(p);
+  return `<div class="card stack prog" id="progcard">
+    <div class="between"><h2>Progression</h2><span class="pill">${g ? `Week ${w ? w.week : 1}${w && w.deload ? ' · easy' : ''}` : 'Coach only'}</span></div>
+    <p class="small muted">Her coach is always on: when she gets every rep at a weight, it suggests the next step up; when she falls short, it holds or steps back; on heavy period days it keeps it easy. Switch this on to also add weight on a weekly schedule.</p>
+    <div class="seg" role="group" aria-label="Progression"><button type="button" data-prog="off" aria-pressed="${!g}">Coach only</button><button type="button" data-prog="on" aria-pressed="${!!g}">+ weight every week</button></div>
+    ${g ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <label class="f">Add per week<select class="input" id="pstep">${[1, 2.5, 5].map((x) => `<option value="${x}" ${g.stepKg === x ? 'selected' : ''}>+${x} kg</option>`).join('')}</select></label>
+      <label class="f">Easy week<select class="input" id="pdl">${[[0, 'never'], [3, 'every 3rd'], [4, 'every 4th'], [5, 'every 5th'], [6, 'every 6th']].map(([v, l]) => `<option value="${v}" ${g.deloadEvery === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+      <label class="f" style="grid-column:1/-1">Week 1 began<input class="input" type="date" id="pstart" value="${esc(g.start)}"></label></div>
+      <p class="small muted">Each move goes from its <b>Start kg</b>. Easy weeks: 80% weight and one set fewer, so she recovers and comes back stronger. The coach never jumps more than one step, even if the schedule says more.</p>` : ''}
+  </div>`;
+}
+function wireProgram(p) {
+  document.querySelectorAll('[data-prog]').forEach((b) => (b.onclick = () => {
+    if (b.dataset.prog === 'on') { if (!p.program) p.program = { start: dkey(new Date()), stepKg: 2.5, deloadEvery: 4 }; }
+    else delete p.program;
+    markDirty(); const y = scrollY; render(); scrollTo(0, y);
+  }));
+  const st = $('#pstep'), dl = $('#pdl'), sd = $('#pstart');
+  const redo = () => { markDirty(); const y = scrollY; render(); scrollTo(0, y); };
+  if (st) st.onchange = () => { p.program.stepKg = Number(st.value); redo(); };
+  if (dl) dl.onchange = () => { p.program.deloadEvery = Number(dl.value); redo(); };
+  if (sd) sd.onchange = () => { if (/^\d{4}-\d{2}-\d{2}$/.test(sd.value)) { p.program.start = sd.value; redo(); } };
+}
 function wireWorkouts() {
   const c = S.content;
   document.querySelectorAll('[data-edit]').forEach((b) => (b.onclick = () => {
@@ -1456,12 +1508,14 @@ function wireWorkouts() {
   $('#pt').oninput = (e) => { p.title = e.target.value; markDirty(); };
   $('#pn').oninput = (e) => { p.note = e.target.value; markDirty(); };
   $('#pf').oninput = (e) => { const v = e.target.value.trim(); if (v) p.focus = v; else delete p.focus; markDirty(); };
+  wireProgram(p);
   document.querySelectorAll('[data-day]').forEach((b) => (b.onclick = () => {
     const d = +b.dataset.day; const set = new Set(p.days || []);
     set.has(d) ? set.delete(d) : set.add(d);
     p.days = [...set].sort(); if (!p.days.length) delete p.days;
     b.setAttribute('aria-pressed', set.has(d)); markDirty();
   }));
+  if (p.program) document.querySelectorAll('[data-f="kg"]').forEach((el) => el.addEventListener('blur', () => { const y = scrollY; render(); scrollTo(0, y); }));
   document.querySelectorAll('[data-f]').forEach((el) => (el.oninput = el.onchange = () => {
     const m = p.moves[+el.dataset.i]; const f = el.dataset.f; const v = el.value.trim();
     if (f === 'altyt') { const u = fixUrl(v); if (!m.alt) return; if (!u) delete m.alt.yt; else if (isVideo(u)) { m.alt.yt = u; el.style.borderColor = ''; } else { el.style.borderColor = 'var(--danger)'; return; } markDirty(); return; }
@@ -1471,7 +1525,9 @@ function wireWorkouts() {
       if (isTimed(m)) { m.sets = 1; delete m.kg; if (!wasTimed || m.reps > (v === 'min' ? 180 : 900)) m.reps = v === 'min' ? (moveCat(m) === 2 ? 15 : 5) : 30; }
       else if (wasTimed) { const st = moveCat(m) === 0; m.sets = st ? 1 : 3; m.reps = st ? 10 : 12; }
       markDirty(); const y = scrollY; render(); scrollTo(0, y); return;
-    } else if (f === 'kg') { if (v === '') delete m.kg; else m.kg = Number(v) || 0; } else m[f] = Math.max(1, parseInt(v) || 1);
+    } else if (f === 'kg') { if (v === '') delete m.kg; else m.kg = Number(v) || 0; }
+    else if (f === 'rest') { const r = parseInt(v) || 75; if (r === 75) delete m.rest; else m.rest = r; }
+    else m[f] = Math.max(1, parseInt(v) || 1);
     markDirty();
   }));
   document.querySelectorAll('[data-gifup]').forEach((inp) => (inp.onchange = async () => {
@@ -1743,12 +1799,60 @@ function vSettings() {
           <p class="small muted">Paste the Firebase <b>service-account key</b> JSON (Project settings → Service accounts → Generate new private key). It stays in this browser and travels to your other devices only through “Link another device”. If instant sending fails, the GitHub route is used automatically.</p>
           ${fcmSa() ? `<p class="small"><b>Instant mode on</b> · ${esc(fcmSa().client_email)}</p><button class="btn ghost sm" type="button" id="fcmoff" style="align-self:flex-start">Remove key from this device</button>` : `<textarea class="input mono" id="fcmsa" placeholder='{"type":"service_account", …}'></textarea><button class="btn sm" type="button" id="fcmsave" style="align-self:flex-start">Save key</button>`}
         </div></details></div>
+      ${vAlerts()}
       <div class="card stack"><h2>Link another device</h2><p class="small muted">Open this admin on another phone or laptop already set up — publishing and her live data — by scanning a QR. Nothing to paste.</p><button class="btn" type="button" data-link style="align-self:flex-start">Show QR & link</button></div>
       ${emergencyFile()}
       <div class="card stack small muted"><strong style="color:var(--text)">GitHub token & publishing</strong><span>Published version ${S.content.version || 0} · ${S.content.updatedAt ? new Date(S.content.updatedAt).toLocaleString('en-IN') : 'never'}</span>
         ${S.token ? '' : '<p class="small" style="color:var(--amber)">This device has only Sapna’s code: you can see and edit her data. To publish plans, add your GitHub token.</p>'}
         <div class="row wrapr"><button class="btn ghost sm" type="button" id="chtok">${S.token ? 'Change token (keeps changes)' : 'Add GitHub token to publish'}</button>${S.token ? '<button class="btn danger sm" type="button" id="logout">Forget token on this device</button>' : ''}</div></div>
     </section></div>`;
+}
+/* --- Alerts to Rishu's phone (ntfy app; needs her app 1.9+) --- */
+const LS_ALERT = 'sapna_admin_alert_topic';
+function alertState() {
+  const r = S.syncReport; const her = r && r.alerts;
+  let mine = ''; try { mine = localStorage.getItem(LS_ALERT) || ''; } catch {}
+  const pend = pendingOps().filter((o) => o.kind === 'alerts.set').pop();
+  const topic = mine || (her && her.topic) || '';
+  return { topic, her, pend, live: !!(her && her.topic && her.topic === topic) };
+}
+function vAlerts() {
+  const a = alertState();
+  const prefs = a.pend ? a.pend.alerts : a.her || { workout: true, pr: true };
+  const on = !!(a.pend ? a.pend.alerts.topic : a.her && a.her.topic);
+  if (!a.topic) return `<div class="card stack" id="alerts"><h2>Alerts to your phone</h2>
+    <p class="small muted">Get a ping when she finishes a workout or sets a new best — through <b>ntfy</b>, a free notification app. No account needed.</p>
+    <button class="btn" type="button" id="alSetup" style="align-self:flex-start">Set up alerts</button></div>`;
+  return `<div class="card stack" id="alerts"><div class="between"><h2>Alerts to your phone</h2><span class="pill">${on ? (a.pend ? '⏳ Sending' : 'On') : 'Off'}</span></div>
+    <ol class="steps small">
+      <li>Install <b>ntfy</b> from the Play Store (free).</li>
+      <li>In ntfy tap <b>+</b> → topic: <code class="mono" style="user-select:all">${esc(a.topic)}</code> <button class="btn ghost sm" type="button" id="alCopy">Copy</button> → <b>Subscribe</b>. <a href="ntfy://ntfy.sh/${esc(a.topic)}" class="small">Open in ntfy</a></li>
+      <li><button class="btn ghost sm" type="button" id="alTest">Send a test ping</button></li>
+    </ol>
+    <label class="row" style="gap:10px;cursor:pointer"><input type="checkbox" id="alW" ${prefs.workout !== false ? 'checked' : ''} style="width:20px;height:20px"> <span>When she finishes a workout</span></label>
+    <label class="row" style="gap:10px;cursor:pointer"><input type="checkbox" id="alP" ${prefs.pr !== false ? 'checked' : ''} style="width:20px;height:20px"> <span>When she sets a new best (heavier lift or more reps)</span></label>
+    <div class="row wrapr"><button class="btn sm" type="button" id="alSave">${on ? 'Update on her phone' : 'Turn on for her phone'}</button>${on ? '<button class="btn danger sm" type="button" id="alOff">Turn off</button>' : ''}</div>
+    <p class="small muted">${a.live && !a.pend ? '✓ Her phone has it.' : a.pend ? '⏳ Reaches her phone the next time her app syncs.' : 'Needs her app 1.9.'} The topic name is the key — keep it private. Pings carry only short lines like “Sapna finished Legs · 48 min”.</p>
+  </div>`;
+}
+async function ntfyTest(topic) {
+  try {
+    const res = await fetch('https://ntfy.sh/', { method: 'POST', body: JSON.stringify({ topic, title: 'Sapna Health', message: 'Alerts work ✓ — you’ll get pings like this from her app.', tags: ['white_check_mark'] }) });
+    toast(res.ok ? 'Sent — check ntfy on your phone' : 'ntfy said ' + res.status);
+  } catch (e) { toastLong('Couldn’t reach ntfy: ' + e.message); }
+}
+function wireAlerts() {
+  const su = $('#alSetup');
+  if (su) su.onclick = () => {
+    const rnd = crypto.getRandomValues(new Uint8Array(15)); const t = 'sapna-' + [...rnd].map((b) => 'abcdefghijkmnpqrstuvwxyz23456789'[b % 32]).join('');
+    try { localStorage.setItem(LS_ALERT, t); } catch {}
+    const y = scrollY; render(); scrollTo(0, y);
+  };
+  const a = alertState();
+  const cp = $('#alCopy'); if (cp) cp.onclick = async () => { try { await navigator.clipboard.writeText(a.topic); toast('Copied'); } catch { toast(a.topic); } };
+  const te = $('#alTest'); if (te) te.onclick = () => ntfyTest(a.topic);
+  const sv = $('#alSave'); if (sv) sv.onclick = () => queueOps([{ kind: 'alerts.set', alerts: { topic: a.topic, workout: $('#alW').checked, pr: $('#alP').checked } }], 'Sent — her phone starts pinging you after its next sync');
+  const of = $('#alOff'); if (of) of.onclick = () => queueOps([{ kind: 'alerts.set', alerts: { topic: '', workout: false, pr: false } }], 'Alerts off — applies on her next sync');
 }
 /* --- On/off switch for her app (needs her app 1.8.1+) --- */
 function vAppSwitch() {
@@ -1791,6 +1895,7 @@ async function publishLock(on, message) {
   toast(on ? 'Her app is switched off' : 'Her app is back on');
 }
 function wireSettings() {
+  wireAlerts();
   const lm = $('#lockmsg'); if (lm) lm.oninput = () => { S.lockDraft = lm.value; };
   const lon = $('#lockon'); if (lon) lon.onclick = () => { if (!confirm('Switch Sapna’s app off now? She’ll only see ' + ($('#lockmsg').value.trim() ? 'your text' : 'a blank screen') + ' until you switch it back on. Nothing is deleted.')) return; lon.disabled = true; lon.textContent = 'Switching off…'; publishLock(true, $('#lockmsg').value.trim()); };
   const loff = $('#lockoff'); if (loff) loff.onclick = () => { loff.disabled = true; loff.textContent = 'Switching on…'; publishLock(false, ''); };

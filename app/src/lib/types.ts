@@ -41,6 +41,17 @@ export interface PlanMove {
   yt?: string;
   /** Rishu's backup for when the machine is busy — same sets × reps; she picks on the day */
   alt?: { exId: string; yt?: string };
+  /** rest between sets, seconds (default 75) */
+  rest?: number;
+}
+
+/** Rishu's weekly progression for a plan: + stepKg on each move's start kg every week, with an easy week every N. */
+export interface PlanProgram {
+  /** YYYY-MM-DD — week 1 starts here */
+  start: string;
+  stepKg: number;
+  /** every Nth week is an easy (deload) week; 0 = never */
+  deloadEvery: number;
 }
 
 export interface Plan {
@@ -52,6 +63,7 @@ export interface Plan {
   /** weekdays (0 = Sun) this plan is for; empty/missing = rotates on any gym day */
   days?: number[];
   moves: PlanMove[];
+  program?: PlanProgram;
 }
 
 export interface Content {
@@ -85,6 +97,8 @@ export interface SetEntry {
   kg: number;
   reps: number;
   at: number;
+  /** logged by "I did this" (plan reps, not counted by her) */
+  auto?: boolean;
 }
 
 export interface Session {
@@ -104,6 +118,8 @@ export interface Session {
   kcal?: number;
   programId?: string;
   day?: number;
+  /** new personal bests set in this session */
+  prs?: { exId: string; kg: number; reps: number }[];
 }
 
 export type Flow = 'none' | 'light' | 'medium' | 'heavy';
@@ -164,6 +180,14 @@ export interface Drink {
   by?: 'rishu';
 }
 
+/** Pings to Rishu's phone (ntfy app) — set from his admin page */
+export interface AlertPrefs {
+  /** secret ntfy topic; empty = off */
+  topic: string;
+  workout: boolean;
+  pr: boolean;
+}
+
 export interface ProgramProgress {
   /** completed day numbers (1-based), incl. rest days */
   done: number[];
@@ -195,6 +219,7 @@ export interface AppData {
   lastReportAt?: number;
   /** ids of edits from Rishu's admin already applied on this phone */
   adminApplied?: string[];
+  alerts?: AlertPrefs;
 }
 
 export const DEFAULT_PROFILE: Profile = {

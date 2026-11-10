@@ -16,6 +16,7 @@ import FoodScreen from './screens/Food';
 import { FoodLogger } from './screens/FoodLogger';
 import Today from './screens/Today';
 import { cacheMedia } from './lib/mediacache';
+import { flushAlerts } from './lib/alerts';
 import { gifSrc } from './lib/content';
 // Opens faster: Today and Food load first; the rest load right after, in the background.
 const loadCycle = () => import('./screens/Cycle');
@@ -159,6 +160,15 @@ function Shell() {
     const step = () => { if (w.requestIdleCallback) w.requestIdleCallback(next, { timeout: 3000 }); else next(); };
     const t = window.setTimeout(step, 1200);
     return () => { queue.length = 0; window.clearTimeout(t); };
+  }, [ready]);
+
+  // Pings to Rishu that waited while she was offline.
+  useEffect(() => {
+    if (!ready) return;
+    flushAlerts();
+    const on = () => { if (document.visibilityState === 'visible') flushAlerts(); };
+    document.addEventListener('visibilitychange', on); window.addEventListener('online', on);
+    return () => { document.removeEventListener('visibilitychange', on); window.removeEventListener('online', on); };
   }, [ready]);
 
   // Keep every GIF in her plans (and their backups) on the phone, for gyms with no signal.

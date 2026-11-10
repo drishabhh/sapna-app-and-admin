@@ -11,6 +11,9 @@ import { FullSheet, Gif, Icon, Seg, Sheet, Stepper, toast } from '../ui';
 import { Doodle } from '../streak';
 import { Num } from '../anim';
 import { YtPlayer } from '../video';
+import { bestOf, coach, isBest, restFor, type Tip } from '../lib/coach';
+import { sendAlert } from '../lib/alerts';
+import { cancelRestAlarm, scheduleRestAlarm } from '../lib/rest';
 
 /** 3 × 12 reps · or just “15 min” / “30 sec” for timed moves */
 const doseLabel = (m: PlanMove) => (m.unit === 'min' ? `${m.reps} min` : m.unit === 'sec' ? `${m.reps} sec` : `${m.sets} × ${m.reps} reps`);
@@ -109,6 +112,9 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
   const { data, update, exById } = useStore();
   const d = today();
   const session = data.sessions.find((s) => !s.endedAt && s.date === d && s.planId === plan.id);
+  const [restEnd, setRestEnd] = useDraft('wk.restEnd', 0);
+  const [restLen, setRestLen] = useDraft('wk.restLen', 75);
+  const [party, setParty] = useState(0); // new best → a little confetti
   const [idx, setIdx] = useDraft('wk.idx', 0);
   const [kg, setKg] = useDraft('wk.kg', 0);
   const [reps, setReps] = useDraft('wk.reps', 10);
@@ -124,7 +130,11 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
   const curId = move ? (doingAlt ? move.alt!.exId : move.exId) : undefined;
   const ex = curId ? exById[curId] : undefined;
   const isStretch = ex?.group === 'stretching';
+  const isLift = !!move && !isStretch && move.unit !== 'min' && move.unit !== 'sec';
   const sets = session ? session.sets.filter((x) => x.exId === curId) : [];
+  // The coach: what to lift today, from her own history (+ Rishu's weekly plan). A backup move has no plan weight.
+  const tip: Tip | null = move && ex ? coach(data, ex, doingAlt ? { ...move, kg: undefined } : move, doingAlt ? undefined : plan, { excludeSessionId: session?.id }) : null;
+  const planned = tip?.sets ?? move?.sets ?? 1;
   const [showVid, setShowVid] = useState(false); // backup mode: the player opens on "Watch how"
   const [vidOn, setVidOn] = useState(false); // a video is playing → offer the YouTube/Instagram app as a fallback
   useEffect(() => { setShowVid(false); setVidOn(false); }, [curId]);
@@ -160,8 +170,8 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
     if (restoredPrefill.current) { restoredPrefill.current = false; return; }
     const last = lastWeight(data, curId || move.exId, session?.id);
     const mine = sets[sets.length - 1];
-    setKg(mine ? mine.kg : last ? last.kg : move.kg || 0);
-    setReps(mine ? mine.reps : move.reps);
+    setKg(mine ? mine.kg : tip ? tip.kg : last ? last.kg : move.kg || 0);
+    setReps(mine ? mine.reps : tip ? tip.reps : move.reps);
     setLogOpen(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [curId, open]);
@@ -176,18 +186,31 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
     haptic.tap();
     patch((s) => { const sw = { ...(s.swaps || {}) }; if (alt) sw[move.exId] = move.alt!.exId; else delete sw[move.exId]; return { ...s, swaps: sw }; });
   }
-  /** optional: record one set with weight × reps */
+  /** one tap per set: logs it, cheers a new best, starts the rest timer; the last planned set completes the move */
   function logSet() {
     if (!session || !move || !curId) return;
     const set = { exId: curId, set: sets.length + 1, kg: isStretch ? 0 : kg, reps, at: Date.now() };
-    patch((s) => ({ ...s, sets: [...s.sets, set] }));
-    haptic.tap();
-    toast(`Set ${set.set} logged`);
+    const best = isBest(set, bestOf(data, curId));
+    const last = set.set >= planned;
+    patch((s) => ({ ...s, sets: [...s.sets, set], ...(last ? { completed: [...new Set([...(s.completed || []), move.exId])] } : {}) }));
+    if (best) {
+      haptic.success(); setParty(Date.now());
+      toast(best === 'kg' ? `New best — ${set.kg} kg! 🎉` : `New best — ${set.reps} reps at ${set.kg} kg! 🎉`);
+      sendAlert(data, 'pr', 'New best 🎉', `${data.profile.name || 'Sapna'} just did ${set.kg} kg × ${set.reps} on ${ex?.name || 'a lift'}.`, ['tada']);
+    } else { haptic.tap(); toast(last ? `All ${planned} sets done 💪` : `Set ${set.set} done`); }
+    startRest(restFor(move), last && idx < moves.length - 1 ? `Next up: ${exById[moves[idx + 1].exId]?.name || 'next move'}` : `Set ${set.set + 1} of ${ex?.name || 'this move'}`);
+    setLogOpen(false);
   }
+  function startRest(sec: number, next: string) {
+    const end = Date.now() + sec * 1000;
+    setRestLen(sec); setRestEnd(end);
+    scheduleRestAlarm(end, next);
+  }
+  function stopRest() { setRestEnd(0); cancelRestAlarm(); }
   /** she says she did it. Stretches move on by themselves; lifts wait for her. */
   function complete() {
     if (!session || !move) return;
-    const extra = sets.length ? [] : [{ exId: curId || move.exId, set: 1, kg: isStretch ? 0 : kg, reps: move.reps, at: Date.now() }];
+    const extra = sets.length ? [] : [{ exId: curId || move.exId, set: 1, kg: isStretch ? 0 : kg, reps: move.reps, at: Date.now(), auto: true }];
     patch((s) => ({ ...s, sets: [...s.sets, ...extra], completed: [...new Set([...(s.completed || []), move.exId])] }));
     haptic.success();
     if (isStretch && idx < moves.length - 1) setTimeout(() => setIdx(idx + 1), 450);
@@ -205,9 +228,21 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
       onClose();
       return;
     }
+    // New bests this session (vs everything before it) — for her summary and Rishu's ping.
+    const prs = [...new Set(ended.sets.map((x) => x.exId))].flatMap((id) => {
+      const before = bestOf(data, id, ended.id);
+      const top = ended.sets.filter((x) => x.exId === id).reduce((a, b) => (b.kg > a.kg || (b.kg === a.kg && b.reps > a.reps) ? b : a));
+      return isBest(top, before) ? [{ exId: id, kg: top.kg, reps: top.reps }] : [];
+    });
+    if (prs.length) ended.prs = prs;
     update((x) => ({ ...x, sessions: x.sessions.map((s) => (s.id === session.id ? ended : s)) }));
     haptic.success();
+    stopRest();
     setSummary(ended);
+    const mins = Math.max(1, Math.round((ended.endedAt! - ended.startedAt) / 60000));
+    const did = (ended.completed || []).length;
+    sendAlert(data, 'workout', `${data.profile.name || 'Sapna'} finished ${ended.title} 💪`,
+      `${mins} min · ${did} of ${moves.length} moves${prs.length ? ` · ${prs.length} new best${prs.length > 1 ? 's' : ''}: ${prs.map((p) => `${exById[p.exId]?.name || 'lift'} ${p.kg} kg`).join(', ')}` : ''}`, ['muscle']);
   }
 
   const allDone = moves.every(doneMove);
@@ -215,6 +250,7 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
 
   return (
     <FullSheet open={open} onClose={onClose} label="Workout session" acc="workout">
+      {party ? <Confetti key={party} /> : null}
       {summary ? (
         <SessionSummary s={summary} onClose={() => { setSummary(null); onClose(); }} />
       ) : move && ex ? (
@@ -265,7 +301,8 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
               </div>
             ) : null}
             <h1 className="h1" style={{ fontSize: 30, textAlign: 'center', marginTop: 6 }}>{ex.name}</h1>
-            <p className="muted" style={{ textAlign: 'center', fontWeight: 600 }}>{doseLabel(move)}</p>
+            <p className="muted" style={{ textAlign: 'center', fontWeight: 600 }}>{tip && tip.sets !== move.sets ? `${tip.sets} × ${move.reps} reps · easy week` : doseLabel(move)}</p>
+            {isLift && tip && !isDone ? <CoachCard tip={tip} /> : null}
             {yt && vidOn ? (
               <a className="btn quiet sm" href={yt} target="_blank" rel="noopener noreferrer" style={{ alignSelf: 'center' }}>
                 Not playing? Open in {/instagram\.com/i.test(yt) ? 'Instagram' : 'YouTube'}
@@ -279,16 +316,21 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
           </div>
 
           <div style={{ padding: '14px 18px calc(var(--sb) + 18px)', borderTop: '1px solid var(--line)', background: 'var(--bg-2)' }} className="stack">
-            {!isStretch && logOpen && !isDone ? (
-              <div className="stack" style={{ gap: 8 }}>
-                <div className="grid2">
-                  <div className="field">Weight<Stepper label="weight" value={kg} step={2.5} decimals={1} min={0} max={300} unit="kg" onChange={setKg} /></div>
-                  <div className="field">Reps<Stepper label="reps" value={reps} min={1} max={200} onChange={setReps} /></div>
-                </div>
-                <button type="button" className="btn ghost block" onClick={logSet}><Icon name="plus" size={18} /> Add set {sets.length + 1}</button>
+            {restEnd > 0 ? <RestBar end={restEnd} total={restLen} onSkip={stopRest} onMore={() => startRest(Math.max(5, Math.round((restEnd - Date.now()) / 1000)) + 15, `${ex.name}`)} onDone={() => { setRestEnd(0); haptic.success(); toast('Rest over — go! 💪'); }} /> : null}
+            {isLift && logOpen && !isDone ? (
+              <div className="grid2">
+                <div className="field">Weight<Stepper label="weight" value={kg} step={2.5} decimals={1} min={0} max={300} unit="kg" onChange={setKg} /></div>
+                <div className="field">Reps<Stepper label="reps" value={reps} min={1} max={200} onChange={setReps} /></div>
               </div>
             ) : null}
-            {isDone ? (
+            {isLift && !isDone ? (
+              <>
+                <button type="button" className="btn lg block" onClick={logSet}>
+                  <Icon name="check" size={20} stroke={2.6} /> Set {Math.min(sets.length + 1, planned)} of {planned} done{kg > 0 ? ` · ${kg} kg × ${reps}` : ` · ${reps} reps`}
+                </button>
+                <button type="button" className="btn quiet sm" style={{ alignSelf: 'center' }} onClick={complete}>{sets.length ? 'Done with this move' : 'Already did all sets? Mark done'}</button>
+              </>
+            ) : isDone ? (
               <>
                 <p className="ok-t" style={{ fontWeight: 700, textAlign: 'center' }}><Icon name="check" size={16} stroke={3} /> Logged as done</p>
                 {idx < moves.length - 1 ? (
@@ -302,7 +344,7 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
             )}
             <div className="between">
               <button type="button" className="btn quiet" disabled={idx === 0} onClick={() => setIdx(idx - 1)}>Previous</button>
-              {isDone ? <button type="button" className="btn quiet" onClick={uncomplete}>Undo</button> : !isStretch && move.unit !== 'min' && move.unit !== 'sec' ? <button type="button" className="btn quiet" onClick={() => setLogOpen((v) => !v)}>{logOpen ? 'Hide weights' : 'Log weight'}</button> : null}
+              {isDone ? <button type="button" className="btn quiet" onClick={uncomplete}>Undo</button> : isLift ? <button type="button" className="btn quiet" onClick={() => setLogOpen((v) => !v)}>{logOpen ? 'Done changing' : 'Change weight'}</button> : null}
               <button type="button" className="btn quiet" disabled={idx >= moves.length - 1} onClick={() => setIdx(idx + 1)}>Skip</button>
             </div>
           </div>
@@ -330,6 +372,45 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
       </Sheet>
     </FullSheet>
   );
+}
+
+const COACH_LABEL: Record<Tip['kind'], [string, string]> = {
+  first: ['★', 'Start here'], up: ['↑', 'Go up'], same: ['=', 'Hold'], down: ['↓', 'Step back'], easy: ['🌙', 'Easy day'], deload: ['🪶', 'Easy week'],
+};
+function CoachCard({ tip }: { tip: Tip }) {
+  const [ic, label] = COACH_LABEL[tip.kind];
+  return (
+    <div className={`coach k-${tip.kind}`} role="note" aria-label="Coach">
+      <span className="coach-ic" aria-hidden="true">{ic}</span>
+      <div className="stack" style={{ gap: 2, minWidth: 0 }}>
+        <strong>{label}{tip.kg > 0 ? ` · ${tip.kg} kg × ${tip.reps}` : ` · ${tip.reps} reps`}{tip.week ? <span className="pill" style={{ marginLeft: 8 }}>Week {tip.week}</span> : null}</strong>
+        <span className="small">{tip.why}</span>
+        {tip.last ? <span className="small muted">Last time ({shortLabel(tip.last.date)}): {tip.last.kg} kg × {tip.last.reps.join(' · ')}</span> : null}
+      </div>
+    </div>
+  );
+}
+
+function RestBar({ end, total, onSkip, onMore, onDone }: { end: number; total: number; onSkip: () => void; onMore: () => void; onDone: () => void }) {
+  const [now, setNow] = useState(Date.now());
+  const left = Math.max(0, Math.ceil((end - now) / 1000));
+  useEffect(() => { const t = window.setInterval(() => setNow(Date.now()), 250); return () => window.clearInterval(t); }, []);
+  const stale = useRef(end < Date.now() - 3000); // reopened long after the rest ended → just clear it
+  useEffect(() => { if (left === 0) (stale.current ? onSkip : onDone)(); }, [left]); // eslint-disable-line react-hooks/exhaustive-deps
+  const pct = Math.min(100, Math.max(0, ((total - left) / Math.max(1, total)) * 100));
+  return (
+    <div className="rest" role="timer" aria-label={`Rest, ${left} seconds left`}>
+      <div className="rest-fill" style={{ width: `${pct}%` }} />
+      <span className="rest-t">Rest <b>{Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')}</b></span>
+      <button type="button" className="chip" onClick={onMore}>+15s</button>
+      <button type="button" className="chip" onClick={onSkip}>Skip</button>
+    </div>
+  );
+}
+
+function Confetti() {
+  const bits = useMemo(() => Array.from({ length: 22 }, (_, i) => ({ l: (i * 47) % 100, d: (i % 7) * 60, c: ['var(--acc)', '#FF7A59', '#4FD1FF', '#FFD166', '#C77DFF'][i % 5], r: (i * 73) % 360 })), []);
+  return <div className="confetti" aria-hidden="true">{bits.map((b, i) => <i key={i} style={{ left: `${b.l}%`, animationDelay: `${b.d}ms`, background: b.c, transform: `rotate(${b.r}deg)` }} />)}</div>;
 }
 
 function SessionSummary({ s, onClose }: { s: Session; onClose: () => void }) {

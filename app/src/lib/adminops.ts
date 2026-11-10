@@ -95,6 +95,12 @@ function applyOne(d: AppData, op: AdminOp): AppData | null {
     }
     case 'note.cancel':
       return str(op.noteId, 60) ? d : null;
+    case 'alerts.set': {
+      const a = (op.alerts || {}) as Record<string, unknown>;
+      const topic = typeof a.topic === 'string' ? a.topic : '';
+      if (topic && !/^[A-Za-z0-9_-]{12,64}$/.test(topic)) return null;
+      return { ...d, alerts: { topic, workout: a.workout !== false, pr: a.pr !== false } };
+    }
     case 'cycle.set': {
       if (!isDate(op.date)) return null;
       const cyc = { ...d.cycle };
