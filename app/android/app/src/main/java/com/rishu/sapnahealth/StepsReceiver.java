@@ -22,5 +22,6 @@ public class StepsReceiver extends BroadcastReceiver {
         Widgets.refreshAll(c);
         WaterReminder.scheduleNext(c);
         NoteScheduler.rescheduleAll(c);
+        FoodCheck.schedule(c);
     }
 }

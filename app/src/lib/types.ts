@@ -66,12 +66,23 @@ export interface Plan {
   program?: PlanProgram;
 }
 
+/** A meal Rishu planned — she logs all of it with one tap. */
+export interface MealPlan {
+  id: string;
+  meal: Meal;
+  name?: string;
+  /** weekdays (0 = Sun); none = every day */
+  days?: number[];
+  items: { foodId: string; mult: number }[];
+}
+
 export interface Content {
   version: number;
   updatedAt: string;
   targets: { kcal: number; protein: number; water: number };
   plans: Plan[];
   exercises: Exercise[];
+  mealPlans?: MealPlan[];
   foods: Food[];
   message?: string;
   /** Rishu's on/off switch: while on, the app shows a blank screen with `message` (if any) */
@@ -186,6 +197,9 @@ export interface AlertPrefs {
   topic: string;
   workout: boolean;
   pr: boolean;
+  /** evening ping if no food is logged by foodAt ("HH:MM") */
+  food?: boolean;
+  foodAt?: string;
 }
 
 export interface ProgramProgress {

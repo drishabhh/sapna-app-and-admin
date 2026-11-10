@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { mealTotals, totalsOn, uid } from '../lib/calc';
-import { addDays, longLabel, today } from '../lib/dates';
+import { addDays, dow, longLabel, today } from '../lib/dates';
 import { useStore } from '../lib/store';
 import { MEALS, type Meal } from '../lib/types';
 import { useNav } from '../nav';
@@ -9,7 +9,7 @@ import { FoodEditSheet } from '../foodedit';
 import { Num } from '../anim';
 
 export default function FoodScreen() {
-  const { data, content, update } = useStore();
+  const { data, content, update, foods } = useStore();
   const nav = useNav();
   // Always opens on today (a remembered day kept showing yesterday after midnight).
   const [day, setDay] = useState(today());
@@ -17,6 +17,17 @@ export default function FoodScreen() {
   const edit = editId ? data.food.find((f) => f.id === editId) || null : null;
   const t = totalsOn(data, day);
   const isToday = day === today();
+  // Rishu's meal plans for this meal and weekday — one tap logs all of it.
+  const plansFor = (meal: Meal) => (content.mealPlans || [])
+    .filter((p) => p.meal === meal && (!p.days?.length || p.days.includes(dow(day))))
+    .map((p) => ({ p, items: p.items.flatMap((it) => { const f = foods.find((x) => x.id === it.foodId); return f ? [{ f, mult: it.mult }] : []; }) }))
+    .filter((x) => x.items.length)
+    .slice(0, 2);
+  const logPlan = (meal: Meal, x: ReturnType<typeof plansFor>[number]) => {
+    const now = Date.now();
+    update((d) => ({ ...d, food: [...d.food, ...x.items.map(({ f, mult }, i) => ({ id: uid(), date: day, meal, foodId: f.id, name: f.name, portion: f.portion, mult, kcal: Math.round(f.kcal * mult), protein: Math.round(f.protein * mult * 10) / 10, at: now + i }))] }));
+    toast(`Logged Rishu’s ${x.p.name || 'plan'} 🍽️`);
+  };
   // "Same as yesterday": one tap logs yesterday's meal again (most people eat the same breakfast).
   const yesterdayOf = (meal: Meal) => data.food.filter((e) => e.date === addDays(day, -1) && e.meal === meal);
   const repeatYesterday = (meal: Meal) => {
@@ -63,6 +74,16 @@ export default function FoodScreen() {
                 <div><h2 className="h3" style={{ fontSize: 17 }}>{m.label}</h2><p className="small muted">{mt.kcal} kcal · {mt.protein} g protein</p></div>
                 <button type="button" className="icon-btn solid" aria-label={`Add to ${m.label}`} onClick={() => nav.openLogger(m.id, day)}><Icon name="plus" size={20} stroke={2.6} /></button>
               </div>
+              {!mt.entries.length ? plansFor(m.id).map((x) => {
+                const kcal = x.items.reduce((a, { f, mult }) => a + Math.round(f.kcal * mult), 0);
+                const prot = Math.round(x.items.reduce((a, { f, mult }) => a + f.protein * mult, 0));
+                return (
+                  <button key={x.p.id} type="button" className="again plan" onClick={() => logPlan(m.id, x)}>
+                    <span className="pill">From Rishu</span> {x.p.name || 'His plan'} · log it
+                    <span className="small muted">{x.items.map(({ f, mult }) => `${mult !== 1 ? `${mult}× ` : ''}${f.name}`).join(' + ')} · {kcal} kcal · {prot} g</span>
+                  </button>
+                );
+              }) : null}
               {!mt.entries.length && yesterdayOf(m.id).length ? (
                 <button type="button" className="again" onClick={() => repeatYesterday(m.id)}>
                   <Icon name="history" size={16} /> Same as yesterday

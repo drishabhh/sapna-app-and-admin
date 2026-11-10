@@ -13,7 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0c0c10;--bg2:#121218;--card:rgba(255,255,255,.045);--card2:rgba(255,255,255,.08);--solid:#17171e;--line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.16);--text:#f5f3ef;--muted:#a9a6b0;--faint:#7c7984;--coral:#ff7a59;--lime:#c6f432;--amber:#ffb224;--pink:#ff6fae;--cyan:#4fd1ff;--danger:#ff6b6b;--ok:#4ade80;--acc:var(--coral);--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);color-scheme:dark}
-@media (prefers-color-scheme:light){:root{--bg:#f4f2ee;--bg2:#ebe8e2;--card:#fff;--card2:#f0ede7;--solid:#fff;--line:rgba(20,18,24,.09);--line2:rgba(20,18,24,.18);--text:#141218;--muted:#5e5a66;--faint:#7d7985;color-scheme:light}}
+@media (prefers-color-scheme:light){:root{--amber:#b86e00;--bg:#f4f2ee;--bg2:#ebe8e2;--card:#fff;--card2:#f0ede7;--solid:#fff;--line:rgba(20,18,24,.09);--line2:rgba(20,18,24,.18);--text:#141218;--muted:#5e5a66;--faint:#7d7985;color-scheme:light}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 Figtree,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -54,7 +54,7 @@ label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:70
 .move img,.move .noimg{width:52px;height:52px;border-radius:10px;object-fit:cover;background:#fff}.move .noimg{display:flex;align-items:center;justify-content:center;background:var(--card2);font-size:22px;color:var(--acc)}
 .nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:6px;grid-column:1/-1}
 .prog{border:1px solid color-mix(in srgb,var(--acc) 35%,var(--line));background:color-mix(in srgb,var(--acc) 5%,var(--card))}
-.prbadge{display:inline-flex;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:800;background:color-mix(in srgb,#FFD166 22%,transparent);color:#FFD166;margin-left:6px}
+.prbadge{display:inline-flex;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:800;background:color-mix(in srgb,var(--amber) 18%,transparent);color:var(--amber);margin-left:6px}
 .steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
 .move .yt{grid-column:1/-1;font-size:13px}
 .altbox{grid-column:1/-1;border:1px dashed color-mix(in srgb,var(--acc) 55%,var(--line2));border-radius:14px;padding:10px;background:color-mix(in srgb,var(--acc) 6%,transparent)}.altbox img,.altbox .noimg{width:44px;height:44px;border-radius:9px;object-fit:cover;background:#fff;flex:none}.altbox .noimg{display:grid;place-items:center;background:var(--card2);color:var(--acc)}.move .yt input{min-height:40px}
@@ -315,7 +315,7 @@ function mergeContent(base, mine, theirs) {
     return [...new Set(order)].filter((id) => out.has(id)).map((id) => out.get(id));
   };
   const field = (k) => (same(base[k], mine[k]) ? theirs[k] : mine[k]);
-  return { ...theirs, targets: field('targets'), message: field('message'), lock: field('lock'), plans: list('plans'), foods: list('foods'), exercises: list('exercises') };
+  return { ...theirs, targets: field('targets'), message: field('message'), lock: field('lock'), plans: list('plans'), foods: list('foods'), exercises: list('exercises'), mealPlans: list('mealPlans') };
 }
 
 async function publish() {
@@ -1124,6 +1124,96 @@ function vDay() {
 }
 
 /* --- Progress: trends over a range --- */
+/* --- Weekly review + adaptive targets (a dietitian's weekly check-in, done from her real data) --- */
+function weekStats(m, end) {
+  const days = []; for (let i = 6; i >= 0; i--) days.push(dadd(end, -i));
+  const T = m.T;
+  const logged = days.filter((k) => (m.daily[k]?.kcal || 0) >= 500);
+  const avg = (arr, f) => (arr.length ? arr.reduce((a, k) => a + f(k), 0) / arr.length : 0);
+  const sess = m.sessions.filter((x) => x.date >= days[0] && x.date <= end);
+  const w = m.weighIns.filter((x) => x.date >= days[0] && x.date <= end);
+  const stepDays = days.filter((k) => m.steps[k] > 0);
+  return {
+    days, logged: logged.length,
+    kcal: avg(logged, (k) => m.daily[k].kcal),
+    protHit: logged.filter((k) => m.daily[k].protein >= T.protein * 0.9).length,
+    prot: avg(logged, (k) => m.daily[k].protein),
+    water: avg(days.filter((k) => m.water[k] > 0), (k) => m.water[k]),
+    steps: avg(stepDays, (k) => m.steps[k]),
+    workouts: sess.length, prs: sess.reduce((a, x) => a + (x.prs || []).length, 0),
+    weight: w.length ? w.at(-1).kg : null,
+  };
+}
+/** Maintenance estimate from what she actually ate and how her weight moved (7,700 kcal ≈ 1 kg). */
+function adaptive(m) {
+  const end = dadd(dkey(new Date()), -1), start = dadd(end, -27);
+  const days = []; for (let k = start; k <= end; k = dadd(k, 1)) days.push(k);
+  const full = days.filter((k) => (m.daily[k]?.kcal || 0) >= 700);
+  const w = m.weighIns.filter((x) => x.date >= dadd(start, -7) && x.date <= dkey(new Date()));
+  const need = [];
+  if (full.length < 10) need.push(`${10 - full.length} more fully logged day${10 - full.length === 1 ? '' : 's'}`);
+  const span = w.length >= 2 ? (dparse(w.at(-1).date) - dparse(w[0].date)) / 864e5 : 0;
+  if (w.length < 2 || span < 10) need.push(w.length < 2 ? `${2 - w.length} more weigh-in${w.length ? '' : 's'} (10+ days apart)` : 'weigh-ins at least 10 days apart');
+  if (need.length) return { ok: false, need };
+  const t0 = dparse(w[0].date).getTime();
+  const xs = w.map((x) => (dparse(x.date) - t0) / 864e5), ys = w.map((x) => x.kg);
+  const mx = xs.reduce((a, b) => a + b, 0) / xs.length, my = ys.reduce((a, b) => a + b, 0) / ys.length;
+  const slope = xs.reduce((a, x, i) => a + (x - mx) * (ys[i] - my), 0) / Math.max(1e-9, xs.reduce((a, x) => a + (x - mx) ** 2, 0)); // kg/day
+  const intake = full.reduce((a, k) => a + m.daily[k].kcal, 0) / full.length;
+  const tdee = intake - slope * 7700;
+  const kg = w.at(-1).kg; const goal = (m.r.profile && m.r.profile.goalRaw) || 'lose';
+  if (!(tdee > 1100 && tdee < 3600)) return { ok: false, need: ['steadier logging — the numbers don’t add up yet (some meals may be missing)'] };
+  const perWeek = slope * 7; const fast = perWeek < -kg * 0.01;
+  const deficit = goal === 'lose' ? (fast ? 300 : 450) : goal === 'strong' ? -150 : 0;
+  const kcal = Math.max(1200, Math.round((tdee - deficit) / 50) * 50);
+  const protein = Math.min(160, Math.max(60, Math.round((kg * (goal === 'lose' || goal === 'strong' ? 1.6 : 1.2)) / 5) * 5));
+  return { ok: true, tdee: Math.round(tdee / 10) * 10, intake: Math.round(intake), perWeek, fast, kcal, protein, days: full.length, weighs: w.length, goal };
+}
+function vReview(m) {
+  const end = dadd(dkey(new Date()), -1);
+  const a = weekStats(m, end), b = weekStats(m, dadd(end, -7));
+  const T = m.T;
+  const arrow = (x, y, good = 1) => (y == null || !isFinite(y) || Math.abs(x - y) < 1e-6 ? '' : `<span class="small" style="color:${(x - y) * good > 0 ? 'var(--ok)' : 'var(--amber)'}"> ${x > y ? '▲' : '▼'}</span>`);
+  const row = (l, v, sub = '') => `<div class="between" style="gap:10px"><span class="muted">${l}</span><span style="text-align:right"><b>${v}</b>${sub}</span></div>`;
+  const wins = [], focus = [];
+  if (a.logged >= 6) wins.push(`Logged ${a.logged} of 7 days`); else focus.push(['Log every day', `only ${a.logged} of 7 days had full meals logged`]);
+  if (a.protHit >= 5) wins.push(`Protein goal ${a.protHit}×`); else if (a.logged) focus.push(['Protein', `hit ${T.protein} g on ${a.protHit} of ${a.logged} days — add a protein at breakfast`]);
+  if (a.workouts >= 3) wins.push(`${a.workouts} workouts`); else focus.push(['Gym', `${a.workouts} workout${a.workouts === 1 ? '' : 's'} this week`]);
+  if (a.prs) wins.push(`${a.prs} new best${a.prs > 1 ? 's' : ''} 🎉`);
+  if (a.logged && Math.abs(a.kcal - T.kcal) <= T.kcal * 0.08) wins.push('Calories right on target');
+  else if (a.logged && a.kcal > T.kcal * 1.1) focus.push(['Calories', `averaging ${n0(a.kcal)} vs ${n0(T.kcal)}`]);
+  if (a.water && a.water < (T.water || 8) * 0.75) focus.push(['Water', `averaging ${r1(a.water)} of ${T.water || 8} glasses`]);
+  const A = adaptive(m);
+  const TT = (S.content && S.content.targets) || T; // what you've set (maybe not on her phone yet)
+  const fits = A.ok && Math.abs(A.kcal - TT.kcal) <= 50 && Math.abs(A.protein - TT.protein) <= 5;
+  const summary = `Your week 💪 ${a.logged}/7 days logged · ${a.workouts} workout${a.workouts === 1 ? '' : 's'}${a.prs ? ` · ${a.prs} new best${a.prs > 1 ? 's' : ''}` : ''}${a.protHit ? ` · protein goal ${a.protHit}×` : ''}.${focus[0] ? ` This week: ${focus[0][0].toLowerCase()} — ${focus[0][1]}.` : ' Keep it going!'}`;
+  S.reviewMsg = summary;
+  return `<section class="card stack" id="review" style="gap:10px">
+    <div class="stack" style="gap:2px"><h2>Weekly review</h2><span class="small muted">${esc(dlabel(a.days[0], { day: 'numeric', month: 'short' }))} – ${esc(dlabel(end, { day: 'numeric', month: 'short' }))} · arrows compare with the week before</span></div>
+    <div class="stack small" style="gap:6px">
+      ${row('Days logged', `${a.logged}/7`, arrow(a.logged, b.logged))}
+      ${row('Avg calories', a.logged ? n0(a.kcal) : '—', a.logged ? ` <span class="muted">/ ${n0(T.kcal)}</span>` : '')}
+      ${row('Protein goal hit', `${a.protHit}/${a.logged || 7}`, arrow(a.protHit, b.protHit))}
+      ${row('Workouts', a.workouts, (a.prs ? ` <span class="prbadge">${a.prs} NEW BEST${a.prs > 1 ? 'S' : ''}</span>` : '') + arrow(a.workouts, b.workouts))}
+      ${row('Avg steps', a.steps ? n0(a.steps) : '—', a.steps && b.steps ? arrow(a.steps, b.steps) : '')}
+      ${row('Avg water', a.water ? `${r1(a.water)} glasses` : '—', a.water && b.water ? arrow(a.water, b.water) : '')}
+      ${row('Weight', a.weight != null ? `${r1(a.weight)} kg` : '—', a.weight != null && b.weight != null ? ` <span class="muted">(${a.weight - b.weight > 0 ? '+' : ''}${r1(a.weight - b.weight)})</span>` : '')}
+    </div>
+    ${wins.length ? `<p class="small"><b style="color:var(--ok)">Wins:</b> ${wins.map(esc).join(' · ')}</p>` : ''}
+    ${focus.length ? `<p class="small"><b style="color:var(--amber)">Focus next week:</b> ${esc(focus[0][0])} — ${esc(focus[0][1])}</p>` : ''}
+    <button class="btn ghost sm" type="button" id="revSend" style="align-self:flex-start">Send her this summary</button>
+    <div class="stack" style="gap:6px;padding-top:10px;border-top:1px solid var(--line)" id="adapt">
+      <strong>Targets check</strong>
+      ${A.ok ? `<p class="small">From ${A.days} logged days and ${A.weighs} weigh-ins: she eats <b>${n0(A.intake)}</b> kcal on average and her weight is ${Math.abs(A.perWeek) < 0.05 ? 'steady' : `${A.perWeek < 0 ? 'down' : 'up'} <b>${r1(Math.abs(A.perWeek))} kg/week</b>`} → her real burn is about <b>${n0(A.tdee)} kcal/day</b>.</p>
+        ${A.fast ? '<p class="small" style="color:var(--amber)">She’s losing faster than 1% of body weight a week — a smaller deficit protects muscle and energy.</p>' : ''}
+        ${fits ? `<p class="small" style="color:var(--ok)">✓ Her targets (${n0(TT.kcal)} kcal · ${TT.protein} g) fit${S.dirty && TT.kcal !== T.kcal ? ' — Publish to send them' : ' — no change needed'}.</p>`
+          : `<p class="small">Suggested for “${esc(GOALS[A.goal] || A.goal)}”: <b>${n0(A.kcal)} kcal · ${A.protein} g protein</b> <span class="muted">(now ${n0(TT.kcal)} · ${TT.protein} g)</span></p>
+             <button class="btn sm" type="button" id="adaptApply" data-k="${A.kcal}" data-p="${A.protein}" style="align-self:flex-start">Use ${n0(A.kcal)} kcal · ${A.protein} g</button>`}
+        <p class="small muted">A rough estimate, refreshed weekly. Only fully logged days count.</p>`
+      : `<p class="small muted">To estimate her real burn, it needs ${A.need.map(esc).join(' and ')}.</p>`}
+    </div>
+  </section>`;
+}
 function vProgress() {
   const M = model();
   if (!M.rep) return hdr('Sapna Health', 'Progress', refreshBtn()) + vNoReport(M.c);
@@ -1157,6 +1247,7 @@ function vProgress() {
   const rangeLbl = { 7: 'last 7 days', 30: 'last 30 days', all: 'all time' }[S.dash.range];
   return hdr(`${esc(m.r.name || 'Sapna')} · ${rangeLbl}`, 'Progress', refreshBtn()) + `<div class="stack dash" style="gap:14px">
     ${F.line}${F.warn}
+    ${(m.r.v || 1) >= 2 ? vReview(m) : ''}
     <div class="seg" role="group" aria-label="Range">${[['7', '7 days'], ['30', '30 days'], ['all', 'All time']].map(([v, l]) => `<button type="button" data-range="${v}" aria-pressed="${S.dash.range === v}">${l}</button>`).join('')}</div>
     <div class="tiles kpis">
       ${kpi('Avg calories', n0(avg((k) => m.daily[k].kcal)), `target ${n0(T.kcal)} · ${logged.length} days logged`)}
@@ -1295,6 +1386,15 @@ function wireShared() {
     } catch { toast("That isn't one of Sapna's dashboard files."); }
   };
   document.querySelectorAll('[data-range]').forEach((b) => (b.onclick = () => { S.dash.range = b.dataset.range; render(); }));
+  const ap = $('#adaptApply'); if (ap) ap.onclick = () => {
+    S.content.targets.kcal = +ap.dataset.k; S.content.targets.protein = +ap.dataset.p; markDirty();
+    const y = scrollY; render(); scrollTo(0, y); toast('New targets set — Publish to send them to her');
+  };
+  const rs = $('#revSend'); if (rs) rs.onclick = async () => {
+    rs.disabled = true;
+    try { const how = await sendPush('Your week with Rishu 💌', S.reviewMsg || 'Proud of your week!'); toast(sentMsg(how)); } catch (e) { toastLong('Couldn’t send: ' + e.message); }
+    rs.disabled = false;
+  };
   const toDay = (k) => { if (!k) return; S.dash.day = k; const y = scrollY; if (S.tab !== 'day') { S.tab = 'day'; try { localStorage.setItem(LS_TAB, 'day'); } catch {} render(); scrollTo(0, 0); } else { render(); scrollTo(0, y); } };
   document.querySelectorAll('[data-dpick]').forEach((b) => (b.onclick = () => toDay(b.dataset.dpick)));
   const ds = $('#dstrip'); if (ds) { const sel = ds.querySelector('[aria-pressed=true]'); if (sel) ds.scrollLeft = sel.offsetLeft - ds.clientWidth / 2 + sel.offsetWidth / 2; }
@@ -1660,9 +1760,12 @@ function vFoods() {
   const M = model();
   const hers = M.rep ? ((M.m && M.m.r.customFoods) || []) : [];
   const seg = S.foodSeg;
-  const newBtn = `<button class="btn sm" type="button" id="fnew">+ New food</button>`;
+  const newBtn = `<button class="btn sm" type="button" id="fnew">${seg === 'plans' ? '+ New meal plan' : '+ New food'}</button>`;
+  if (seg === 'plans') return hdr('Food library', 'Foods', newBtn) + `<div class="stack foodcol" style="gap:12px">
+    <div class="seg" role="group" aria-label="Which foods"><button type="button" data-fseg="lib" aria-pressed="false">Library <span class="cnt">${S.content.foods.length}</span></button><button type="button" data-fseg="hers" aria-pressed="false">Her foods <span class="cnt">${hers.length}</span></button><button type="button" data-fseg="plans" aria-pressed="true">Meal plans <span class="cnt">${(S.content.mealPlans || []).length}</span></button></div>
+    ${vMealPlans()}</div>`;
   return hdr('Food library', 'Foods', newBtn) + `<div class="stack foodcol" style="gap:12px">
-    <div class="seg" role="group" aria-label="Which foods"><button type="button" data-fseg="lib" aria-pressed="${seg === 'lib'}">Library <span class="cnt">${S.content.foods.length}</span></button><button type="button" data-fseg="hers" aria-pressed="${seg === 'hers'}">Her foods <span class="cnt">${hers.length}</span></button></div>
+    <div class="seg" role="group" aria-label="Which foods"><button type="button" data-fseg="lib" aria-pressed="${seg === 'lib'}">Library <span class="cnt">${S.content.foods.length}</span></button><button type="button" data-fseg="hers" aria-pressed="${seg === 'hers'}">Her foods <span class="cnt">${hers.length}</span></button><button type="button" data-fseg="plans" aria-pressed="${seg === 'plans'}">Meal plans <span class="cnt">${(S.content.mealPlans || []).length}</span></button></div>
     <div class="searchbar"><input class="input" id="fq" type="search" placeholder="${seg === 'lib' ? 'Search name, portion or tag' : 'Search her foods'}" value="${esc(S.foodQ)}" autocomplete="off"></div>
     ${seg === 'lib' ? `<div class="between wrapr" style="gap:8px"><div class="chips" role="group" aria-label="Sort">${[['az', 'A–Z'], ['new', 'Newest'], ['used', 'She eats most']].map(([v, l]) => `<button class="chip" type="button" data-fsort="${v}" aria-pressed="${S.foodSort === v}">${l}</button>`).join('')}</div><button class="btn ghost sm" type="button" id="fjopen">{ } Paste JSON</button></div>
       ${S.foodJsonOpen ? vFoodJson() : ''}
@@ -1738,7 +1841,69 @@ function libFoodSheet(i, presetName = '') {
     if (isNew) g(presetName ? 'kcal' : 'name').focus();
   });
 }
+/* --- Meal plans: Rishu sets a meal, she logs it with one tap (Food tab, on an empty meal) --- */
+function mpFoods() { const r = S._m ? S._m.r : (currentReport() || {}); return [...S.content.foods, ...((r && r.customFoods) || []).map((f) => ({ ...f, hers: true }))]; }
+const mpFood = (id) => mpFoods().find((f) => f.id === id);
+function mpTotals(p) { return p.items.reduce((a, it) => { const f = mpFood(it.foodId); if (f) { a.kcal += (f.kcal || 0) * it.mult; a.protein += (f.protein || 0) * it.mult; } else a.missing++; return a; }, { kcal: 0, protein: 0, missing: 0 }); }
+const multLbl = (x) => (x === 0.5 ? '½' : x === 1.5 ? '1½' : String(x)) + '×';
+function vMealPlans() {
+  const P = S.content.mealPlans || [];
+  const T = S.content.targets;
+  const card = (p, i) => { const t = mpTotals(p); return `<button class="lrow" type="button" data-mpopen="${i}"><span class="lmain" style="flex:1;min-width:0"><b>${esc(p.name || p.items.map((it) => mpFood(it.foodId)?.name || '?').join(' + '))}</b><span class="small muted" style="display:block">${p.items.map((it) => `${multLbl(it.mult)} ${esc(mpFood(it.foodId)?.name || 'missing food')}`).join(' · ')}</span><span class="small muted" style="display:block">${p.days && p.days.length ? p.days.map((d) => DOW[d]).join(', ') : 'Every day'}${t.missing ? ' · <span style="color:var(--danger)">a food was deleted</span>' : ''}</span></span><span style="text-align:right"><b>${n0(t.kcal)}</b><span class="small muted" style="display:block">${r1(t.protein)} g</span></span></button>`; };
+  const groups = MEAL_ORDER.map((ml) => { const items = P.map((p, i) => [p, i]).filter(([p]) => p.meal === ml); return items.length ? `<p class="letter">${MEAL_LABEL[ml]}</p>${items.map(([p, i]) => card(p, i)).join('')}` : ''; }).join('');
+  return `<p class="small muted">Plan a meal and she logs the whole thing with one tap when that meal is still empty (“From Rishu” on her Food tab). Goes to her after you Publish. Her targets: ${n0(T.kcal)} kcal · ${T.protein} g protein.</p>
+    ${P.length ? `<div class="list">${groups}</div>` : `<div class="card stack"><p class="muted">No meal plans yet. Start with her breakfast — it’s the meal most people repeat.</p><button class="btn" type="button" id="mpFirst" style="align-self:flex-start">+ Plan a breakfast</button></div>`}`;
+}
+function mealPlanSheet(i, meal0 = 'breakfast') {
+  const P = (S.content.mealPlans = S.content.mealPlans || []);
+  const isNew = i == null;
+  const d = isNew ? { id: 'mp-' + Date.now().toString(36), meal: meal0, items: [] } : JSON.parse(JSON.stringify(P[i]));
+  let q = '';
+  sheet(isNew ? 'New meal plan' : 'Edit meal plan', '<div id="mpb" class="stack"></div>', (m, close) => {
+    const box = m.querySelector('#mpb');
+    const draw = () => {
+      const t = mpTotals(d);
+      const res = q.trim() ? mpFoods().filter((f) => f.name.toLowerCase().includes(q.trim().toLowerCase())).slice(0, 8) : [];
+      box.innerHTML = `
+        <div class="g2"><label class="f">Meal${mealSelect(d.meal)}</label><label class="f">Name<input class="input" name="mpname" value="${esc(d.name || '')}" placeholder="optional"></label></div>
+        <div class="f">Which days<div class="chips" style="margin-top:6px">${DOW.map((n, k) => `<button class="chip" type="button" data-mpday="${k}" aria-pressed="${(d.days || []).includes(k)}">${n}</button>`).join('')}</div><span class="small muted">None picked = every day.</span></div>
+        <div class="stack" style="gap:6px">${d.items.map((it, k) => { const f = mpFood(it.foodId); return `<div class="between" style="gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:12px"><span style="flex:1;min-width:0"><b>${esc(f ? f.name : 'Deleted food')}</b>${f && f.hers ? ' <span class="pill">hers</span>' : ''}<span class="small muted" style="display:block">${esc(f ? f.portion : '')} · ${f ? n0(f.kcal * it.mult) : 0} kcal · ${f ? r1(f.protein * it.mult) : 0} g</span></span>
+          <select class="input" data-mpmult="${k}" style="width:76px;min-height:40px">${[0.5, 1, 1.5, 2, 3].map((x) => `<option value="${x}" ${it.mult === x ? 'selected' : ''}>${multLbl(x)}</option>`).join('')}</select><button class="ib" type="button" data-mpdel="${k}" aria-label="Remove">✕</button></div>`; }).join('') || '<p class="small muted">Add foods below.</p>'}</div>
+        <label class="f">Add a food<input class="input" id="mpq" type="search" value="${esc(q)}" placeholder="Search her foods and your library" autocomplete="off"></label>
+        ${res.length ? `<div class="list">${res.map((f) => `<button class="lrow" type="button" data-mpadd="${esc(f.id)}" style="min-height:52px"><span style="flex:1;min-width:0"><b>${esc(f.name)}</b>${f.hers ? ' <span class="pill">hers</span>' : ''} <span class="small muted">${esc(f.portion || '')}</span></span><span class="small muted">${n0(f.kcal)} kcal · ${r1(f.protein)} g</span></button>`).join('')}</div>` : ''}
+        <p style="font-weight:700">Total: ${n0(t.kcal)} kcal · ${r1(t.protein)} g protein <span class="small muted">(${Math.round((t.kcal / (S.content.targets.kcal || 1)) * 100)}% of her day)</span></p>
+        <button class="btn" type="button" data-mpsave>${isNew ? 'Add meal plan' : 'Save'}</button>
+        ${isNew ? '' : '<button class="btn danger" type="button" data-mpdelete>Delete this meal plan</button>'}`;
+      const g = (n) => box.querySelector(`[name="${n}"]`);
+      g('meal').onchange = () => { d.meal = g('meal').value; };
+      g('mpname').oninput = () => { d.name = g('mpname').value.slice(0, 50); };
+      box.querySelectorAll('[data-mpday]').forEach((b) => (b.onclick = () => { const k = +b.dataset.mpday; const set = new Set(d.days || []); set.has(k) ? set.delete(k) : set.add(k); d.days = [...set].sort(); b.setAttribute('aria-pressed', set.has(k)); }));
+      box.querySelectorAll('[data-mpmult]').forEach((el) => (el.onchange = () => { d.items[+el.dataset.mpmult].mult = Number(el.value); draw(); }));
+      box.querySelectorAll('[data-mpdel]').forEach((b) => (b.onclick = () => { d.items.splice(+b.dataset.mpdel, 1); draw(); }));
+      box.querySelectorAll('[data-mpadd]').forEach((b) => (b.onclick = () => { d.items.push({ foodId: b.dataset.mpadd, mult: 1 }); q = ''; draw(); box.querySelector('#mpq').focus(); }));
+      const qi = box.querySelector('#mpq'); let tt; qi.oninput = () => { clearTimeout(tt); tt = setTimeout(() => { q = qi.value; draw(); const n = box.querySelector('#mpq'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 150); };
+      box.querySelector('[data-mpsave]').onclick = () => {
+        if (!d.items.length) return toast('Add at least one food');
+        if (!d.name || !d.name.trim()) delete d.name;
+        if (!d.days || !d.days.length) delete d.days;
+        if (isNew) P.push(d); else P[i] = d;
+        close(); markDirty(); render(); toast('Saved — Publish to send it to her');
+      };
+      const dl = box.querySelector('[data-mpdelete]'); if (dl) dl.onclick = () => { if (!confirm('Delete this meal plan?')) return; P.splice(i, 1); close(); markDirty(); render(); toast('Deleted — Publish to send'); };
+    };
+    draw();
+  });
+}
+function wireMealPlans() {
+  document.querySelectorAll('[data-mpopen]').forEach((b) => (b.onclick = () => mealPlanSheet(+b.dataset.mpopen)));
+  const f = $('#mpFirst'); if (f) f.onclick = () => mealPlanSheet(null, 'breakfast');
+}
 function wireFoods() {
+  if (S.foodSeg === 'plans') {
+    document.querySelectorAll('[data-fseg]').forEach((b) => (b.onclick = () => { S.foodSeg = b.dataset.fseg; S.foodQ = ''; render(); }));
+    $('#fnew').onclick = () => mealPlanSheet(null);
+    return wireMealPlans();
+  }
   const F = S.content.foods;
   renderFoodList();
   document.querySelectorAll('[data-fseg]').forEach((b) => (b.onclick = () => { S.foodSeg = b.dataset.fseg; S.foodQ = ''; render(); }));
@@ -1831,8 +1996,10 @@ function vAlerts() {
     </ol>
     <label class="row" style="gap:10px;cursor:pointer"><input type="checkbox" id="alW" ${prefs.workout !== false ? 'checked' : ''} style="width:20px;height:20px"> <span>When she finishes a workout</span></label>
     <label class="row" style="gap:10px;cursor:pointer"><input type="checkbox" id="alP" ${prefs.pr !== false ? 'checked' : ''} style="width:20px;height:20px"> <span>When she sets a new best (heavier lift or more reps)</span></label>
+    <div class="row" style="gap:10px;flex-wrap:wrap"><label class="row" style="gap:10px;cursor:pointer"><input type="checkbox" id="alF" ${prefs.food ? 'checked' : ''} style="width:20px;height:20px"> <span>If she hasn’t logged any food by</span></label>
+      <select class="input" id="alFt" style="width:auto;min-height:40px">${['18:00', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00'].map((t) => `<option ${(prefs.foodAt || '20:30') === t ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
     <div class="row wrapr"><button class="btn sm" type="button" id="alSave">${on ? 'Update on her phone' : 'Turn on for her phone'}</button>${on ? '<button class="btn danger sm" type="button" id="alOff">Turn off</button>' : ''}</div>
-    <p class="small muted">${a.live && !a.pend ? '✓ Her phone has it.' : a.pend ? '⏳ Reaches her phone the next time her app syncs.' : 'Needs her app 1.9.'} The topic name is the key — keep it private. Pings carry only short lines like “Sapna finished Legs · 48 min”.</p>
+    <p class="small muted">${a.live && !a.pend ? '✓ Her phone has it.' : a.pend ? '⏳ Reaches her phone the next time her app syncs.' : 'Needs her app 1.9.'} The topic name is the key — keep it private. Pings carry only short lines like “Sapna finished Legs · 48 min”. The evening check runs on her phone even if she doesn’t open the app.</p>
   </div>`;
 }
 async function ntfyTest(topic) {
@@ -1851,7 +2018,7 @@ function wireAlerts() {
   const a = alertState();
   const cp = $('#alCopy'); if (cp) cp.onclick = async () => { try { await navigator.clipboard.writeText(a.topic); toast('Copied'); } catch { toast(a.topic); } };
   const te = $('#alTest'); if (te) te.onclick = () => ntfyTest(a.topic);
-  const sv = $('#alSave'); if (sv) sv.onclick = () => queueOps([{ kind: 'alerts.set', alerts: { topic: a.topic, workout: $('#alW').checked, pr: $('#alP').checked } }], 'Sent — her phone starts pinging you after its next sync');
+  const sv = $('#alSave'); if (sv) sv.onclick = () => queueOps([{ kind: 'alerts.set', alerts: { topic: a.topic, workout: $('#alW').checked, pr: $('#alP').checked, food: $('#alF').checked, foodAt: $('#alFt').value } }], 'Sent — her phone starts pinging you after its next sync');
   const of = $('#alOff'); if (of) of.onclick = () => queueOps([{ kind: 'alerts.set', alerts: { topic: '', workout: false, pr: false } }], 'Alerts off — applies on her next sync');
 }
 /* --- On/off switch for her app (needs her app 1.8.1+) --- */

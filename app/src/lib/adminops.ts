@@ -99,7 +99,8 @@ function applyOne(d: AppData, op: AdminOp): AppData | null {
       const a = (op.alerts || {}) as Record<string, unknown>;
       const topic = typeof a.topic === 'string' ? a.topic : '';
       if (topic && !/^[A-Za-z0-9_-]{12,64}$/.test(topic)) return null;
-      return { ...d, alerts: { topic, workout: a.workout !== false, pr: a.pr !== false } };
+      const foodAt = typeof a.foodAt === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(a.foodAt) ? a.foodAt : '20:30';
+      return { ...d, alerts: { topic, workout: a.workout !== false, pr: a.pr !== false, food: a.food === true, foodAt } };
     }
     case 'cycle.set': {
       if (!isDate(op.date)) return null;

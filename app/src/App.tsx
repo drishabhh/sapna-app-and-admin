@@ -16,7 +16,7 @@ import FoodScreen from './screens/Food';
 import { FoodLogger } from './screens/FoodLogger';
 import Today from './screens/Today';
 import { cacheMedia } from './lib/mediacache';
-import { flushAlerts } from './lib/alerts';
+import { flushAlerts, lastLoggedDay, syncFoodCheck } from './lib/alerts';
 import { useStepsSync } from './stepsui';
 import { gifSrc } from './lib/content';
 // Opens faster: Today and Food load first; the rest load right after, in the background.
@@ -163,6 +163,10 @@ function Shell() {
     const t = window.setTimeout(step, 1200);
     return () => { queue.length = 0; window.clearTimeout(t); };
   }, [ready]);
+
+  // Rishu's evening "no food logged yet" check lives natively; keep it current.
+  const foodKey = `${lastLoggedDay(data)}|${data.alerts?.topic || ''}|${data.alerts?.food ? 1 : 0}|${data.alerts?.foodAt || ''}|${lock.on ? 1 : 0}`;
+  useEffect(() => { if (ready) syncFoodCheck(data, lock.on); }, [ready, foodKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Pings to Rishu that waited while she was offline.
   useEffect(() => {

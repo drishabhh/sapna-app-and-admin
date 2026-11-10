@@ -61,6 +61,11 @@
                 android:resource="@xml/water_widget_info" />
         </receiver>
 
+        <!-- Evening "no food logged yet" check → ping to Rishu -->
+        <receiver
+            android:name=".FoodCheck"
+            android:exported="false" />
+
         <!-- Notes Rishu schedules for later -->
         <receiver
             android:name=".NoteScheduler"

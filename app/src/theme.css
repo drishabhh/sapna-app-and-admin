@@ -465,3 +465,6 @@ p { margin: 0; }
 .guide-ic{flex:none;width:34px;height:34px;border-radius:12px;display:grid;place-items:center;font-size:17px;background:color-mix(in srgb,var(--acc) 14%,var(--card-2))}
 .chip.sm{min-height:32px;padding:0 12px;font-size:13px}
 .cycle-line{padding:8px 10px;border-radius:12px;background:color-mix(in srgb,var(--pink,#ff8fb1) 10%,transparent);gap:8px}
+
+.again.plan{border-style:solid;background:color-mix(in srgb,var(--acc,var(--coral)) 14%,var(--card))}
+.again.plan .pill{font-size:11px}

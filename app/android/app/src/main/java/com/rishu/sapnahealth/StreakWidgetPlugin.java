@@ -42,6 +42,21 @@ public class StreakWidgetPlugin extends Plugin {
         call.resolve();
     }
 
+    /** Rishu's evening check: {enabled, topic, time "HH:MM", name, lastLogged "YYYY-MM-DD"}. */
+    @PluginMethod
+    public void setFoodCheck(PluginCall call) {
+        Context ctx = getContext();
+        FoodCheck.prefs(ctx).edit()
+            .putBoolean("enabled", Boolean.TRUE.equals(call.getBoolean("enabled", false)))
+            .putString("topic", call.getString("topic", ""))
+            .putString("time", call.getString("time", "20:30"))
+            .putString("name", call.getString("name", "Sapna"))
+            .putString("lastLogged", call.getString("lastLogged", ""))
+            .apply();
+        FoodCheck.schedule(ctx);
+        call.resolve();
+    }
+
     /** Today's water facts for the water widget: {date, ml, goal, base, cup, from, to, name}. */
     @PluginMethod
     public void updateWater(PluginCall call) {

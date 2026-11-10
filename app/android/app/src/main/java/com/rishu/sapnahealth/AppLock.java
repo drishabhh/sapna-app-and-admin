@@ -26,5 +26,6 @@ final class AppLock {
             try { NotificationManagerCompat.from(c).cancel(StepsReminder.NOTIF_ID); } catch (Exception ignored) {}
         }
         WaterReminder.scheduleNext(c); // cancels the water chain while off, re-plans it when back on
+        FoodCheck.schedule(c);
     }
 }

@@ -1,3 +1,4 @@
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import type { AlertPrefs, AppData } from './types';
 
 /**
@@ -40,4 +41,17 @@ export async function flushAlerts() {
     for (const m of q) if (!(await post(m))) left.push(m);
     save(left);
   } finally { flushing = false; }
+}
+
+/** Hand the evening "no food logged yet" check to the phone (it runs natively, app open or not). */
+const Native = registerPlugin<{ setFoodCheck(o: { enabled: boolean; topic: string; time: string; name: string; lastLogged: string }): Promise<void> }>('StreakWidget');
+export function lastLoggedDay(d: AppData): string {
+  let k = ''; for (const f of d.food) if (f.date > k) k = f.date; return k;
+}
+export async function syncFoodCheck(d: AppData, locked: boolean) {
+  if (!Capacitor.isNativePlatform()) return;
+  const a = d.alerts;
+  try {
+    await Native.setFoodCheck({ enabled: !locked && !!a?.food && validTopic(a?.topic), topic: a?.topic || '', time: a?.foodAt || '20:30', name: d.profile.name || 'Sapna', lastLogged: lastLoggedDay(d) });
+  } catch { /* older native build */ }
 }
