@@ -1,6 +1,6 @@
 {
- "version": 43,
- "updatedAt": "2026-11-05T09:53:00.939Z",
+ "version": 44,
+ "updatedAt": "2026-11-13T13:39:16.000Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -295,6 +295,12 @@
      "unit": "reps"
     },
     {
+     "exId": "custom-cycle-fci6",
+     "sets": 1,
+     "reps": 3,
+     "unit": "min"
+    },
+    {
      "exId": "glutes-barbell-full-squat",
      "sets": 4,
      "reps": 12,
@@ -315,12 +321,6 @@
     {
      "exId": "custom-dumbbell-hip-thrust-sjda",
      "sets": 4,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "cardio-stationary-bike-run-v-3",
-     "sets": 3,
      "reps": 12,
      "unit": "reps"
     },
@@ -575,15 +575,6 @@
    "part": "cardio",
    "equipment": "local",
    "gif": "media/cycle-walk.gif",
-   "cue": ""
-  },
-  {
-   "id": "cardio-stationary-bike-run-v-3",
-   "name": "Stationary Bike Run v3",
-   "group": "exercises",
-   "part": "cardio",
-   "equipment": "bodyweight",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/cardio/stationary-bike-run-v-3.gif",
    "cue": ""
   },
   {
