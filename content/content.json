@@ -1,6 +1,6 @@
 {
- "version": 44,
- "updatedAt": "2026-11-13T13:39:16.000Z",
+ "version": 45,
+ "updatedAt": "2026-11-16T15:15:29.226Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -310,7 +310,10 @@
      "exId": "glutes-dumbbell-romanian-deadlift",
      "sets": 3,
      "reps": 12,
-     "unit": "reps"
+     "unit": "reps",
+     "alt": {
+      "exId": "glutes-dumbbell-single-leg-deadlift"
+     }
     },
     {
      "exId": "hamstrings-lever-lying-leg-curl",
@@ -617,6 +620,15 @@
    "group": "stretching",
    "part": "cardio",
    "gif": "https://media.baamboozle.com/uploads/images/674871/2b14d5a4-8213-4ee1-91fa-6bbf393c05be.gif",
+   "cue": ""
+  },
+  {
+   "id": "glutes-dumbbell-single-leg-deadlift",
+   "name": "Dumbbell Single Leg Deadlift",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "dumbbell",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/dumbbell-single-leg-deadlift.gif",
    "cue": ""
   }
  ],
