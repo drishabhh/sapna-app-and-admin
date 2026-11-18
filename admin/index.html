@@ -1451,7 +1451,7 @@ function vWorkouts() {
     return `<button class="wday${pi >= 0 ? ' set' : ''}${i === now ? ' now' : ''}" type="button" ${pi >= 0 ? `data-edit="${pi}"` : 'disabled'}><span>${i === now ? 'Today' : d}</span><b>${label}</b></button>`;
   }).join('')}</div>`;
   const dayNames = (p) => (p.days && p.days.length ? p.days.map((d) => DOW[d]).join(', ') : 'Rotates on gym days');
-  return hdr('Her week', 'Workouts', `<button class="btn sm" type="button" id="newplan">+ New plan</button>`) + `<div class="stack" style="gap:14px">
+  return hdr('Her week', 'Workouts', `<div class="row" style="gap:8px"><button class="btn ghost sm" type="button" id="wkExport">⬇ Export</button><button class="btn sm" type="button" id="newplan">+ New plan</button></div>`) + `<div class="stack" style="gap:14px">
     ${week}
     <p class="small muted">She sees one tile a day: the plan pinned to that weekday, otherwise the undated plans take turns on her gym days${gym.size ? ` (${[...gym].sort().map((d) => DOW[d]).join(', ')})` : ''}.</p>
     <div class="stack" style="gap:10px">${c.plans.map((p, i) => `<button class="card plan" type="button" data-edit="${i}"><span style="flex:1;min-width:0"><strong style="font-size:17px;display:block">${esc(p.title)}</strong>${p.focus ? `<span class="small" style="display:block;color:var(--acc);font-weight:600">${esc(p.focus)}</span>` : ''}<span class="small muted" style="display:block">${p.moves.length} moves · ${dayNames(p)}</span></span><span class="row" style="gap:4px">${p.moves.filter((m) => exOf(m.exId)?.gif).slice(0, 3).map((m) => `<img src="${esc(gif(exOf(m.exId)?.gif))}" alt="" loading="lazy" style="width:40px;height:40px;border-radius:9px;object-fit:cover;background:#fff">`).join('')}</span><span class="chev">›</span></button>`).join('') || '<div class="card"><p class="muted">No plans yet — she sees “Rishu is designing today’s plan”. Tap <b>+ New plan</b>.</p></div>'}</div>
@@ -1593,8 +1593,77 @@ function wireProgram(p) {
   if (dl) dl.onchange = () => { p.program.deloadEvery = Number(dl.value); redo(); };
   if (sd) sd.onchange = () => { if (/^\d{4}-\d{2}-\d{2}$/.test(sd.value)) { p.program.start = sd.value; redo(); } };
 }
+/* --- Export: every day's stretches + exercises (no cardio) as text, CSV or a printable page --- */
+const DAY_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+function exportRows() {
+  const c = S.content, out = [];
+  const order = [1, 2, 3, 4, 5, 6, 0];
+  const byDay = order.map((d) => [DAY_FULL[d], c.plans.filter((p) => (p.days || []).includes(d))]);
+  const anyDay = c.plans.filter((p) => !(p.days || []).length && p.moves.length);
+  if (anyDay.length) byDay.push(['Any day', anyDay]);
+  for (const [day, plans] of byDay) for (const p of plans) {
+    const isCardio = (m) => moveCat(m) === 2 || (exOf(m.exId) || {}).part === 'cardio'; // incl. warm-up cycling / jumping jacks
+    const moves = p.moves.filter((m) => !isCardio(m)).slice().sort((a, b) => moveCat(a) - moveCat(b));
+    for (const m of moves) {
+      const e = exOf(m.exId) || { name: m.exId }; const a = m.alt && exOf(m.alt.exId);
+      const timed = isTimed(m);
+      out.push({ day, plan: p.title, focus: p.focus || '', type: moveCat(m) === 0 ? 'Stretch' : 'Exercise', name: e.name, gif: e.gif ? gif(e.gif) : '',
+        dose: timed ? `${m.reps} ${m.unit === 'min' ? 'min' : 'sec'}` : `${m.sets} × ${m.reps}`,
+        sets: timed ? '' : m.sets, reps: timed ? '' : m.reps, time: timed ? `${m.reps} ${m.unit}` : '',
+        kg: m.kg || '', rest: !timed && moveCat(m) === 1 ? (m.rest || 75) + 's' : '', backup: a ? a.name : '', video: m.yt || e.yt || '' });
+    }
+  }
+  return out;
+}
+function exportText(rows) {
+  let t = 'Sapna’s workouts — stretches & exercises\n', last = '', lastPlan = '', lastType = '';
+  for (const r of rows) {
+    if (r.day !== last) { t += `\n📅 ${r.day.toUpperCase()}\n`; last = r.day; lastPlan = ''; }
+    if (r.plan !== lastPlan) { t += `\n${r.plan}${r.focus ? ` — ${r.focus}` : ''}\n`; lastPlan = r.plan; lastType = ''; }
+    if (r.type !== lastType) { t += r.type === 'Stretch' ? '🧘 Stretches\n' : '🏋️ Exercises\n'; lastType = r.type; }
+    t += `• ${r.name} — ${r.dose}${r.kg ? ` @ ${r.kg} kg` : ''}${r.backup ? ` (backup: ${r.backup})` : ''}\n`;
+  }
+  return t.trim();
+}
+function exportCsv(rows) {
+  const cols = [['Day', 'day'], ['Plan', 'plan'], ['Type', 'type'], ['Move', 'name'], ['Sets', 'sets'], ['Reps', 'reps'], ['Time', 'time'], ['Start kg', 'kg'], ['Rest', 'rest'], ['Backup', 'backup'], ['Video', 'video']];
+  const q = (v) => { const x = String(v ?? ''); return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
+  return '\ufeff' + [cols.map((c) => c[0]).join(','), ...rows.map((r) => cols.map((c) => q(r[c[1]])).join(','))].join('\r\n');
+}
+function exportPage(rows) {
+  let body = '', last = '', lastPlan = '';
+  for (const r of rows) {
+    if (r.day !== last) { body += `${last ? '</tbody></table>' : ''}<h2>${esc(r.day)}</h2>`; last = r.day; lastPlan = ''; }
+    if (r.plan !== lastPlan) { body += `${lastPlan ? '</tbody></table>' : ''}<h3>${esc(r.plan)}${r.focus ? ` <small>· ${esc(r.focus)}</small>` : ''}</h3><table><thead><tr><th></th><th>Move</th><th>Type</th><th>Sets × reps / time</th><th>Start kg</th><th>Backup</th></tr></thead><tbody>`; lastPlan = r.plan; }
+    body += `<tr><td>${r.gif ? `<img src="${esc(r.gif)}" alt="" onerror="this.remove()">` : ''}</td><td><b>${esc(r.name)}</b></td><td>${r.type}</td><td>${esc(r.dose)}</td><td>${r.kg || '—'}</td><td>${esc(r.backup || '—')}</td></tr>`;
+  }
+  if (rows.length) body += '</tbody></table>';
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sapna — workouts</title>
+<style>body{font:14px/1.45 system-ui,sans-serif;color:#16161c;margin:24px;max-width:900px}h1{font-size:22px;margin:0 0 4px}h2{font-size:18px;margin:26px 0 4px;border-bottom:2px solid #16161c;padding-bottom:4px;break-after:avoid}h3{font-size:15px;margin:12px 0 6px;break-after:avoid}small{color:#666;font-weight:400}table{width:100%;border-collapse:collapse;margin-bottom:8px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #ddd;vertical-align:middle}th{font-size:12px;color:#666}tr{break-inside:avoid}img{width:56px;height:56px;object-fit:cover;border-radius:8px;display:block}.bar{margin:12px 0 0}@media print{.bar{display:none}body{margin:10mm}}</style></head>
+<body><h1>Sapna’s workouts</h1><p style="color:#666;margin:0">Stretches & exercises for every day · ${esc(new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }))}</p>
+<div class="bar"><button onclick="print()">Print / Save as PDF</button></div>${body || '<p>No stretches or exercises in her plans yet.</p>'}</body></html>`;
+}
+function exportSheet() {
+  const rows = exportRows();
+  const days = new Set(rows.map((r) => r.day)).size;
+  const n = { s: rows.filter((r) => r.type === 'Stretch').length, e: rows.filter((r) => r.type === 'Exercise').length };
+  const save = (name, data, type) => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); };
+  const stamp = dkey(new Date());
+  sheet('Export workouts', `<div class="stack">
+    <p class="small muted">Every day’s <b>stretches and exercises</b> from her plans (cardio left out) — ${days} day${days === 1 ? '' : 's'}, ${n.s} stretches, ${n.e} exercises. Uses what’s on this page, including changes you haven’t published.</p>
+    <button class="btn" type="button" id="exTxt">Copy as text <span class="small" style="opacity:.75">· for WhatsApp</span></button>
+    <button class="btn ghost" type="button" id="exPdf">Printable page / PDF <span class="small muted">· with GIFs</span></button>
+    <button class="btn ghost" type="button" id="exCsv">Download spreadsheet (CSV)</button>
+    <details><summary class="small muted" style="cursor:pointer">Preview</summary><pre id="exPre" style="white-space:pre-wrap;font:13px/1.45 ui-monospace,monospace;max-height:40vh;overflow:auto;margin-top:8px">${esc(exportText(rows))}</pre></details>
+  </div>`, (m) => {
+    m.querySelector('#exTxt').onclick = async () => { const t = exportText(rows); try { await navigator.clipboard.writeText(t); toast('Copied — paste it anywhere'); } catch { m.querySelector('details').open = true; toast('Select the preview text and copy it'); } };
+    m.querySelector('#exCsv').onclick = () => { save(`sapna-workouts-${stamp}.csv`, exportCsv(rows), 'text/csv;charset=utf-8'); toast('Downloaded'); };
+    m.querySelector('#exPdf').onclick = () => { const w = window.open('', '_blank'); if (w) { w.document.write(exportPage(rows)); w.document.close(); } else save(`sapna-workouts-${stamp}.html`, exportPage(rows), 'text/html'); };
+  });
+}
 function wireWorkouts() {
   const c = S.content;
+  const ex = $('#wkExport'); if (ex) ex.onclick = exportSheet;
   document.querySelectorAll('[data-edit]').forEach((b) => (b.onclick = () => {
     S.editing = +b.dataset.edit;
     if (orderMoves(c.plans[S.editing])) { markDirty(); toast('Tidied: stretches first, cardio last — Publish to save'); }
