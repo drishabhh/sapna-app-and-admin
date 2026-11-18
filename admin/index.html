@@ -1615,8 +1615,37 @@ function exportRows() {
   }
   return out;
 }
-function exportText(rows) {
+/** Her goals and body numbers for the export (no food): from her phone's last sync. */
+function exportInfo() {
+  const M = model(); const m = M.m; if (!m || !m.r) return null;
+  const r = m.r, pr = r.profile || {}, T = m.T;
+  const ACT = { desk: 'Mostly sitting', light: 'Lightly active', active: 'Very active' };
+  const goals = [];
+  if (pr.goalRaw) goals.push(['Main goal', GOALS[pr.goalRaw] || pr.goalRaw]);
+  if ((pr.gymDays || []).length) goals.push(['Gym days', [1, 2, 3, 4, 5, 6, 0].filter((d) => pr.gymDays.includes(d)).map((d) => DOW[d]).join(', ') + ` (${pr.gymDays.length}/week)`]);
+  const prog = (S.content.plans || []).filter((p) => p.program);
+  prog.forEach((p) => goals.push([`Progression · ${String(p.title).trim()}`, `+${p.program.stepKg} kg every week${p.program.deloadEvery > 1 ? `, easy week every ${p.program.deloadEvery}th` : ''}`]));
+  if (T.water) goals.push(['Water', `${T.water} glasses a day`]);
+  if (pr.activity) goals.push(['Activity level', ACT[pr.activity] || pr.activity]);
+  const vitals = [];
+  const w = m.weighIns; const cur = w.length ? w.at(-1) : null; const kg = cur ? cur.kg : r.weightKg || pr.startKg;
+  if (pr.heightCm) vitals.push(['Height', `${pr.heightCm} cm`]);
+  if (kg) vitals.push(['Weight', `${r1(kg)} kg${cur ? ` (weighed ${dlabel(cur.date, { day: 'numeric', month: 'short' })})` : ''}`]);
+  const start = w.length ? w[0] : pr.startKg ? { kg: pr.startKg, date: pr.since ? dkey(new Date(pr.since)) : '' } : null;
+  if (start && kg && start.kg !== kg) { const d = kg - start.kg; vitals.push(['Change', `${d > 0 ? '+' : ''}${r1(d)} kg since ${start.date ? dlabel(start.date, { day: 'numeric', month: 'short' }) : 'start'} (from ${r1(start.kg)} kg)`]); }
+  if (kg && pr.heightCm) { const bmi = kg / (pr.heightCm / 100) ** 2; vitals.push(['BMI', `${r1(bmi)} (healthy for Indian adults: 18.5–22.9)`]); }
+  const end = dkey(new Date()); const days = []; for (let i = 0; i < 7; i++) days.push(dadd(end, -i));
+  const st = days.map((k) => m.steps[k]).filter((x) => x > 0); if (st.length) vitals.push(['Steps', `${n0(st.reduce((a, b) => a + b, 0) / st.length)} a day (last 7 days)`]);
+  const wa = days.map((k) => m.water[k]).filter((x) => x > 0); if (wa.length) vitals.push(['Water', `${r1(wa.reduce((a, b) => a + b, 0) / wa.length)} glasses a day (last 7 days)`]);
+  const ws = m.sessions.filter((x) => x.date >= days[6]).length; vitals.push(['Workouts', `${ws} in the last 7 days${r.streaks && r.streaks.workout ? ` · ${r.streaks.workout}-workout streak` : ''}`]);
+  return { goals, vitals, asOf: m.last };
+}
+function exportText(rows, info) {
   let t = 'Sapna’s workouts — stretches & exercises\n', last = '', lastPlan = '', lastType = '';
+  if (info) {
+    if (info.goals.length) t += `\n🎯 GOALS\n${info.goals.map(([k, v]) => `• ${k}: ${v}`).join('\n')}\n`;
+    if (info.vitals.length) t += `\n📏 VITALS\n${info.vitals.map(([k, v]) => `• ${k}: ${v}`).join('\n')}\n`;
+  }
   for (const r of rows) {
     if (r.day !== last) { t += `\n📅 ${r.day.toUpperCase()}\n`; last = r.day; lastPlan = ''; }
     if (r.plan !== lastPlan) { t += `\n${r.plan}${r.focus ? ` — ${r.focus}` : ''}\n`; lastPlan = r.plan; lastType = ''; }
@@ -1625,13 +1654,16 @@ function exportText(rows) {
   }
   return t.trim();
 }
-function exportCsv(rows) {
+function exportCsv(rows, info) {
   const cols = [['Day', 'day'], ['Plan', 'plan'], ['Type', 'type'], ['Move', 'name'], ['Sets', 'sets'], ['Reps', 'reps'], ['Time', 'time'], ['Start kg', 'kg'], ['Rest', 'rest'], ['Backup', 'backup'], ['Video', 'video']];
   const q = (v) => { const x = String(v ?? ''); return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
-  return '\ufeff' + [cols.map((c) => c[0]).join(','), ...rows.map((r) => cols.map((c) => q(r[c[1]])).join(','))].join('\r\n');
+  const head = info ? [...info.goals.map(([k, v]) => ['Goal', k, v]), ...info.vitals.map(([k, v]) => ['Vital', k, v])].map((x) => x.map(q).join(',')) : [];
+  return '\ufeff' + [...(head.length ? ['Section,Item,Value', ...head, ''] : []), cols.map((c) => c[0]).join(','), ...rows.map((r) => cols.map((c) => q(r[c[1]])).join(','))].join('\r\n');
 }
-function exportPage(rows) {
+function exportPage(rows, info) {
   let body = '', last = '', lastPlan = '';
+  const kv = (title, list) => list.length ? `<div class="box"><h4>${title}</h4><dl>${list.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div>` : '';
+  const top = info ? `<div class="info">${kv('🎯 Goals', info.goals)}${kv('📏 Vitals', info.vitals)}</div>` : '';
   for (const r of rows) {
     if (r.day !== last) { body += `${last ? '</tbody></table>' : ''}<h2>${esc(r.day)}</h2>`; last = r.day; lastPlan = ''; }
     if (r.plan !== lastPlan) { body += `${lastPlan ? '</tbody></table>' : ''}<h3>${esc(r.plan)}${r.focus ? ` <small>· ${esc(r.focus)}</small>` : ''}</h3><table><thead><tr><th></th><th>Move</th><th>Type</th><th>Sets × reps / time</th><th>Start kg</th><th>Backup</th></tr></thead><tbody>`; lastPlan = r.plan; }
@@ -1639,26 +1671,27 @@ function exportPage(rows) {
   }
   if (rows.length) body += '</tbody></table>';
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sapna — workouts</title>
-<style>body{font:14px/1.45 system-ui,sans-serif;color:#16161c;margin:24px;max-width:900px}h1{font-size:22px;margin:0 0 4px}h2{font-size:18px;margin:26px 0 4px;border-bottom:2px solid #16161c;padding-bottom:4px;break-after:avoid}h3{font-size:15px;margin:12px 0 6px;break-after:avoid}small{color:#666;font-weight:400}table{width:100%;border-collapse:collapse;margin-bottom:8px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #ddd;vertical-align:middle}th{font-size:12px;color:#666}tr{break-inside:avoid}img{width:56px;height:56px;object-fit:cover;border-radius:8px;display:block}.bar{margin:12px 0 0}@media print{.bar{display:none}body{margin:10mm}}</style></head>
+<style>body{font:14px/1.45 system-ui,sans-serif;color:#16161c;margin:24px;max-width:900px}h1{font-size:22px;margin:0 0 4px}h2{font-size:18px;margin:26px 0 4px;border-bottom:2px solid #16161c;padding-bottom:4px;break-after:avoid}h3{font-size:15px;margin:12px 0 6px;break-after:avoid}small{color:#666;font-weight:400}.info{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:16px 0 4px}.box{border:1px solid #ddd;border-radius:12px;padding:12px 14px;break-inside:avoid}h4{margin:0 0 8px;font-size:15px}dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0}dt{color:#666}dd{margin:0;font-weight:600}table{width:100%;border-collapse:collapse;margin-bottom:8px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #ddd;vertical-align:middle}th{font-size:12px;color:#666}tr{break-inside:avoid}img{width:56px;height:56px;object-fit:cover;border-radius:8px;display:block}.bar{margin:12px 0 0}@media print{.bar{display:none}body{margin:10mm}}</style></head>
 <body><h1>Sapna’s workouts</h1><p style="color:#666;margin:0">Stretches & exercises for every day · ${esc(new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }))}</p>
-<div class="bar"><button onclick="print()">Print / Save as PDF</button></div>${body || '<p>No stretches or exercises in her plans yet.</p>'}</body></html>`;
+<div class="bar"><button onclick="print()">Print / Save as PDF</button></div>${top}${body || '<p>No stretches or exercises in her plans yet.</p>'}</body></html>`;
 }
 function exportSheet() {
-  const rows = exportRows();
+  const rows = exportRows(); const info = exportInfo();
   const days = new Set(rows.map((r) => r.day)).size;
   const n = { s: rows.filter((r) => r.type === 'Stretch').length, e: rows.filter((r) => r.type === 'Exercise').length };
   const save = (name, data, type) => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); };
   const stamp = dkey(new Date());
   sheet('Export workouts', `<div class="stack">
-    <p class="small muted">Every day’s <b>stretches and exercises</b> from her plans (cardio left out) — ${days} day${days === 1 ? '' : 's'}, ${n.s} stretches, ${n.e} exercises. Uses what’s on this page, including changes you haven’t published.</p>
+    <p class="small muted">Every day’s <b>stretches and exercises</b> from her plans (cardio left out) — ${days} day${days === 1 ? '' : 's'}, ${n.s} stretches, ${n.e} exercises — plus her <b>goals and vitals</b>${info ? ` (from her phone’s sync, ${esc(dlabel(info.asOf, { day: 'numeric', month: 'short' }))})` : ''}. No food. Uses what’s on this page, including changes you haven’t published.</p>
+    ${info ? '' : '<p class="small" style="color:var(--amber)">Her goals and vitals need her phone’s sync — link it in Settings to include them.</p>'}
     <button class="btn" type="button" id="exTxt">Copy as text <span class="small" style="opacity:.75">· for WhatsApp</span></button>
     <button class="btn ghost" type="button" id="exPdf">Printable page / PDF <span class="small muted">· with GIFs</span></button>
     <button class="btn ghost" type="button" id="exCsv">Download spreadsheet (CSV)</button>
-    <details><summary class="small muted" style="cursor:pointer">Preview</summary><pre id="exPre" style="white-space:pre-wrap;font:13px/1.45 ui-monospace,monospace;max-height:40vh;overflow:auto;margin-top:8px">${esc(exportText(rows))}</pre></details>
+    <details><summary class="small muted" style="cursor:pointer">Preview</summary><pre id="exPre" style="white-space:pre-wrap;font:13px/1.45 ui-monospace,monospace;max-height:40vh;overflow:auto;margin-top:8px">${esc(exportText(rows, info))}</pre></details>
   </div>`, (m) => {
-    m.querySelector('#exTxt').onclick = async () => { const t = exportText(rows); try { await navigator.clipboard.writeText(t); toast('Copied — paste it anywhere'); } catch { m.querySelector('details').open = true; toast('Select the preview text and copy it'); } };
-    m.querySelector('#exCsv').onclick = () => { save(`sapna-workouts-${stamp}.csv`, exportCsv(rows), 'text/csv;charset=utf-8'); toast('Downloaded'); };
-    m.querySelector('#exPdf').onclick = () => { const w = window.open('', '_blank'); if (w) { w.document.write(exportPage(rows)); w.document.close(); } else save(`sapna-workouts-${stamp}.html`, exportPage(rows), 'text/html'); };
+    m.querySelector('#exTxt').onclick = async () => { const t = exportText(rows, info); try { await navigator.clipboard.writeText(t); toast('Copied — paste it anywhere'); } catch { m.querySelector('details').open = true; toast('Select the preview text and copy it'); } };
+    m.querySelector('#exCsv').onclick = () => { save(`sapna-workouts-${stamp}.csv`, exportCsv(rows, info), 'text/csv;charset=utf-8'); toast('Downloaded'); };
+    m.querySelector('#exPdf').onclick = () => { const w = window.open('', '_blank'); if (w) { w.document.write(exportPage(rows, info)); w.document.close(); } else save(`sapna-workouts-${stamp}.html`, exportPage(rows, info), 'text/html'); };
   });
 }
 function wireWorkouts() {
