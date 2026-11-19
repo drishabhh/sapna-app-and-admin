@@ -50,7 +50,7 @@ label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:70
 .exw{position:relative;display:flex}.exw .ex{flex:1}
 .zoom{position:absolute;top:6px;right:6px;width:36px;height:36px;border-radius:10px;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:17px;cursor:zoom-in}
 [data-zx]{cursor:zoom-in}
-.gifview{width:100%;max-height:62vh;object-fit:contain;border-radius:14px;background:#fff;display:block}
+.gifview{width:100%;max-height:62vh;max-height:calc(100dvh - 260px);object-fit:contain;border-radius:14px;background:#fff;display:block}
 .ex .ph{background:var(--card2)}
 .ex .t{padding:8px 10px;font-size:13px;font-weight:600;line-height:1.25}
 .ex.on{border:2px solid var(--acc)}
@@ -68,8 +68,18 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;colo
 .pub{position:fixed;left:12px;right:12px;bottom:calc(var(--sb) + 12px);z-index:20;max-width:956px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:12px 12px 12px 16px;border-radius:20px;background:color-mix(in srgb,var(--solid) 90%,transparent);border:1px solid var(--line2);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 18px 40px -16px rgba(0,0,0,.6)}
 .pub[hidden]{display:none}
 .toast{position:fixed;left:50%;top:calc(var(--st) + 14px);transform:translateX(-50%);z-index:60;background:var(--text);color:var(--bg);padding:12px 18px;border-radius:14px;font-weight:700;font-size:14px;max-width:calc(100% - 32px);text-align:center}
+/* Pop-ups: the page behind never scrolls; title + ✕ stay pinned at the top of the sheet */
+html:has(.modal),html:has(.modal) body{overflow:hidden}
+.sheet>.between:first-child{position:sticky;top:-16px;z-index:3;margin:-16px -16px 0;padding:14px 16px 10px;background:var(--bg2);border-radius:24px 24px 0 0}
+.sheet>.between:first-child h2{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sheet>.between:first-child .ib{flex:none}
+.vidbox{position:relative;margin:0 auto;border-radius:16px;overflow:hidden;background:#000;max-width:100%}
+.vidbox.wide{width:100%;aspect-ratio:16/9;max-height:calc(100dvh - 210px)}
+.vidbox.tall{height:min(calc(100dvh - 210px),640px);aspect-ratio:9/16}
+.vidbox.ig{width:min(100%,340px);height:min(calc(100dvh - 190px),760px)}
+.vidbox iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .modal{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
-.sheet{width:100%;max-width:980px;max-height:90vh;overflow:auto;background:var(--bg2);border-radius:24px 24px 0 0;padding:16px 16px calc(var(--sb) + 22px);border-top:1px solid var(--line2)}
+.sheet{width:100%;max-width:980px;max-height:90vh;max-height:calc(100dvh - 12px - env(safe-area-inset-top));overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:var(--bg2);border-radius:24px 24px 0 0;padding:16px 16px calc(var(--sb) + 22px);border-top:1px solid var(--line2)}
 .pill{display:inline-flex;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700;background:color-mix(in srgb,var(--acc) 18%,transparent);color:var(--acc)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
@@ -85,7 +95,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;colo
   .mono { font-size: 13px !important; }
   .pub { left: 8px; right: 8px; padding: 10px 10px 10px 14px; }
   .pub #pubSub { display: none; }
-  .modal .sheet { max-height: 92vh; }
+  .modal .sheet { max-height: 92vh; max-height: calc(100dvh - 8px - env(safe-area-inset-top)); }
 }
 
 .warn{border-color:color-mix(in srgb,var(--amber) 45%,transparent);background:color-mix(in srgb,var(--amber) 8%,var(--card))}
@@ -1520,8 +1530,8 @@ function previewVideo(raw, title) {
   const tall = !!ig || /\/shorts\//i.test(url);
   const src = id ? `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&playsinline=1&rel=0&modestbranding=1` : ig;
   sheet(`Preview · ${title || 'how-to video'}`, `
-    <div style="position:relative;width:${tall ? 'min(100%,340px)' : '100%'};aspect-ratio:${tall ? '9/16' : '16/9'};max-height:70vh;margin:0 auto;border-radius:16px;overflow:hidden;background:#000">
-      <iframe src="${esc(src)}" title="Video preview" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe></div>
+    <div class="vidbox ${ig ? 'ig' : tall ? 'tall' : 'wide'}">
+      <iframe src="${esc(src)}" title="Video preview" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
     <div class="between wrapr"><span class="small muted">This is what she sees when she taps ▶ in her app.</span><a class="btn ghost sm" href="${esc(url)}" target="_blank" rel="noopener">Open on ${id ? 'YouTube' : 'Instagram'}</a></div>`, () => {});
 }
 
