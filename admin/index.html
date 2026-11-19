@@ -1430,7 +1430,8 @@ function vWorkouts() {
             : `<div class="nums">${unitSel}<label class="f">Sets<input class="input" inputmode="numeric" data-f="sets" data-i="${i}" value="${m.sets}"></label><label class="f">Reps<input class="input" inputmode="numeric" data-f="reps" data-i="${i}" value="${m.reps}"></label><label class="f">Start kg<input class="input" inputmode="decimal" data-f="kg" data-i="${i}" value="${m.kg ?? ''}" placeholder="—"></label>${cat === 1 ? `<label class="f">Rest<select class="input" data-f="rest" data-i="${i}">${[45, 60, 75, 90, 120, 180].map((r) => `<option value="${r}" ${(m.rest || 75) === r ? 'selected' : ''}>${r < 120 ? r + 's' : r / 60 + ' min'}</option>`).join('')}</select></label>` : ''}</div>${progLine(p, m)}`; })()}
         <label class="f yt">▶ How-to video — YouTube or Instagram reel<input class="input" inputmode="url" data-f="yt" data-i="${i}" value="${esc(m.yt || e.yt || '')}" placeholder="https://youtu.be/…  or  https://instagram.com/reel/…"></label>
         <button class="btn ghost sm" type="button" data-vprev="yt" data-i="${i}" data-t="${esc(e.name)}" style="grid-column:1/-1;justify-self:start">▶ Preview video</button>
-        ${(() => { const a = m.alt && exOf(m.alt.exId); return a ? `<div class="altbox">
+        ${cat === 0 || cat === 3 ? `<button class="btn ghost sm" type="button" data-cool="${i}" style="grid-column:1/-1;justify-self:start">${cat === 3 ? '↑ Move to warm-up' : '↓ Move to cool-down (after the exercises)'}</button>` : ''}
+        ${cat === 0 || cat === 3 ? '' : (() => { const a = m.alt && exOf(m.alt.exId); return a ? `<div class="altbox">
             <div class="row" style="gap:10px">${a.gif ? `<img src="${esc(gif(a.gif))}" alt="" loading="lazy">` : `<span class="noimg" aria-hidden="true">${m.alt.yt || a.yt ? '▶' : '🏋️'}</span>`}
               <div style="flex:1;min-width:0"><span class="eyebrow">Backup · if busy</span><strong style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.name)}</strong><span class="small muted">Same ${isTimed(m) ? 'time' : 'sets × reps'} · she picks on the day</span></div>
               <button class="ib" type="button" data-altadd="${i}" aria-label="Change backup">✎</button><button class="ib" type="button" data-altdel="${i}" aria-label="Remove backup">✕</button></div>
@@ -1519,8 +1520,8 @@ async function uploadGif(file, base) {
 /** Older plans: a YouTube link saved as the GIF → move it to the how-to video. */
 function healExercises(c) { let n = 0; (c.exercises || []).forEach((e) => { if (isVideo(e.gif)) { if (!e.yt) e.yt = e.gif; e.gif = ''; n++; } }); return n; }
 /** Order in a plan: warm-up stretches first, then exercises, cardio always last. */
-const moveCat = (m) => { const e = exOf(m.exId); return e && e.group === 'stretching' ? 0 : e && e.part === 'cardio' ? 2 : 1; };
-const CAT_LABEL = ['Warm-up stretches', 'Exercises', 'Cardio'];
+const moveCat = (m) => { if (m.cool) return 3; const e = exOf(m.exId); return e && e.group === 'stretching' ? 0 : e && e.part === 'cardio' ? 2 : 1; };
+const CAT_LABEL = ['Warm-up', 'Exercises', 'Cardio', 'Cool-down stretches'];
 function orderMoves(p) {
   const before = p.moves.map((m) => m.exId).join();
   p.moves = p.moves.map((m, i) => ({ m, i })).sort((a, b) => moveCat(a.m) - moveCat(b.m) || a.i - b.i).map((x) => x.m);
@@ -1607,7 +1608,7 @@ function exportRows() {
     for (const m of moves) {
       const e = exOf(m.exId) || { name: m.exId }; const a = m.alt && exOf(m.alt.exId);
       const timed = isTimed(m);
-      out.push({ day, plan: p.title, focus: p.focus || '', type: moveCat(m) === 0 ? 'Stretch' : 'Exercise', name: e.name, gif: e.gif ? gif(e.gif) : '',
+      out.push({ day, plan: p.title, focus: p.focus || '', type: moveCat(m) === 0 ? 'Stretch' : moveCat(m) === 3 ? 'Cool-down' : 'Exercise', name: e.name, gif: e.gif ? gif(e.gif) : '',
         dose: timed ? `${m.reps} ${m.unit === 'min' ? 'min' : 'sec'}` : `${m.sets} × ${m.reps}`,
         sets: timed ? '' : m.sets, reps: timed ? '' : m.reps, time: timed ? `${m.reps} ${m.unit}` : '',
         kg: m.kg || '', rest: !timed && moveCat(m) === 1 ? (m.rest || 75) + 's' : '', backup: a ? a.name : '', video: m.yt || e.yt || '' });
@@ -1649,7 +1650,7 @@ function exportText(rows, info) {
   for (const r of rows) {
     if (r.day !== last) { t += `\n📅 ${r.day.toUpperCase()}\n`; last = r.day; lastPlan = ''; }
     if (r.plan !== lastPlan) { t += `\n${r.plan}${r.focus ? ` — ${r.focus}` : ''}\n`; lastPlan = r.plan; lastType = ''; }
-    if (r.type !== lastType) { t += r.type === 'Stretch' ? '🧘 Stretches\n' : '🏋️ Exercises\n'; lastType = r.type; }
+    if (r.type !== lastType) { t += r.type === 'Stretch' ? '🧘 Warm-up\n' : r.type === 'Cool-down' ? '🌿 Cool-down\n' : '🏋️ Exercises\n'; lastType = r.type; }
     t += `• ${r.name} — ${r.dose}${r.kg ? ` @ ${r.kg} kg` : ''}${r.backup ? ` (backup: ${r.backup})` : ''}\n`;
   }
   return t.trim();
@@ -1678,7 +1679,7 @@ function exportPage(rows, info) {
 function exportSheet() {
   const rows = exportRows(); const info = exportInfo();
   const days = new Set(rows.map((r) => r.day)).size;
-  const n = { s: rows.filter((r) => r.type === 'Stretch').length, e: rows.filter((r) => r.type === 'Exercise').length };
+  const n = { s: rows.filter((r) => r.type !== 'Exercise').length, e: rows.filter((r) => r.type === 'Exercise').length };
   const save = (name, data, type) => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); };
   const stamp = dkey(new Date());
   sheet('Export workouts', `<div class="stack">
@@ -1747,6 +1748,11 @@ function wireWorkouts() {
   document.querySelectorAll('[data-vprev]').forEach((b) => (b.onclick = () => {
     const inp = document.querySelector(`[data-f="${b.dataset.vprev}"][data-i="${b.dataset.i}"]`);
     previewVideo(inp ? inp.value : '', b.dataset.t);
+  }));
+  document.querySelectorAll('[data-cool]').forEach((b) => (b.onclick = () => {
+    const m = p.moves[+b.dataset.cool]; if (m.cool) delete m.cool; else m.cool = true;
+    orderMoves(p); markDirty(); const y = scrollY; render(); scrollTo(0, y);
+    toast(m.cool ? 'Moved to cool-down — after the exercises' : 'Moved to warm-up');
   }));
   document.querySelectorAll('[data-altadd]').forEach((b) => (b.onclick = async () => {
     const i = +b.dataset.altadd; const e = exOf(p.moves[i].exId) || {};

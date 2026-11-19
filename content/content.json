@@ -1,6 +1,6 @@
 {
- "version": 46,
- "updatedAt": "2026-11-19T10:14:03.696956Z",
+ "version": 47,
+ "updatedAt": "2026-11-19T10:21:30.000Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -8,357 +8,566 @@
  },
  "plans": [
   {
-   "id": "plan-mvqspoos",
-   "title": "Chest triceps ",
-   "note": "Rest 1–1.5 min between sets.",
-   "moves": [
-    {
-     "exId": "local-chest-press",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "pectorals-dumbbell-incline-bench-press",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "pectorals-chest-dip",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps",
-     "yt": "https://youtube.com/shorts/unUJQehzrGw?si=i_Q7NvvPcHzlML2u"
-    },
-    {
-     "exId": "triceps-cable-overhead-triceps-extension-rope-attachment",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "triceps-dumbbell-one-arm-triceps-extension-on-bench",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    }
-   ],
+   "id": "prog-mon-quads-glutes",
+   "title": "Quads & glutes",
+   "focus": "Squat, leg press, RDL, hip thrust",
    "days": [
-    6
-   ]
-  },
-  {
-   "id": "plan-mvs4og0y",
-   "title": "Thick Thighs 1",
-   "note": "Rest 1–1.5 min between sets.",
+    1
+   ],
+   "note": "On squats, use the deepest range you can repeat with heels down. The RDL comes after the leg press — use a load your hamstrings can control today. Rest 2–3 min on the big lifts, 60–90 sec on smaller ones. Warm-up: easy walk or cycle, then the drills; do 1–3 lighter sets of the first lift. Cool-down: hold each stretch 20–30 sec per side.",
    "moves": [
     {
      "exId": "custom-cycle-fci6",
      "sets": 1,
-     "reps": 3,
+     "reps": 4,
      "unit": "min"
-    },
-    {
-     "exId": "local-torso-rotations",
-     "sets": 1,
-     "reps": 10,
-     "unit": "reps"
-    },
-    {
-     "exId": "custom-leg-swing-57l3",
-     "sets": 1,
-     "reps": 10,
-     "unit": "reps"
     },
     {
      "exId": "local-leg-swings",
      "sets": 1,
-     "reps": 10,
-     "unit": "reps"
+     "reps": 10
     },
     {
-     "exId": "lats-back-pec-stretch",
+     "exId": "lib-hip-circles",
      "sets": 1,
-     "reps": 10,
-     "unit": "reps"
+     "reps": 5
     },
     {
      "exId": "local-bodyweight-squats",
      "sets": 1,
-     "reps": 20,
-     "unit": "reps"
+     "reps": 10
     },
     {
-     "exId": "custom-child-pose-fpoz",
+     "exId": "lib-glute-bridges",
      "sets": 1,
-     "reps": 10,
-     "unit": "reps"
-    },
-    {
-     "exId": "custom-one-leg-lunges-w0h1",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps",
-     "yt": "https://youtube.com/shorts/JhJDKw-mVKY?si=EA365WIi1okkLrBe"
-    },
-    {
-     "exId": "glutes-band-bent-over-hip-extension",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps",
-     "alt": {
-      "exId": "hamstrings-lever-lying-leg-curl"
-     }
-    },
-    {
-     "exId": "glutes-dumbbell-plyo-squat",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps",
-     "yt": "https://youtube.com/shorts/sQ-lwJtpwUc?si=mRTun_-ZCSINOfHJ"
-    },
-    {
-     "exId": "custom-dumbbell-hip-thrust-sjda",
-     "sets": 4,
-     "reps": 12,
-     "unit": "reps",
-     "yt": "https://youtube.com/shorts/uUuPYcK9SJI?si=sl1VlfNAkWE4FpVC"
-    },
-    {
-     "exId": "local-cycle-walk",
-     "sets": 1,
-     "reps": 15,
-     "unit": "min"
-    }
-   ],
-   "days": [
-    3
-   ]
-  },
-  {
-   "id": "plan-mvtk0ffv",
-   "title": "Shoulder and Core",
-   "note": "No cardio only shoulder and core",
-   "moves": [
-    {
-     "exId": "lats-back-pec-stretch",
-     "sets": 1,
-     "reps": 10,
-     "unit": "reps"
-    },
-    {
-     "exId": "delts-rear-deltoid-stretch",
-     "sets": 1,
-     "reps": 10,
-     "unit": "reps"
-    },
-    {
-     "exId": "local-shoulder-press",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "delts-dumbbell-lateral-to-front-raise",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "delts-cable-standing-rear-delt-row-with-rope",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "custom-leg-raise-see-the-video-cxi7",
-     "sets": 1,
-     "reps": 1,
-     "unit": "reps"
-    }
-   ],
-   "days": [
-    2
-   ]
-  },
-  {
-   "id": "plan-mvz9temo",
-   "title": "Back biceps",
-   "note": "Rest 1–1.5 min between sets.",
-   "moves": [
-    {
-     "exId": "custom-jumping-jacks-a6rc",
-     "sets": 1,
-     "reps": 15,
-     "unit": "reps"
-    },
-    {
-     "exId": "lats-back-pec-stretch",
-     "sets": 1,
-     "reps": 10,
-     "unit": "reps"
-    },
-    {
-     "exId": "custom-child-pose-fpoz",
-     "sets": 1,
-     "reps": 10,
-     "unit": "reps"
-    },
-    {
-     "exId": "feat-lat-pulldown-pro",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "local-cable-row",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "custom-lower-back-extension-xaur",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps",
-     "yt": "https://www.instagram.com/reel/DfJ0sf5Mklq/?psln=dmp2emhpa3Q0c3ly"
-    },
-    {
-     "exId": "biceps-dumbbell-alternate-biceps-curl",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "biceps-dumbbell-cross-body-hammer-curl",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    },
-    {
-     "exId": "cardio-walk-elliptical-cross-trainer",
-     "sets": 3,
-     "reps": 12,
-     "unit": "reps"
-    }
-   ],
-   "days": [
-    4
-   ]
-  },
-  {
-   "id": "plan-mw11c49a",
-   "title": "Thick thighs 2",
-   "note": "Rest 1–1.5 min between sets.",
-   "moves": [
-    {
-     "exId": "local-torso-rotations",
-     "sets": 1,
-     "reps": 10,
-     "unit": "reps"
-    },
-    {
-     "exId": "custom-leg-swing-57l3",
-     "sets": 1,
-     "reps": 10,
-     "unit": "reps"
-    },
-    {
-     "exId": "local-leg-swings",
-     "sets": 1,
-     "reps": 10,
-     "unit": "reps"
-    },
-    {
-     "exId": "lats-back-pec-stretch",
-     "sets": 1,
-     "reps": 10,
-     "unit": "reps"
-    },
-    {
-     "exId": "delts-rear-deltoid-stretch",
-     "sets": 1,
-     "reps": 10,
-     "unit": "reps"
-    },
-    {
-     "exId": "local-bodyweight-squats",
-     "sets": 1,
-     "reps": 10,
-     "unit": "reps"
-    },
-    {
-     "exId": "custom-child-pose-fpoz",
-     "sets": 1,
-     "reps": 10,
-     "unit": "reps"
-    },
-    {
-     "exId": "custom-cycle-fci6",
-     "sets": 1,
-     "reps": 3,
-     "unit": "min"
+     "reps": 10
     },
     {
      "exId": "glutes-barbell-full-squat",
-     "sets": 4,
+     "sets": 3,
      "reps": 12,
-     "unit": "reps"
+     "rest": 120
+    },
+    {
+     "exId": "lib-leg-press",
+     "sets": 3,
+     "reps": 12,
+     "rest": 120
     },
     {
      "exId": "glutes-dumbbell-romanian-deadlift",
      "sets": 3,
      "reps": 12,
-     "unit": "reps",
-     "alt": {
-      "exId": "glutes-dumbbell-single-leg-deadlift"
-     }
+     "rest": 120
+    },
+    {
+     "exId": "custom-dumbbell-hip-thrust-sjda",
+     "sets": 3,
+     "reps": 12,
+     "rest": 120
+    },
+    {
+     "exId": "lib-leg-extension",
+     "sets": 2,
+     "reps": 15
+    },
+    {
+     "exId": "lib-quadriceps-stretch",
+     "sets": 1,
+     "reps": 30,
+     "unit": "sec",
+     "cool": true
+    },
+    {
+     "exId": "lib-hamstring-stretch",
+     "sets": 1,
+     "reps": 30,
+     "unit": "sec",
+     "cool": true
+    },
+    {
+     "exId": "lib-hip-flexor-stretch",
+     "sets": 1,
+     "reps": 30,
+     "unit": "sec",
+     "cool": true
+    }
+   ]
+  },
+  {
+   "id": "prog-tue-shoulders-chest-core",
+   "title": "Shoulders, chest & core",
+   "focus": "Shoulder press, lateral raise, chest press, core",
+   "days": [
+    2
+   ],
+   "note": "Do the shoulder press while fresh. End each plank as soon as you can’t breathe steadily with the hips level. Rest 2–3 min on the big lifts, 60–90 sec on smaller ones. Warm-up: easy walk or cycle, then the drills; do 1–3 lighter sets of the first lift. Cool-down: hold each stretch 20–30 sec per side.",
+   "moves": [
+    {
+     "exId": "custom-cycle-fci6",
+     "sets": 1,
+     "reps": 4,
+     "unit": "min"
+    },
+    {
+     "exId": "lib-arm-circles",
+     "sets": 1,
+     "reps": 8
+    },
+    {
+     "exId": "lib-band-pull-aparts",
+     "sets": 1,
+     "reps": 12
+    },
+    {
+     "exId": "lats-back-pec-stretch",
+     "sets": 1,
+     "reps": 10
+    },
+    {
+     "exId": "lib-shoulder-rotations",
+     "sets": 1,
+     "reps": 10
+    },
+    {
+     "exId": "local-shoulder-press",
+     "sets": 3,
+     "reps": 12,
+     "rest": 120
+    },
+    {
+     "exId": "lib-dumbbell-lateral-raise",
+     "sets": 3,
+     "reps": 12
+    },
+    {
+     "exId": "lib-flat-dumbbell-chest-press",
+     "sets": 3,
+     "reps": 12,
+     "rest": 120
+    },
+    {
+     "exId": "pectorals-dumbbell-incline-bench-press",
+     "sets": 2,
+     "reps": 12,
+     "rest": 120
+    },
+    {
+     "exId": "lib-rope-triceps-extension",
+     "sets": 2,
+     "reps": 12
+    },
+    {
+     "exId": "lib-forearm-plank",
+     "sets": 3,
+     "reps": 30,
+     "unit": "sec"
+    },
+    {
+     "exId": "custom-leg-raise-see-the-video-cxi7",
+     "sets": 2,
+     "reps": 12
+    },
+    {
+     "exId": "lib-chest-stretch",
+     "sets": 1,
+     "reps": 30,
+     "unit": "sec",
+     "cool": true
+    },
+    {
+     "exId": "delts-rear-deltoid-stretch",
+     "sets": 1,
+     "reps": 30,
+     "unit": "sec",
+     "cool": true
+    },
+    {
+     "exId": "custom-child-pose-fpoz",
+     "sets": 1,
+     "reps": 30,
+     "unit": "sec",
+     "cool": true
+    }
+   ]
+  },
+  {
+   "id": "prog-wed-glutes-hamstrings",
+   "title": "Glutes & hamstrings",
+   "focus": "Hip thrust, lunges, leg curl, kickbacks",
+   "days": [
+    3
+   ],
+   "note": "Keep the hip-thrust bench stable. Walking lunges: one set = 10 controlled steps on each leg — clear the lane first. Rest 2–3 min on the big lifts, 60–90 sec on smaller ones. Warm-up: easy walk or cycle, then the drills; do 1–3 lighter sets of the first lift. Cool-down: hold each stretch 20–30 sec per side.",
+   "moves": [
+    {
+     "exId": "custom-cycle-fci6",
+     "sets": 1,
+     "reps": 4,
+     "unit": "min"
+    },
+    {
+     "exId": "local-leg-swings",
+     "sets": 1,
+     "reps": 10
+    },
+    {
+     "exId": "lib-hip-circles",
+     "sets": 1,
+     "reps": 5
+    },
+    {
+     "exId": "local-bodyweight-squats",
+     "sets": 1,
+     "reps": 10
+    },
+    {
+     "exId": "lib-glute-bridges",
+     "sets": 1,
+     "reps": 10
+    },
+    {
+     "exId": "lib-barbell-hip-thrust",
+     "sets": 3,
+     "reps": 12,
+     "rest": 120
+    },
+    {
+     "exId": "lib-walking-lunges",
+     "sets": 3,
+     "reps": 10,
+     "rest": 120
     },
     {
      "exId": "hamstrings-lever-lying-leg-curl",
      "sets": 3,
-     "reps": 12,
-     "unit": "reps"
+     "reps": 12
     },
     {
-     "exId": "custom-dumbbell-hip-thrust-sjda",
-     "sets": 4,
-     "reps": 12,
-     "unit": "reps"
+     "exId": "lib-cable-glute-kickback",
+     "sets": 2,
+     "reps": 15
     },
     {
-     "exId": "local-cycle-walk",
+     "exId": "lib-hip-abduction-machine",
+     "sets": 2,
+     "reps": 15
+    },
+    {
+     "exId": "lib-quadriceps-stretch",
      "sets": 1,
-     "reps": 20,
-     "unit": "min"
+     "reps": 30,
+     "unit": "sec",
+     "cool": true
+    },
+    {
+     "exId": "lib-hamstring-stretch",
+     "sets": 1,
+     "reps": 30,
+     "unit": "sec",
+     "cool": true
+    },
+    {
+     "exId": "lib-hip-flexor-stretch",
+     "sets": 1,
+     "reps": 30,
+     "unit": "sec",
+     "cool": true
     }
-   ],
+   ]
+  },
+  {
+   "id": "prog-thu-back-biceps",
+   "title": "Back & biceps",
+   "focus": "Pulldown, rows, back extension, curls",
    "days": [
-    1,
+    4
+   ],
+   "note": "Seated row: close grip, pull to the lower ribs. Rear-delt row: elbows wide, aim higher on the ribs. Rest 2–3 min on the big lifts, 60–90 sec on smaller ones. Warm-up: easy walk or cycle, then the drills; do 1–3 lighter sets of the first lift. Cool-down: hold each stretch 20–30 sec per side.",
+   "moves": [
+    {
+     "exId": "custom-cycle-fci6",
+     "sets": 1,
+     "reps": 4,
+     "unit": "min"
+    },
+    {
+     "exId": "lib-arm-circles",
+     "sets": 1,
+     "reps": 8
+    },
+    {
+     "exId": "lib-band-pull-aparts",
+     "sets": 1,
+     "reps": 12
+    },
+    {
+     "exId": "lats-back-pec-stretch",
+     "sets": 1,
+     "reps": 10
+    },
+    {
+     "exId": "lib-shoulder-rotations",
+     "sets": 1,
+     "reps": 10
+    },
+    {
+     "exId": "feat-lat-pulldown-pro",
+     "sets": 3,
+     "reps": 12,
+     "rest": 120
+    },
+    {
+     "exId": "local-cable-row",
+     "sets": 3,
+     "reps": 12,
+     "rest": 120
+    },
+    {
+     "exId": "delts-cable-standing-rear-delt-row-with-rope",
+     "sets": 3,
+     "reps": 12
+    },
+    {
+     "exId": "custom-lower-back-extension-xaur",
+     "sets": 2,
+     "reps": 12
+    },
+    {
+     "exId": "biceps-dumbbell-alternate-biceps-curl",
+     "sets": 3,
+     "reps": 12
+    },
+    {
+     "exId": "biceps-dumbbell-cross-body-hammer-curl",
+     "sets": 2,
+     "reps": 12
+    },
+    {
+     "exId": "lib-chest-stretch",
+     "sets": 1,
+     "reps": 30,
+     "unit": "sec",
+     "cool": true
+    },
+    {
+     "exId": "delts-rear-deltoid-stretch",
+     "sets": 1,
+     "reps": 30,
+     "unit": "sec",
+     "cool": true
+    },
+    {
+     "exId": "custom-child-pose-fpoz",
+     "sets": 1,
+     "reps": 30,
+     "unit": "sec",
+     "cool": true
+    }
+   ]
+  },
+  {
+   "id": "prog-fri-thighs-glutes",
+   "title": "Thighs & glutes",
+   "focus": "Goblet squat, RDL, reverse lunge, calves",
+   "days": [
     5
+   ],
+   "note": "Third leg day — if your legs are still very tired, go lighter or drop a set, and keep lunge steps steady. Rest 2–3 min on the big lifts, 60–90 sec on smaller ones. Warm-up: easy walk or cycle, then the drills; do 1–3 lighter sets of the first lift. Cool-down: hold each stretch 20–30 sec per side.",
+   "moves": [
+    {
+     "exId": "custom-cycle-fci6",
+     "sets": 1,
+     "reps": 4,
+     "unit": "min"
+    },
+    {
+     "exId": "local-leg-swings",
+     "sets": 1,
+     "reps": 10
+    },
+    {
+     "exId": "lib-hip-circles",
+     "sets": 1,
+     "reps": 5
+    },
+    {
+     "exId": "local-bodyweight-squats",
+     "sets": 1,
+     "reps": 10
+    },
+    {
+     "exId": "lib-glute-bridges",
+     "sets": 1,
+     "reps": 10
+    },
+    {
+     "exId": "lib-goblet-squat",
+     "sets": 3,
+     "reps": 12,
+     "rest": 120
+    },
+    {
+     "exId": "glutes-dumbbell-romanian-deadlift",
+     "sets": 2,
+     "reps": 12,
+     "rest": 120
+    },
+    {
+     "exId": "lib-reverse-lunges",
+     "sets": 2,
+     "reps": 10,
+     "rest": 120
+    },
+    {
+     "exId": "hamstrings-lever-lying-leg-curl",
+     "sets": 2,
+     "reps": 12
+    },
+    {
+     "exId": "lib-hip-abduction-machine",
+     "sets": 2,
+     "reps": 15
+    },
+    {
+     "exId": "lib-standing-calf-raises",
+     "sets": 2,
+     "reps": 15
+    },
+    {
+     "exId": "lib-quadriceps-stretch",
+     "sets": 1,
+     "reps": 30,
+     "unit": "sec",
+     "cool": true
+    },
+    {
+     "exId": "lib-hamstring-stretch",
+     "sets": 1,
+     "reps": 30,
+     "unit": "sec",
+     "cool": true
+    },
+    {
+     "exId": "lib-hip-flexor-stretch",
+     "sets": 1,
+     "reps": 30,
+     "unit": "sec",
+     "cool": true
+    }
+   ]
+  },
+  {
+   "id": "prog-sat-chest-triceps",
+   "title": "Chest & triceps",
+   "focus": "Bench press, incline press, row, triceps",
+   "days": [
+    6
+   ],
+   "note": "Use a spotter or set the safeties for the barbell bench. Pick a dumbbell light enough to lower behind your head smoothly. Rest 2–3 min on the big lifts, 60–90 sec on smaller ones. Warm-up: easy walk or cycle, then the drills; do 1–3 lighter sets of the first lift. Cool-down: hold each stretch 20–30 sec per side.",
+   "moves": [
+    {
+     "exId": "custom-cycle-fci6",
+     "sets": 1,
+     "reps": 4,
+     "unit": "min"
+    },
+    {
+     "exId": "lib-arm-circles",
+     "sets": 1,
+     "reps": 8
+    },
+    {
+     "exId": "lib-band-pull-aparts",
+     "sets": 1,
+     "reps": 12
+    },
+    {
+     "exId": "lats-back-pec-stretch",
+     "sets": 1,
+     "reps": 10
+    },
+    {
+     "exId": "lib-shoulder-rotations",
+     "sets": 1,
+     "reps": 10
+    },
+    {
+     "exId": "local-chest-press",
+     "sets": 3,
+     "reps": 12,
+     "rest": 120
+    },
+    {
+     "exId": "pectorals-dumbbell-incline-bench-press",
+     "sets": 2,
+     "reps": 12,
+     "rest": 120
+    },
+    {
+     "exId": "local-cable-row",
+     "sets": 2,
+     "reps": 12,
+     "rest": 120
+    },
+    {
+     "exId": "lib-dumbbell-lateral-raise",
+     "sets": 2,
+     "reps": 12
+    },
+    {
+     "exId": "triceps-cable-overhead-triceps-extension-rope-attachment",
+     "sets": 3,
+     "reps": 12
+    },
+    {
+     "exId": "triceps-dumbbell-one-arm-triceps-extension-on-bench",
+     "sets": 2,
+     "reps": 12
+    },
+    {
+     "exId": "lib-chest-stretch",
+     "sets": 1,
+     "reps": 30,
+     "unit": "sec",
+     "cool": true
+    },
+    {
+     "exId": "delts-rear-deltoid-stretch",
+     "sets": 1,
+     "reps": 30,
+     "unit": "sec",
+     "cool": true
+    },
+    {
+     "exId": "custom-child-pose-fpoz",
+     "sets": 1,
+     "reps": 30,
+     "unit": "sec",
+     "cool": true
+    }
    ]
   }
  ],
  "exercises": [
   {
    "id": "local-chest-press",
-   "name": "Chest press flat bench",
+   "name": "Flat barbell bench press",
    "group": "exercises",
    "part": "chest",
-   "equipment": "local",
-   "gif": "media/chest-press.gif",
-   "cue": "",
+   "equipment": "barbell",
+   "gif": "media/lib/flat-bench-chest-press.gif",
+   "cue": "Unrack over the shoulders. Lower toward the mid‐to‐lower chest, with forearms near vertical. Press slightly back toward the shoulders to finish. Avoid: bouncing the bar, flaring the elbows straight sideways or lifting the hips.",
    "yt": "https://youtube.com/shorts/0cXAp6WhSj4"
   },
   {
    "id": "pectorals-dumbbell-incline-bench-press",
-   "name": "Dumbbell Incline Bench Press",
+   "name": "Incline dumbbell press",
    "group": "exercises",
    "part": "chest",
    "equipment": "dumbbell",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/pectorals/dumbbell-incline-bench-press.gif",
-   "cue": "",
+   "gif": "media/lib/incline-dumbbell-press.gif",
+   "cue": "Press over the upper chest with wrists stacked above elbows. Lower with control until the upper arms reach a comfortable depth. Avoid: too steep a bench, flared elbows or the shoulders rolling forward.",
    "yt": "https://youtube.com/shorts/8fXfwG4ftaQ"
   },
   {
@@ -372,22 +581,22 @@
   },
   {
    "id": "triceps-cable-overhead-triceps-extension-rope-attachment",
-   "name": "Cable Overhead Triceps Extension Rope Attachment",
+   "name": "Overhead rope triceps extension",
    "group": "exercises",
    "part": "arms",
    "equipment": "cable",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/triceps/cable-overhead-triceps-extension-rope-attachment.gif",
-   "cue": "",
+   "gif": "media/lib/overhead-rope-triceps-extension.gif",
+   "cue": "Keep the upper arms still and extend the elbows until comfortably straight. Bend them slowly to guide the rope back behind the head. Avoid: arching the back, flaring the ribs or letting the upper arms swing.",
    "yt": "https://youtube.com/shorts/NTk0Igxqcsk"
   },
   {
    "id": "triceps-dumbbell-one-arm-triceps-extension-on-bench",
-   "name": "Dumbbell One Arm Triceps Extension On Bench",
+   "name": "Single-arm dumbbell triceps extension",
    "group": "exercises",
    "part": "arms",
    "equipment": "dumbbell",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/triceps/dumbbell-one-arm-triceps-extension-on-bench.gif",
-   "cue": "",
+   "gif": "media/lib/single-arm-dumbbell-triceps-extension.gif",
+   "cue": "Reps are per arm. Keep the upper arm near the ear, extend the elbow, then lower the bell along the same path. Complete both arms. Avoid: flaring the elbow wide, bending the wrist or shifting the head to dodge the weight.",
    "yt": "https://youtube.com/shorts/b_r_LW4HEcM"
   },
   {
@@ -402,32 +611,32 @@
   },
   {
    "id": "local-leg-swings",
-   "name": "Leg swings",
+   "name": "Supported leg swings",
    "group": "stretching",
    "part": "legs",
-   "equipment": "local",
-   "gif": "media/leg-swings.gif",
-   "cue": "",
+   "equipment": "bodyweight",
+   "gif": "media/lib/leg-swings.gif",
+   "cue": "Stand side‐on to a fixed support. Keep the standing knee soft. Swing the other leg gently forward and back from the hip, starting with a small arc.",
    "yt": "https://youtube.com/shorts/oDAIUJCxsyk"
   },
   {
    "id": "lats-back-pec-stretch",
-   "name": "Back Pec Stretch",
+   "name": "Dynamic chest opener",
    "group": "stretching",
-   "part": "back",
+   "part": "chest",
    "equipment": "bodyweight",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/lats/back-pec-stretch.gif",
-   "cue": "",
+   "gif": "media/lib/chest-opener.gif",
+   "cue": "Stand tall with soft elbows and hands forward. Sweep the arms out until you feel a mild opening across the chest, then bring them back.",
    "yt": "https://youtube.com/shorts/crnw1IKWNZY"
   },
   {
    "id": "local-bodyweight-squats",
-   "name": "Bodyweight squats (warmup)",
+   "name": "Bodyweight squats",
    "group": "stretching",
    "part": "legs",
-   "equipment": "local",
-   "gif": "media/bodyweight-squats.gif",
-   "cue": "",
+   "equipment": "bodyweight",
+   "gif": "media/lib/bodyweight-squats.gif",
+   "cue": "Stand in your usual squat stance. Reach the arms forward as you bend hips and knees. Keep the heels down and rise smoothly.",
    "yt": "https://youtube.com/shorts/dhhN_6B5nxE"
   },
   {
@@ -441,12 +650,12 @@
   },
   {
    "id": "local-shoulder-press",
-   "name": "Shoulder press",
+   "name": "Seated dumbbell shoulder press",
    "group": "exercises",
    "part": "shoulders",
-   "equipment": "local",
-   "gif": "media/shoulder-press.gif",
-   "cue": "",
+   "equipment": "dumbbell",
+   "gif": "media/lib/seated-dumbbell-shoulder-press.gif",
+   "cue": "Press upward in a comfortable arc. Allow the shoulder blades to rotate up. Lower both weights to the starting height without flaring the ribs. Avoid: leaning back, bending the wrists or pushing the weights forward.",
    "yt": "https://youtube.com/shorts/JmJzqda_0XQ"
   },
   {
@@ -461,41 +670,42 @@
   },
   {
    "id": "delts-cable-standing-rear-delt-row-with-rope",
-   "name": "Cable Standing Rear Delt Row With Rope",
+   "name": "Cable rear delt row",
    "group": "exercises",
    "part": "shoulders",
    "equipment": "cable",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/delts/cable-standing-rear-delt-row-with-rope.gif",
-   "cue": "",
+   "gif": "media/lib/cable-rear-delt-row.gif",
+   "cue": "Row toward the upper ribs with elbows travelling out roughly 60–75 degrees from the torso. Return without letting the chest collapse. Avoid: shrugging, tucking the elbows into a lat row or forcing them far behind the torso.",
    "yt": "https://youtube.com/shorts/WcXfHh28KGU"
   },
   {
    "id": "delts-rear-deltoid-stretch",
-   "name": "Rear Deltoid Stretch",
+   "name": "Cross-body shoulder stretch",
    "group": "stretching",
    "part": "shoulders",
    "equipment": "bodyweight",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/delts/rear-deltoid-stretch.gif",
-   "cue": "",
+   "gif": "media/lib/rear-shoulder-stretch.gif",
+   "cue": "Bring one arm across the chest below shoulder height. Use the opposite forearm to support the upper arm above the elbow. Gently draw it closer, then release.",
    "yt": "https://youtube.com/shorts/aIq0fLi8iak"
   },
   {
    "id": "custom-leg-raise-see-the-video-cxi7",
-   "name": "Leg raise",
+   "name": "Lying leg raises",
    "group": "exercises",
    "part": "core",
-   "gif": "",
-   "cue": "",
-   "yt": "https://youtube.com/shorts/TSZ7U8re_j0?si=UVgom2-I8Q5CVN0P"
+   "gif": "media/lib/lying-leg-raises.gif",
+   "cue": "Lower both legs only until you can maintain that back position. Raise them smoothly without swinging. Bend the knees to reduce the lever. Avoid: lowering too far, using momentum or lifting the chin.",
+   "yt": "https://youtube.com/shorts/TSZ7U8re_j0?si=UVgom2-I8Q5CVN0P",
+   "equipment": "bodyweight"
   },
   {
    "id": "feat-lat-pulldown-pro",
-   "name": "Lat pulldown — pro lat bar",
+   "name": "Lat pulldown",
    "group": "exercises",
    "part": "back",
    "equipment": "cable",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/lats/cable-pulldown-pro-lat-bar.gif",
-   "cue": "",
+   "gif": "media/lib/lat-pulldown.gif",
+   "cue": "Draw the elbows down toward the ribs and guide the bar in front toward the upper chest. Slowly straighten the elbows and let shoulder blades move upward. Avoid: pulling behind the neck, swinging backward or using a very wide grip.",
    "yt": "https://youtube.com/shorts/bNmvKpJSWKM"
   },
   {
@@ -503,37 +713,38 @@
    "name": "Seated cable row",
    "group": "exercises",
    "part": "back",
-   "equipment": "local",
-   "gif": "media/cable-row.gif",
-   "cue": "",
+   "equipment": "cable",
+   "gif": "media/lib/seated-cable-row.gif",
+   "cue": "Pull toward the lower ribs with elbows close to the torso. Pause, then reach forward smoothly and allow the shoulder blades to glide. Avoid: rocking the torso, shrugging or pulling the elbows far behind the body.",
    "yt": "https://youtube.com/shorts/wAU8VdcRAMQ"
   },
   {
    "id": "custom-lower-back-extension-xaur",
-   "name": "Lower back extension",
+   "name": "45° back extension",
    "group": "exercises",
    "part": "back",
-   "gif": "https://share.google/images/T8euVwZWLHCzaS99c",
-   "cue": ""
+   "gif": "media/lib/lower-back-extension.gif",
+   "cue": "Hinge at the hips and lower the trunk as one unit. Extend the hips to return until the torso lines up with the legs. Avoid: rounding repeatedly through the lower back or leaning past the line of the legs.",
+   "equipment": "machine"
   },
   {
    "id": "biceps-dumbbell-alternate-biceps-curl",
-   "name": "Dumbbell Alternate Biceps Curl",
+   "name": "Alternating dumbbell biceps curl",
    "group": "exercises",
    "part": "arms",
    "equipment": "dumbbell",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/biceps/dumbbell-alternate-biceps-curl.gif",
-   "cue": "",
+   "gif": "media/lib/dumbbell-alternate-biceps-curl.gif",
+   "cue": "Reps are per arm. Bend one elbow, turning the palm forward or up as comfortable. Lower fully under control, then curl the other arm. Count repetitions per arm. Avoid: swinging the hips, bending the wrist back or sliding the elbow forward.",
    "yt": "https://youtube.com/shorts/NdJ_y2BCNkI"
   },
   {
    "id": "biceps-dumbbell-cross-body-hammer-curl",
-   "name": "Dumbbell Cross Body Hammer Curl",
+   "name": "Cross-body hammer curl",
    "group": "exercises",
    "part": "arms",
    "equipment": "dumbbell",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/biceps/dumbbell-cross-body-hammer-curl.gif",
-   "cue": "",
+   "gif": "media/lib/cross-body-hammer-curl.gif",
+   "cue": "Reps are per arm. Bend one elbow to bring the thumb diagonally toward the opposite upper chest. Lower along the same path, then alternate. Avoid: twisting the torso, rotating the thumb down or swinging the weight.",
    "yt": "https://youtube.com/shorts/lth_EfBwJjg"
   },
   {
@@ -541,8 +752,9 @@
    "name": "Dumbbell hip thrust",
    "group": "exercises",
    "part": "legs",
-   "gif": "media/custom/dumbbell-hip-thrust-mw0trfod.gif",
-   "cue": "Squeeze your glutes at top"
+   "gif": "media/lib/dumbbell-hip-thrust.gif",
+   "cue": "Plant both feet. Raise the hips until the torso and thighs form a line and the shins are near vertical. Lower the hips smoothly around the bench edge. Avoid: arching the lower back, pushing through the toes or letting the weight roll.",
+   "equipment": "dumbbell"
   },
   {
    "id": "custom-one-leg-lunges-w0h1",
@@ -563,31 +775,32 @@
   },
   {
    "id": "glutes-dumbbell-romanian-deadlift",
-   "name": "Dumbbell Romanian Deadlift",
+   "name": "Dumbbell Romanian deadlift",
    "group": "exercises",
    "part": "legs",
    "equipment": "dumbbell",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/dumbbell-romanian-deadlift.gif",
-   "cue": "",
+   "gif": "media/lib/dumbbell-romanian-deadlift.gif",
+   "cue": "Slide the hips back as the torso tips forward. Keep the weights close. Stop when the hamstrings are taut and the spine stays steady. Stand by extending the hips. Avoid: reaching for the floor, turning the hinge into a squat or leaning back at the finish.",
    "yt": "https://youtube.com/shorts/hu3jRvTc_po"
   },
   {
    "id": "custom-child-pose-fpoz",
-   "name": "Child pose",
+   "name": "Child’s pose",
    "group": "stretching",
-   "part": "legs",
-   "gif": "media/custom/child-pose-mw11ezq2.gif",
-   "cue": "Hold 10 sec each child pose and cobra stretch",
-   "yt": "https://youtube.com/shorts/vxI75QzJouE"
+   "part": "back",
+   "gif": "media/lib/childs-pose.gif",
+   "cue": "Start on hands and knees. Ease the hips toward the heels and slide the hands forward. Support the forehead if needed. Return slowly to hands and knees.",
+   "yt": "https://youtube.com/shorts/vxI75QzJouE",
+   "equipment": "bodyweight"
   },
   {
    "id": "glutes-barbell-full-squat",
-   "name": "Barbell Full Squat",
+   "name": "Barbell full squat",
    "group": "exercises",
    "part": "legs",
    "equipment": "barbell",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/barbell-full-squat.gif",
-   "cue": "",
+   "gif": "media/lib/barbell-full-squat.gif",
+   "cue": "Brace and bend hips and knees together. Descend while the heels stay down and the pelvis stays controlled. Drive through the whole foot and stand tall. Avoid: heels lift, knees collapse inward, or the hips shoot up ahead of the chest.",
    "yt": "https://youtube.com/shorts/dW3zj79xfrc"
   },
   {
@@ -601,12 +814,12 @@
   },
   {
    "id": "hamstrings-lever-lying-leg-curl",
-   "name": "Lever Lying Leg Curl",
+   "name": "Lying leg curl",
    "group": "exercises",
    "part": "legs",
-   "equipment": "lever",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/hamstrings/lever-lying-leg-curl.gif",
-   "cue": "",
+   "equipment": "machine",
+   "gif": "media/lib/lying-leg-curl.gif",
+   "cue": "Bend the knees to draw the heels toward the seat while the pelvis stays on the pad. Extend the knees slowly to return. Avoid: lifting the hips, arching the back or bouncing off the bottom.",
    "yt": "https://youtube.com/shorts/EnZZIaPCb8k"
   },
   {
@@ -630,11 +843,11 @@
   },
   {
    "id": "custom-cycle-fci6",
-   "name": "Cycle",
+   "name": "Easy walk or cycle",
    "group": "stretching",
    "part": "cardio",
-   "gif": "",
-   "cue": "3min"
+   "gif": "media/cycle-walk.gif",
+   "cue": "3–5 minutes, easy pace — just enough to feel warm."
   },
   {
    "id": "custom-jumping-jacks-a6rc",
@@ -652,6 +865,226 @@
    "equipment": "dumbbell",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/dumbbell-single-leg-deadlift.gif",
    "cue": ""
+  },
+  {
+   "id": "lib-leg-press",
+   "name": "Leg press",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "machine",
+   "gif": "media/lib/leg-press.gif",
+   "cue": "Unlock the sled according to the machine instructions. Bend the knees toward the chest without rolling the pelvis up. Press the platform away to a soft finish. Avoid: dropping too deep, lifting the heels or snapping the knees straight.",
+   "yt": "https://youtube.com/shorts/EotSw18oR9w"
+  },
+  {
+   "id": "lib-leg-extension",
+   "name": "Leg extension",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "machine",
+   "gif": "media/lib/leg-extension.gif",
+   "cue": "Straighten the knees smoothly, pause near full extension, then bend the knees to lower the stack without impact. Avoid: kicking the pad, lifting the hips or striking the stack between repetitions.",
+   "yt": "https://youtube.com/shorts/uM86QE59Tgc"
+  },
+  {
+   "id": "lib-dumbbell-lateral-raise",
+   "name": "Dumbbell lateral raise",
+   "group": "exercises",
+   "part": "shoulders",
+   "equipment": "dumbbell",
+   "gif": "media/lib/dumbbell-lateral-raise.gif",
+   "cue": "Lift the arms out and a little forward until the elbows approach shoulder height. Lower slowly with the same elbow bend. Avoid: swinging the trunk, shrugging early or tipping the thumbs sharply down.",
+   "yt": "https://youtube.com/shorts/lMYs7FY8os4"
+  },
+  {
+   "id": "lib-flat-dumbbell-chest-press",
+   "name": "Flat dumbbell chest press",
+   "group": "exercises",
+   "part": "chest",
+   "equipment": "dumbbell",
+   "gif": "media/lib/flat-dumbbell-chest-press.gif",
+   "cue": "Press the bells upward over the chest. Bend the elbows and return to a comfortable depth, upper arms angled away from the ribs. Avoid: flaring the elbows at right angles, bouncing out of the bottom or losing foot contact.",
+   "yt": "https://youtube.com/shorts/fjNxsn57o_g"
+  },
+  {
+   "id": "lib-rope-triceps-extension",
+   "name": "Rope triceps pushdown",
+   "group": "exercises",
+   "part": "arms",
+   "equipment": "cable",
+   "gif": "media/lib/rope-triceps-extension.gif",
+   "cue": "Extend the elbows and separate the rope ends slightly near the thighs. Allow the elbows to bend again while keeping the upper arms quiet. Avoid: swinging the shoulders, leaning bodyweight on the rope or letting the elbows drift forward.",
+   "yt": "https://youtube.com/shorts/-PqzEk57xiw"
+  },
+  {
+   "id": "lib-forearm-plank",
+   "name": "Forearm plank",
+   "group": "exercises",
+   "part": "core",
+   "equipment": "bodyweight",
+   "gif": "media/lib/forearm-plank.gif",
+   "cue": "3 rounds of 20–40 sec — stop when the hips sag or breathing gets ragged. Brace gently, press the forearms down and maintain a long line through ears, hips and ankles. End the hold by placing the knees down. Avoid: hips sagging, bottom lifting high or holding the breath.",
+   "yt": "https://youtube.com/shorts/xe2MXatLTUw"
+  },
+  {
+   "id": "lib-barbell-hip-thrust",
+   "name": "Barbell hip thrust",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "barbell",
+   "gif": "media/lib/barbell-hip-thrust.gif",
+   "cue": "Drive through planted feet to lift the hips. Finish with ribs settled and thighs aligned with the torso. Return by bending at the hips. Avoid: lifting through the lower back, allowing the knees to cave or letting the bar slide.",
+   "yt": "https://youtube.com/shorts/-GEVlyzVbcg"
+  },
+  {
+   "id": "lib-walking-lunges",
+   "name": "Dumbbell walking lunges",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "dumbbell",
+   "gif": "media/lib/walking-lunges.gif",
+   "cue": "Reps are per leg — 10 steps each side. Step forward, plant the whole front foot and bend both knees. Push through the front leg to rise and bring the rear leg through for the next step. Avoid: stepping on a tightrope, rushing the weight transfer or slamming the rear knee down.",
+   "yt": "https://youtube.com/shorts/_lSFEA3uYY0"
+  },
+  {
+   "id": "lib-cable-glute-kickback",
+   "name": "Cable glute kickback",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "cable",
+   "gif": "media/lib/cable-glute-kickback.gif",
+   "cue": "Reps are per leg. Move the cuffed leg back from the hip with a soft knee. Keep both hip bones facing the tower. Bring the leg forward under control. Avoid: arching the back, swinging the leg or opening the pelvis sideways.",
+   "yt": "https://youtube.com/shorts/CyJtnoZRxPw"
+  },
+  {
+   "id": "lib-hip-abduction-machine",
+   "name": "Hip abduction machine",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "machine",
+   "gif": "media/lib/hip-abduction-machine.gif",
+   "cue": "Press the thighs apart within a comfortable range. Pause briefly and guide the pads back together slowly. Avoid: bouncing the pads, twisting the pelvis or using a large trunk swing.",
+   "yt": "https://youtube.com/shorts/SC8i7kGHVFk"
+  },
+  {
+   "id": "lib-goblet-squat",
+   "name": "Goblet squat",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "dumbbell",
+   "gif": "media/lib/goblet-squat.gif",
+   "cue": "Bend hips and knees together. Descend between the hips while the heels stay down. Stand smoothly, keeping the weight close. Avoid: holding the load away, forcing extra depth or the knees folding inward.",
+   "yt": "https://youtube.com/shorts/wjkoL-CagYE"
+  },
+  {
+   "id": "lib-reverse-lunges",
+   "name": "Reverse lunges",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "dumbbell",
+   "gif": "media/lib/reverse-lunges.gif",
+   "cue": "Reps are per leg. Step one foot back and lower its knee toward the floor. Keep the front foot planted, then push through it to return to standing. Repeat on each side. Avoid: stepping back in one narrow line, collapsing the front knee or pushing off excessively with the rear foot.",
+   "yt": "https://youtube.com/shorts/pQLQC1x9ur4"
+  },
+  {
+   "id": "lib-standing-calf-raises",
+   "name": "Standing calf raises",
+   "group": "exercises",
+   "part": "legs",
+   "equipment": "machine",
+   "gif": "media/lib/standing-calf-raises.gif",
+   "cue": "Lift the heels and balance across the forefeet. Pause at a comfortable height, then slowly return the heels to the floor. Avoid: bouncing, rolling onto the little toes or bending and straightening the knees.",
+   "yt": "https://youtube.com/shorts/nxK14pAb8bE"
+  },
+  {
+   "id": "lib-hip-circles",
+   "name": "Standing hip circles",
+   "group": "stretching",
+   "part": "legs",
+   "equipment": "bodyweight",
+   "gif": "media/lib/hip-circles.gif",
+   "cue": "Stand with feet about hip width and hands on the hips. Draw slow circles with the pelvis while the feet stay grounded. Reverse direction.",
+   "yt": "https://youtube.com/shorts/OqR7Tl6SPLQ"
+  },
+  {
+   "id": "lib-glute-bridges",
+   "name": "Glute bridges",
+   "group": "stretching",
+   "part": "legs",
+   "equipment": "bodyweight",
+   "gif": "media/lib/glute-bridges.gif",
+   "cue": "Lie face up, knees bent and feet flat about hip width. Press the feet down, lift the hips to align thighs and trunk, then lower gently.",
+   "yt": "https://youtube.com/shorts/X_IGw8U_e38"
+  },
+  {
+   "id": "lib-arm-circles",
+   "name": "Arm circles",
+   "group": "stretching",
+   "part": "shoulders",
+   "equipment": "bodyweight",
+   "gif": "media/lib/arm-circles.gif",
+   "cue": "Stand tall with arms extended to the sides and elbows soft. Make small, smooth circles. Reverse after one set.",
+   "yt": "https://youtube.com/shorts/RN40wyH6x9o"
+  },
+  {
+   "id": "lib-band-pull-aparts",
+   "name": "Band pull-aparts",
+   "group": "stretching",
+   "part": "shoulders",
+   "equipment": "band",
+   "gif": "media/lib/band-pull-aparts.gif",
+   "cue": "Hold a light band at chest height with a little starting tension. Keep elbows softly extended and spread the hands until the arms are wide. Return slowly.",
+   "yt": "https://youtube.com/shorts/cInEpKp_jD4"
+  },
+  {
+   "id": "lib-shoulder-rotations",
+   "name": "Shoulder external rotations",
+   "group": "stretching",
+   "part": "shoulders",
+   "equipment": "band",
+   "gif": "media/lib/shoulder-rotations.gif",
+   "cue": "Stand with elbows bent about 90 degrees and upper arms beside the ribs. Rotate the hands apart, then bring them back with elbows still.",
+   "yt": "https://youtube.com/shorts/O8K6cHd5b30"
+  },
+  {
+   "id": "lib-quadriceps-stretch",
+   "name": "Quadriceps stretch",
+   "group": "stretching",
+   "part": "legs",
+   "equipment": "bodyweight",
+   "gif": "media/lib/quadriceps-stretch.gif",
+   "cue": "Hold a stable support. Bend one knee, gently take the ankle with the same‐side hand and guide the heel toward the seat. Keep knees close and pelvis level. Release slowly.",
+   "yt": "https://youtube.com/shorts/rZnU2So0rCU"
+  },
+  {
+   "id": "lib-hamstring-stretch",
+   "name": "Hamstring stretch",
+   "group": "stretching",
+   "part": "legs",
+   "equipment": "bodyweight",
+   "gif": "media/lib/hamstring-stretch.gif",
+   "cue": "Place one heel on a low stable step. Keep a small bend in that knee and hinge forward from the hips with a long spine. Pause at mild tension, then rise.",
+   "yt": "https://youtube.com/shorts/TZVJY8BwjyA"
+  },
+  {
+   "id": "lib-hip-flexor-stretch",
+   "name": "Half-kneeling hip flexor stretch",
+   "group": "stretching",
+   "part": "legs",
+   "equipment": "bodyweight",
+   "gif": "media/lib/hip-flexor-stretch.gif",
+   "cue": "Kneel on a pad with the opposite foot forward. Gently tuck the pelvis and tighten the rear glute. Shift the whole pelvis slightly forward, then return.",
+   "yt": "https://youtube.com/shorts/WcF36BWCESI"
+  },
+  {
+   "id": "lib-chest-stretch",
+   "name": "Doorway chest stretch",
+   "group": "stretching",
+   "part": "chest",
+   "equipment": "bodyweight",
+   "gif": "media/lib/chest-stretch.gif",
+   "cue": "Place one forearm against a doorway with elbow at or just below shoulder height. Gently step or turn the chest away until you feel mild tension. Ease back.",
+   "yt": "https://youtube.com/shorts/dlQX1pswPwA"
   }
  ],
  "foods": [
