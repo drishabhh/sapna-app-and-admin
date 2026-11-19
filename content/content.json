@@ -1,6 +1,6 @@
 {
- "version": 50,
- "updatedAt": "2026-11-19T13:03:27.000Z",
+ "version": 51,
+ "updatedAt": "2026-11-19T15:37:38.754Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -292,12 +292,6 @@
    "note": "Seated row: close grip, pull to the lower ribs. Rear-delt row: elbows wide, aim higher on the ribs. Rest 2–3 min on the big lifts, 60–90 sec on smaller ones. Warm-up: easy walk or cycle, then the drills; do 1–3 lighter sets of the first lift. Cool-down: hold each stretch 20–30 sec per side.",
    "moves": [
     {
-     "exId": "custom-cycle-fci6",
-     "sets": 1,
-     "reps": 4,
-     "unit": "min"
-    },
-    {
      "exId": "lib-arm-circles",
      "sets": 1,
      "reps": 8
@@ -354,6 +348,19 @@
      "exId": "biceps-dumbbell-cross-body-hammer-curl",
      "sets": 2,
      "reps": 12
+    },
+    {
+     "exId": "cardio-walk-elliptical-cross-trainer",
+     "sets": 1,
+     "reps": 15,
+     "unit": "min"
+    },
+    {
+     "exId": "custom-cycle-fci6",
+     "sets": 1,
+     "reps": 15,
+     "unit": "min",
+     "cool": true
     },
     {
      "exId": "lib-chest-stretch",
@@ -589,15 +596,6 @@
    "yt": "https://youtube.com/shorts/8fXfwG4ftaQ"
   },
   {
-   "id": "pectorals-chest-dip",
-   "name": "Chest Dip",
-   "group": "exercises",
-   "part": "chest",
-   "equipment": "bodyweight",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/pectorals/chest-dip.gif",
-   "cue": ""
-  },
-  {
    "id": "triceps-cable-overhead-triceps-extension-rope-attachment",
    "name": "Overhead rope triceps extension",
    "group": "exercises",
@@ -616,16 +614,6 @@
    "gif": "media/lib/single-arm-dumbbell-triceps-extension.gif",
    "cue": "Reps are per arm. Keep the upper arm near the ear, extend the elbow, then lower the bell along the same path. Complete both arms. Avoid: flaring the elbow wide, bending the wrist or shifting the head to dodge the weight.",
    "yt": "https://youtube.com/shorts/b_r_LW4HEcM"
-  },
-  {
-   "id": "local-torso-rotations",
-   "name": "Torso rotations",
-   "group": "stretching",
-   "part": "core",
-   "equipment": "local",
-   "gif": "media/torso-rotations.gif",
-   "cue": "",
-   "yt": "https://youtube.com/shorts/lxNLnrO2okA"
   },
   {
    "id": "local-leg-swings",
@@ -675,16 +663,6 @@
    "gif": "media/lib/seated-dumbbell-shoulder-press.gif",
    "cue": "Press upward in a comfortable arc. Allow the shoulder blades to rotate up. Lower both weights to the starting height without flaring the ribs. Avoid: leaning back, bending the wrists or pushing the weights forward.",
    "yt": "https://youtube.com/shorts/JmJzqda_0XQ"
-  },
-  {
-   "id": "delts-dumbbell-lateral-to-front-raise",
-   "name": "Dumbbell Lateral To Front Raise",
-   "group": "exercises",
-   "part": "shoulders",
-   "equipment": "dumbbell",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/delts/dumbbell-lateral-to-front-raise.gif",
-   "cue": "",
-   "yt": "https://youtube.com/shorts/zES2Pq4AYjw"
   },
   {
    "id": "delts-cable-standing-rear-delt-row-with-rope",
@@ -777,23 +755,6 @@
    "yt": "https://youtube.com/shorts/uUuPYcK9SJI"
   },
   {
-   "id": "custom-one-leg-lunges-w0h1",
-   "name": "One leg lunges",
-   "group": "exercises",
-   "part": "legs",
-   "gif": "",
-   "cue": ""
-  },
-  {
-   "id": "glutes-dumbbell-plyo-squat",
-   "name": "Dumbbell Plyo Squat",
-   "group": "exercises",
-   "part": "legs",
-   "equipment": "dumbbell",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/dumbbell-plyo-squat.gif",
-   "cue": ""
-  },
-  {
    "id": "glutes-dumbbell-romanian-deadlift",
    "name": "Dumbbell Romanian deadlift",
    "group": "exercises",
@@ -824,15 +785,6 @@
    "yt": "https://youtube.com/shorts/dW3zj79xfrc"
   },
   {
-   "id": "local-cycle-walk",
-   "name": "Cycle / treadmill walk",
-   "group": "exercises",
-   "part": "cardio",
-   "equipment": "local",
-   "gif": "media/cycle-walk.gif",
-   "cue": ""
-  },
-  {
    "id": "hamstrings-lever-lying-leg-curl",
    "name": "Lying leg curl",
    "group": "exercises",
@@ -843,48 +795,12 @@
    "yt": "https://youtube.com/shorts/EnZZIaPCb8k"
   },
   {
-   "id": "glutes-band-bent-over-hip-extension",
-   "name": "Band Bent Over Hip Extension",
-   "group": "exercises",
-   "part": "legs",
-   "equipment": "band",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/band-bent-over-hip-extension.gif",
-   "cue": "",
-   "yt": "https://youtube.com/shorts/m5v7Hy6dstw"
-  },
-  {
-   "id": "custom-leg-swing-57l3",
-   "name": "Leg swing",
-   "group": "stretching",
-   "part": "legs",
-   "gif": "media/custom/leg-swing-mw1t4j35.gif",
-   "cue": "",
-   "yt": "https://youtube.com/shorts/oDAIUJCxsyk"
-  },
-  {
    "id": "custom-cycle-fci6",
    "name": "Easy walk or cycle",
    "group": "stretching",
    "part": "cardio",
    "gif": "media/cycle-walk.gif",
    "cue": "3–5 minutes, easy pace — just enough to feel warm."
-  },
-  {
-   "id": "custom-jumping-jacks-a6rc",
-   "name": "Jumping Jacks",
-   "group": "stretching",
-   "part": "cardio",
-   "gif": "https://media.baamboozle.com/uploads/images/674871/2b14d5a4-8213-4ee1-91fa-6bbf393c05be.gif",
-   "cue": ""
-  },
-  {
-   "id": "glutes-dumbbell-single-leg-deadlift",
-   "name": "Dumbbell Single Leg Deadlift",
-   "group": "exercises",
-   "part": "legs",
-   "equipment": "dumbbell",
-   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/dumbbell-single-leg-deadlift.gif",
-   "cue": ""
   },
   {
    "id": "lib-leg-press",
