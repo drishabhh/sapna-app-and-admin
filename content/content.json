@@ -1,6 +1,6 @@
 {
- "version": 53,
- "updatedAt": "2026-11-19T15:38:23.404Z",
+ "version": 54,
+ "updatedAt": "2026-11-19T15:54:14.339Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -332,7 +332,8 @@
     {
      "exId": "delts-cable-standing-rear-delt-row-with-rope",
      "sets": 3,
-     "reps": 12
+     "reps": 12,
+     "yt": "https://youtube.com/shorts/RtL11I6oX48?si=93swGoUK_CgjTxIR"
     },
     {
      "exId": "custom-lower-back-extension-xaur",
