@@ -1,6 +1,6 @@
 {
- "version": 47,
- "updatedAt": "2026-11-19T10:21:30.000Z",
+ "version": 48,
+ "updatedAt": "2026-11-19T10:55:09.000Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -637,7 +637,7 @@
    "equipment": "bodyweight",
    "gif": "media/lib/bodyweight-squats.gif",
    "cue": "Stand in your usual squat stance. Reach the arms forward as you bend hips and knees. Keep the heels down and rise smoothly.",
-   "yt": "https://youtube.com/shorts/dhhN_6B5nxE"
+   "yt": "https://www.youtube.com/watch?v=IaInMN_WZDM"
   },
   {
    "id": "cardio-walk-elliptical-cross-trainer",
@@ -686,7 +686,7 @@
    "equipment": "bodyweight",
    "gif": "media/lib/rear-shoulder-stretch.gif",
    "cue": "Bring one arm across the chest below shoulder height. Use the opposite forearm to support the upper arm above the elbow. Gently draw it closer, then release.",
-   "yt": "https://youtube.com/shorts/aIq0fLi8iak"
+   "yt": "https://www.youtube.com/watch?v=TCDA6qCp1FU"
   },
   {
    "id": "custom-leg-raise-see-the-video-cxi7",
@@ -790,7 +790,7 @@
    "part": "back",
    "gif": "media/lib/childs-pose.gif",
    "cue": "Start on hands and knees. Ease the hips toward the heels and slide the hands forward. Support the forehead if needed. Return slowly to hands and knees.",
-   "yt": "https://youtube.com/shorts/vxI75QzJouE",
+   "yt": "https://www.youtube.com/watch?v=X-OGH5-gLUs",
    "equipment": "bodyweight"
   },
   {
@@ -924,7 +924,7 @@
    "equipment": "bodyweight",
    "gif": "media/lib/forearm-plank.gif",
    "cue": "3 rounds of 20–40 sec — stop when the hips sag or breathing gets ragged. Brace gently, press the forearms down and maintain a long line through ears, hips and ankles. End the hold by placing the knees down. Avoid: hips sagging, bottom lifting high or holding the breath.",
-   "yt": "https://youtube.com/shorts/xe2MXatLTUw"
+   "yt": "https://www.youtube.com/watch?v=DoYPuzccR-M"
   },
   {
    "id": "lib-barbell-hip-thrust",
@@ -984,7 +984,7 @@
    "equipment": "dumbbell",
    "gif": "media/lib/reverse-lunges.gif",
    "cue": "Reps are per leg. Step one foot back and lower its knee toward the floor. Keep the front foot planted, then push through it to return to standing. Repeat on each side. Avoid: stepping back in one narrow line, collapsing the front knee or pushing off excessively with the rear foot.",
-   "yt": "https://youtube.com/shorts/pQLQC1x9ur4"
+   "yt": "https://www.youtube.com/watch?v=YB0thmgIx8Q"
   },
   {
    "id": "lib-standing-calf-raises",
@@ -994,7 +994,7 @@
    "equipment": "machine",
    "gif": "media/lib/standing-calf-raises.gif",
    "cue": "Lift the heels and balance across the forefeet. Pause at a comfortable height, then slowly return the heels to the floor. Avoid: bouncing, rolling onto the little toes or bending and straightening the knees.",
-   "yt": "https://youtube.com/shorts/nxK14pAb8bE"
+   "yt": "https://www.youtube.com/watch?v=J3qQrxPEhHA"
   },
   {
    "id": "lib-hip-circles",
@@ -1014,7 +1014,7 @@
    "equipment": "bodyweight",
    "gif": "media/lib/glute-bridges.gif",
    "cue": "Lie face up, knees bent and feet flat about hip width. Press the feet down, lift the hips to align thighs and trunk, then lower gently.",
-   "yt": "https://youtube.com/shorts/X_IGw8U_e38"
+   "yt": "https://www.youtube.com/watch?v=ytvP0oUDKYw"
   },
   {
    "id": "lib-arm-circles",
@@ -1044,7 +1044,7 @@
    "equipment": "band",
    "gif": "media/lib/shoulder-rotations.gif",
    "cue": "Stand with elbows bent about 90 degrees and upper arms beside the ribs. Rotate the hands apart, then bring them back with elbows still.",
-   "yt": "https://youtube.com/shorts/O8K6cHd5b30"
+   "yt": "https://www.youtube.com/watch?v=_UvmPNGtlPM"
   },
   {
    "id": "lib-quadriceps-stretch",
@@ -1064,7 +1064,7 @@
    "equipment": "bodyweight",
    "gif": "media/lib/hamstring-stretch.gif",
    "cue": "Place one heel on a low stable step. Keep a small bend in that knee and hinge forward from the hips with a long spine. Pause at mild tension, then rise.",
-   "yt": "https://youtube.com/shorts/TZVJY8BwjyA"
+   "yt": "https://www.youtube.com/watch?v=oRdXgERlSag"
   },
   {
    "id": "lib-hip-flexor-stretch",
@@ -1074,7 +1074,7 @@
    "equipment": "bodyweight",
    "gif": "media/lib/hip-flexor-stretch.gif",
    "cue": "Kneel on a pad with the opposite foot forward. Gently tuck the pelvis and tighten the rear glute. Shift the whole pelvis slightly forward, then return.",
-   "yt": "https://youtube.com/shorts/WcF36BWCESI"
+   "yt": "https://www.youtube.com/watch?v=tsGPYSQbZx4"
   },
   {
    "id": "lib-chest-stretch",
@@ -1084,7 +1084,7 @@
    "equipment": "bodyweight",
    "gif": "media/lib/chest-stretch.gif",
    "cue": "Place one forearm against a doorway with elbow at or just below shoulder height. Gently step or turn the chest away until you feel mild tension. Ease back.",
-   "yt": "https://youtube.com/shorts/dlQX1pswPwA"
+   "yt": "https://www.youtube.com/watch?v=NePr1XKRTLU"
   }
  ],
  "foods": [
