@@ -1,6 +1,6 @@
 {
- "version": 56,
- "updatedAt": "2026-11-19T16:01:17.533Z",
+ "version": 57,
+ "updatedAt": "2026-11-19T16:03:34.862Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -450,7 +450,8 @@
     {
      "exId": "lib-standing-calf-raises",
      "sets": 2,
-     "reps": 15
+     "reps": 15,
+     "yt": "https://youtube.com/shorts/Ktxf4KroFEA?si=fKA9u94JLsmfpp7o"
     },
     {
      "exId": "lib-quadriceps-stretch",
