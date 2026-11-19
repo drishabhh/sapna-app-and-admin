@@ -1,6 +1,6 @@
 {
- "version": 48,
- "updatedAt": "2026-11-19T10:55:09.000Z",
+ "version": 49,
+ "updatedAt": "2026-11-19T10:57:08.000Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -725,7 +725,8 @@
    "part": "back",
    "gif": "media/lib/lower-back-extension.gif",
    "cue": "Hinge at the hips and lower the trunk as one unit. Extend the hips to return until the torso lines up with the legs. Avoid: rounding repeatedly through the lower back or leaning past the line of the legs.",
-   "equipment": "machine"
+   "equipment": "machine",
+   "yt": "https://www.instagram.com/reel/DfJ0sf5Mklq/"
   },
   {
    "id": "biceps-dumbbell-alternate-biceps-curl",
@@ -754,7 +755,8 @@
    "part": "legs",
    "gif": "media/lib/dumbbell-hip-thrust.gif",
    "cue": "Plant both feet. Raise the hips until the torso and thighs form a line and the shins are near vertical. Lower the hips smoothly around the bench edge. Avoid: arching the lower back, pushing through the toes or letting the weight roll.",
-   "equipment": "dumbbell"
+   "equipment": "dumbbell",
+   "yt": "https://youtube.com/shorts/uUuPYcK9SJI"
   },
   {
    "id": "custom-one-leg-lunges-w0h1",
