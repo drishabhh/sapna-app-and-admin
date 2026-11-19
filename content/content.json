@@ -1,6 +1,6 @@
 {
- "version": 49,
- "updatedAt": "2026-11-19T10:57:08.000Z",
+ "version": 50,
+ "updatedAt": "2026-11-19T13:03:27.000Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -117,7 +117,10 @@
     {
      "exId": "lib-band-pull-aparts",
      "sets": 1,
-     "reps": 12
+     "reps": 12,
+     "alt": {
+      "exId": "lib-db-reverse-fly-light"
+     }
     },
     {
      "exId": "lats-back-pec-stretch",
@@ -127,7 +130,10 @@
     {
      "exId": "lib-shoulder-rotations",
      "sets": 1,
-     "reps": 10
+     "reps": 10,
+     "alt": {
+      "exId": "lib-db-external-rotation-light"
+     }
     },
     {
      "exId": "local-shoulder-press",
@@ -299,7 +305,10 @@
     {
      "exId": "lib-band-pull-aparts",
      "sets": 1,
-     "reps": 12
+     "reps": 12,
+     "alt": {
+      "exId": "lib-db-reverse-fly-light"
+     }
     },
     {
      "exId": "lats-back-pec-stretch",
@@ -309,7 +318,10 @@
     {
      "exId": "lib-shoulder-rotations",
      "sets": 1,
-     "reps": 10
+     "reps": 10,
+     "alt": {
+      "exId": "lib-db-external-rotation-light"
+     }
     },
     {
      "exId": "feat-lat-pulldown-pro",
@@ -480,7 +492,10 @@
     {
      "exId": "lib-band-pull-aparts",
      "sets": 1,
-     "reps": 12
+     "reps": 12,
+     "alt": {
+      "exId": "lib-db-reverse-fly-light"
+     }
     },
     {
      "exId": "lats-back-pec-stretch",
@@ -490,7 +505,10 @@
     {
      "exId": "lib-shoulder-rotations",
      "sets": 1,
-     "reps": 10
+     "reps": 10,
+     "alt": {
+      "exId": "lib-db-external-rotation-light"
+     }
     },
     {
      "exId": "local-chest-press",
@@ -1087,6 +1105,26 @@
    "gif": "media/lib/chest-stretch.gif",
    "cue": "Place one forearm against a doorway with elbow at or just below shoulder height. Gently step or turn the chest away until you feel mild tension. Ease back.",
    "yt": "https://www.youtube.com/watch?v=NePr1XKRTLU"
+  },
+  {
+   "id": "lib-db-reverse-fly-light",
+   "name": "Light dumbbell reverse fly",
+   "group": "stretching",
+   "part": "shoulders",
+   "equipment": "dumbbell",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/delts/dumbbell-reverse-fly.gif",
+   "yt": "https://www.youtube.com/watch?v=TJOkcqSMyMY",
+   "cue": "No band? Use 1–2 kg dumbbells. Hinge forward with a flat back, arms hanging. Open the arms out to the sides, squeezing the shoulder blades together, then lower slowly. Light and smooth — it’s a warm-up."
+  },
+  {
+   "id": "lib-db-external-rotation-light",
+   "name": "Light dumbbell external rotation",
+   "group": "stretching",
+   "part": "shoulders",
+   "equipment": "dumbbell",
+   "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/delts/dumbbell-upright-shoulder-external-rotation.gif",
+   "yt": "https://www.youtube.com/watch?v=U9_dNHfSDME",
+   "cue": "No band? Hold a 1–2 kg dumbbell, elbow bent to 90° and tucked at your side (or lie on your side). Rotate the forearm outward, keeping the elbow in place, then return slowly. Reps are per arm."
   }
  ],
  "foods": [
