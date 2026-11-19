@@ -1,6 +1,6 @@
 {
- "version": 57,
- "updatedAt": "2026-11-19T16:03:34.862Z",
+ "version": 58,
+ "updatedAt": "2026-11-19T16:05:10.832Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -445,7 +445,10 @@
     {
      "exId": "lib-hip-abduction-machine",
      "sets": 2,
-     "reps": 15
+     "reps": 15,
+     "alt": {
+      "exId": "custom-dumbbell-hip-thrust-sjda"
+     }
     },
     {
      "exId": "lib-standing-calf-raises",
