@@ -1,6 +1,6 @@
 {
- "version": 58,
- "updatedAt": "2026-11-19T16:05:10.832Z",
+ "version": 59,
+ "updatedAt": "2026-11-19T16:29:21.162Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -343,7 +343,8 @@
     {
      "exId": "biceps-dumbbell-alternate-biceps-curl",
      "sets": 3,
-     "reps": 12
+     "reps": 12,
+     "yt": "https://youtube.com/shorts/NjCDKI2QwXo?si=-_5O7o65W7jJqMu9"
     },
     {
      "exId": "biceps-dumbbell-cross-body-hammer-curl",
