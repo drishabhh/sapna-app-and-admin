@@ -47,6 +47,10 @@ label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:70
 .chip[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:#0c0c10}
 .ex{display:flex;flex-direction:column;border-radius:16px;overflow:hidden;background:var(--card);border:1px solid var(--line);text-align:left;padding:0}
 .ex img,.ex .ph{width:100%;height:120px;object-fit:cover;background:#fff;display:block}
+.exw{position:relative;display:flex}.exw .ex{flex:1}
+.zoom{position:absolute;top:6px;right:6px;width:36px;height:36px;border-radius:10px;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:17px;cursor:zoom-in}
+[data-zx]{cursor:zoom-in}
+.gifview{width:100%;max-height:62vh;object-fit:contain;border-radius:14px;background:#fff;display:block}
 .ex .ph{background:var(--card2)}
 .ex .t{padding:8px 10px;font-size:13px;font-weight:600;line-height:1.25}
 .ex.on{border:2px solid var(--acc)}
@@ -1409,6 +1413,21 @@ function wireShared() {
 
 /* --- Workouts --- */
 function exOf(id) { return S.content.exercises.find((e) => e.id === id); }
+/** Tap a GIF → see it big, with the form tip (and add it, from the library picker). */
+function viewGif(id, canAdd) {
+  const e = exOf(id); if (!e || !e.gif) return;
+  sheet(e.name, `<div class="stack" style="gap:10px">
+    <img class="gifview" src="${esc(gif(e.gif))}" alt="${esc(e.name)} — how it’s done">
+    <p class="small muted" style="margin:0">${esc([e.group === 'stretching' ? 'Stretch / warm-up' : 'Exercise', e.part, e.equipment].filter((x) => x && x !== 'local').join(' · '))}</p>
+    ${e.cue ? `<p class="small" style="margin:0">${esc(e.cue)}</p>` : ''}
+    <div class="row wrapr" style="gap:8px">${e.yt ? '<button class="btn ghost sm" type="button" data-zvid>▶ Watch the video</button>' : ''}${canAdd ? '<button class="btn sm" type="button" data-zpick>＋ Add to plan</button>' : ''}</div>
+  </div>`, (m, close) => {
+    const v = m.querySelector('[data-zvid]'); if (v) v.onclick = () => { close(); previewVideo(e.yt, e.name); };
+    const a = m.querySelector('[data-zpick]'); if (a) a.onclick = () => { close(); const t = document.querySelector(`[data-pick="${CSS.escape(id)}"]`); if (t) t.click(); };
+  });
+}
+document.addEventListener('click', (ev) => { const z = ev.target.closest && ev.target.closest('[data-zx]'); if (!z || z.closest('#edm')) return; ev.preventDefault(); ev.stopPropagation(); viewGif(z.dataset.zx, !!z.dataset.zadd); }, true);
+document.addEventListener('keydown', (ev) => { if ((ev.key === 'Enter' || ev.key === ' ') && ev.target.matches && ev.target.matches('img[data-zx]')) { ev.preventDefault(); viewGif(ev.target.dataset.zx); } });
 function vWorkouts() {
   const c = S.content;
   if (S.editing != null) {
@@ -1422,7 +1441,7 @@ function vWorkouts() {
       ${vProgram(p)}
       <div class="between"><h2>Moves (${p.moves.length})</h2><button class="btn sm" type="button" id="add">+ Add from library</button></div>
       <div class="stack" style="gap:8px">${p.moves.map((m, i) => { const e = exOf(m.exId) || { name: m.exId, gif: '' }; const cat = moveCat(m); const head = i === 0 || moveCat(p.moves[i - 1]) !== cat ? `<p class="eyebrow" style="margin:${i ? '10px' : '0'} 0 0">${CAT_LABEL[cat]}</p>` : ''; return `${head}<div class="move">
-        ${e.gif ? `<img src="${esc(gif(e.gif))}" alt="" loading="lazy">` : `<span class="noimg" aria-hidden="true">${m.yt || e.yt ? '▶' : '🏋️'}</span>`}<div style="min-width:0"><strong style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.name)}</strong><span class="small muted">${e.group === 'stretching' ? 'Stretching' : 'Exercise'}</span></div>
+        ${e.gif ? `<img src="${esc(gif(e.gif))}" alt="See ${esc(e.name)} bigger" loading="lazy" data-zx="${esc(e.id)}" role="button" tabindex="0">` : `<span class="noimg" aria-hidden="true">${m.yt || e.yt ? '▶' : '🏋️'}</span>`}<div style="min-width:0"><strong style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.name)}</strong><span class="small muted">${e.group === 'stretching' ? 'Stretching' : 'Exercise'}</span></div>
         <div class="row" style="gap:4px"><button class="ib" type="button" data-up="${i}" aria-label="Move up">↑</button><button class="ib" type="button" data-down="${i}" aria-label="Move down">↓</button><button class="ib" type="button" data-del="${i}" aria-label="Remove ${esc(e.name)}">✕</button></div>
         ${(() => { const unitSel = `<label class="f">Unit<select class="input" data-f="unit" data-i="${i}">${[['reps', 'reps'], ['min', 'minutes'], ['sec', 'seconds']].map(([u, l]) => `<option value="${u}" ${(m.unit || 'reps') === u ? 'selected' : ''}>${l}</option>`).join('')}</select></label>`;
           return isTimed(m)
@@ -1432,7 +1451,7 @@ function vWorkouts() {
         <button class="btn ghost sm" type="button" data-vprev="yt" data-i="${i}" data-t="${esc(e.name)}" style="grid-column:1/-1;justify-self:start">▶ Preview video</button>
         ${cat === 0 || cat === 3 ? `<button class="btn ghost sm" type="button" data-cool="${i}" style="grid-column:1/-1;justify-self:start">${cat === 3 ? '↑ Move to warm-up' : '↓ Move to cool-down (after the exercises)'}</button>` : ''}
         ${cat === 0 || cat === 3 ? '' : (() => { const a = m.alt && exOf(m.alt.exId); return a ? `<div class="altbox">
-            <div class="row" style="gap:10px">${a.gif ? `<img src="${esc(gif(a.gif))}" alt="" loading="lazy">` : `<span class="noimg" aria-hidden="true">${m.alt.yt || a.yt ? '▶' : '🏋️'}</span>`}
+            <div class="row" style="gap:10px">${a.gif ? `<img src="${esc(gif(a.gif))}" alt="See ${esc(a.name)} bigger" loading="lazy" data-zx="${esc(a.id)}" role="button" tabindex="0">` : `<span class="noimg" aria-hidden="true">${m.alt.yt || a.yt ? '▶' : '🏋️'}</span>`}
               <div style="flex:1;min-width:0"><span class="eyebrow">Backup · if busy</span><strong style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.name)}</strong><span class="small muted">Same ${isTimed(m) ? 'time' : 'sets × reps'} · she picks on the day</span></div>
               <button class="ib" type="button" data-altadd="${i}" aria-label="Change backup">✎</button><button class="ib" type="button" data-altdel="${i}" aria-label="Remove backup">✕</button></div>
             <label class="f" style="margin-top:6px">▶ Backup’s how-to video (optional)<input class="input" inputmode="url" data-f="altyt" data-i="${i}" value="${esc(m.alt.yt || a.yt || '')}" placeholder="YouTube or Instagram reel link"></label>
@@ -1471,7 +1490,7 @@ function vPicker() {
     <div class="chips">${['stretching', 'exercises'].map((g) => `<button class="chip" type="button" data-g="${g}" aria-pressed="${S.libGroup === g}">${g === 'exercises' ? 'Exercises' : 'Stretching'}</button>`).join('')}</div>
     <div class="chips">${parts.map((p) => `<button class="chip" type="button" data-p="${p}" aria-pressed="${S.libPart === p}">${p === 'all' ? 'All' : p[0].toUpperCase() + p.slice(1)}</button>`).join('')}</div>
     <input class="input" id="libq" type="search" placeholder="Search ${lib.length.toLocaleString()} moves — e.g. squat, curl, plank" value="${esc(S.libQ)}">
-    <div class="grid">${pool.map((g) => `<button class="ex" type="button" data-pick="${esc(g.id)}">${g.gif ? `<img src="${esc(gif(g.gif))}" alt="" loading="lazy">` : `<span class="ph" style="display:grid;place-items:center;font-size:28px;color:var(--acc)">${g.yt ? '▶' : '🏋️'}</span>`}<span class="t">${esc(g.name)}${g.equipment ? `<span class="small muted" style="display:block;font-weight:500">${esc(g.equipment)}</span>` : ''}</span></button>`).join('') || '<p class="muted">No matches.</p>'}</div>
+    <div class="grid">${pool.map((g) => `<div class="exw"><button class="ex" type="button" data-pick="${esc(g.id)}">${g.gif ? `<img src="${esc(gif(g.gif))}" alt="" loading="lazy">` : `<span class="ph" style="display:grid;place-items:center;font-size:28px;color:var(--acc)">${g.yt ? '▶' : '🏋️'}</span>`}<span class="t">${esc(g.name)}${g.equipment ? `<span class="small muted" style="display:block;font-weight:500">${esc(g.equipment)}</span>` : ''}</span></button>${g.gif ? `<button class="zoom" type="button" data-zx="${esc(g.id)}" data-zadd="1" aria-label="See ${esc(g.name)} bigger">⤢</button>` : ''}</div>`).join('') || '<p class="muted">No matches.</p>'}</div>
     <details class="card"><summary><strong>Create your own move</strong></summary><div class="stack" style="margin-top:10px">
       <label class="f">Name<input class="input" id="cn" placeholder="e.g. Hip thrust machine"></label>
       <div class="g2"><label class="f">Type<select class="input" id="cg"><option value="exercises">Exercise</option><option value="stretching">Stretching</option></select></label><label class="f">Body part<select class="input" id="cp">${parts.slice(1).map((p) => `<option>${p}</option>`).join('')}</select></label></div>
