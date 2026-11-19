@@ -1,6 +1,6 @@
 {
- "version": 52,
- "updatedAt": "2026-11-19T15:38:08.480Z",
+ "version": 53,
+ "updatedAt": "2026-11-19T15:38:23.404Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -353,7 +353,10 @@
      "exId": "cardio-walk-elliptical-cross-trainer",
      "sets": 1,
      "reps": 15,
-     "unit": "min"
+     "unit": "min",
+     "alt": {
+      "exId": "local-cycle-walk"
+     }
     },
     {
      "exId": "lib-chest-stretch",
@@ -1034,6 +1037,15 @@
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/delts/dumbbell-upright-shoulder-external-rotation.gif",
    "yt": "https://www.youtube.com/watch?v=U9_dNHfSDME",
    "cue": "No band? Hold a 1–2 kg dumbbell, elbow bent to 90° and tucked at your side (or lie on your side). Rotate the forearm outward, keeping the elbow in place, then return slowly. Reps are per arm."
+  },
+  {
+   "id": "local-cycle-walk",
+   "name": "Cycle / treadmill walk",
+   "group": "exercises",
+   "part": "cardio",
+   "equipment": "local",
+   "gif": "media/cycle-walk.gif",
+   "cue": ""
   }
  ],
  "foods": [
