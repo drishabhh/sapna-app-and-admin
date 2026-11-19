@@ -1,6 +1,6 @@
 {
- "version": 45,
- "updatedAt": "2026-11-16T15:15:29.226Z",
+ "version": 46,
+ "updatedAt": "2026-11-19T10:14:03.696956Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -348,7 +348,8 @@
    "part": "chest",
    "equipment": "local",
    "gif": "media/chest-press.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/0cXAp6WhSj4"
   },
   {
    "id": "pectorals-dumbbell-incline-bench-press",
@@ -357,7 +358,8 @@
    "part": "chest",
    "equipment": "dumbbell",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/pectorals/dumbbell-incline-bench-press.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/8fXfwG4ftaQ"
   },
   {
    "id": "pectorals-chest-dip",
@@ -375,7 +377,8 @@
    "part": "arms",
    "equipment": "cable",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/triceps/cable-overhead-triceps-extension-rope-attachment.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/NTk0Igxqcsk"
   },
   {
    "id": "triceps-dumbbell-one-arm-triceps-extension-on-bench",
@@ -384,7 +387,8 @@
    "part": "arms",
    "equipment": "dumbbell",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/triceps/dumbbell-one-arm-triceps-extension-on-bench.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/b_r_LW4HEcM"
   },
   {
    "id": "local-torso-rotations",
@@ -393,7 +397,8 @@
    "part": "core",
    "equipment": "local",
    "gif": "media/torso-rotations.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/lxNLnrO2okA"
   },
   {
    "id": "local-leg-swings",
@@ -402,7 +407,8 @@
    "part": "legs",
    "equipment": "local",
    "gif": "media/leg-swings.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/oDAIUJCxsyk"
   },
   {
    "id": "lats-back-pec-stretch",
@@ -411,7 +417,8 @@
    "part": "back",
    "equipment": "bodyweight",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/lats/back-pec-stretch.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/crnw1IKWNZY"
   },
   {
    "id": "local-bodyweight-squats",
@@ -420,7 +427,8 @@
    "part": "legs",
    "equipment": "local",
    "gif": "media/bodyweight-squats.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/dhhN_6B5nxE"
   },
   {
    "id": "cardio-walk-elliptical-cross-trainer",
@@ -438,7 +446,8 @@
    "part": "shoulders",
    "equipment": "local",
    "gif": "media/shoulder-press.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/JmJzqda_0XQ"
   },
   {
    "id": "delts-dumbbell-lateral-to-front-raise",
@@ -447,7 +456,8 @@
    "part": "shoulders",
    "equipment": "dumbbell",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/delts/dumbbell-lateral-to-front-raise.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/zES2Pq4AYjw"
   },
   {
    "id": "delts-cable-standing-rear-delt-row-with-rope",
@@ -456,7 +466,8 @@
    "part": "shoulders",
    "equipment": "cable",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/delts/cable-standing-rear-delt-row-with-rope.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/WcXfHh28KGU"
   },
   {
    "id": "delts-rear-deltoid-stretch",
@@ -465,7 +476,8 @@
    "part": "shoulders",
    "equipment": "bodyweight",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/delts/rear-deltoid-stretch.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/aIq0fLi8iak"
   },
   {
    "id": "custom-leg-raise-see-the-video-cxi7",
@@ -483,7 +495,8 @@
    "part": "back",
    "equipment": "cable",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/lats/cable-pulldown-pro-lat-bar.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/bNmvKpJSWKM"
   },
   {
    "id": "local-cable-row",
@@ -492,7 +505,8 @@
    "part": "back",
    "equipment": "local",
    "gif": "media/cable-row.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/wAU8VdcRAMQ"
   },
   {
    "id": "custom-lower-back-extension-xaur",
@@ -509,7 +523,8 @@
    "part": "arms",
    "equipment": "dumbbell",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/biceps/dumbbell-alternate-biceps-curl.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/NdJ_y2BCNkI"
   },
   {
    "id": "biceps-dumbbell-cross-body-hammer-curl",
@@ -518,7 +533,8 @@
    "part": "arms",
    "equipment": "dumbbell",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/biceps/dumbbell-cross-body-hammer-curl.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/lth_EfBwJjg"
   },
   {
    "id": "custom-dumbbell-hip-thrust-sjda",
@@ -552,7 +568,8 @@
    "part": "legs",
    "equipment": "dumbbell",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/dumbbell-romanian-deadlift.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/hu3jRvTc_po"
   },
   {
    "id": "custom-child-pose-fpoz",
@@ -560,7 +577,8 @@
    "group": "stretching",
    "part": "legs",
    "gif": "media/custom/child-pose-mw11ezq2.gif",
-   "cue": "Hold 10 sec each child pose and cobra stretch"
+   "cue": "Hold 10 sec each child pose and cobra stretch",
+   "yt": "https://youtube.com/shorts/vxI75QzJouE"
   },
   {
    "id": "glutes-barbell-full-squat",
@@ -569,7 +587,8 @@
    "part": "legs",
    "equipment": "barbell",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/barbell-full-squat.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/dW3zj79xfrc"
   },
   {
    "id": "local-cycle-walk",
@@ -587,7 +606,8 @@
    "part": "legs",
    "equipment": "lever",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/hamstrings/lever-lying-leg-curl.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/EnZZIaPCb8k"
   },
   {
    "id": "glutes-band-bent-over-hip-extension",
@@ -596,7 +616,8 @@
    "part": "legs",
    "equipment": "band",
    "gif": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/band-bent-over-hip-extension.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/m5v7Hy6dstw"
   },
   {
    "id": "custom-leg-swing-57l3",
@@ -604,7 +625,8 @@
    "group": "stretching",
    "part": "legs",
    "gif": "media/custom/leg-swing-mw1t4j35.gif",
-   "cue": ""
+   "cue": "",
+   "yt": "https://youtube.com/shorts/oDAIUJCxsyk"
   },
   {
    "id": "custom-cycle-fci6",
