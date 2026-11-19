@@ -1,6 +1,6 @@
 {
- "version": 54,
- "updatedAt": "2026-11-19T15:54:14.339Z",
+ "version": 55,
+ "updatedAt": "2026-11-19T16:00:10.995Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -433,7 +433,8 @@
      "exId": "lib-reverse-lunges",
      "sets": 2,
      "reps": 10,
-     "rest": 120
+     "rest": 120,
+     "yt": "https://youtube.com/shorts/YwQYZa4oz20?si=IC7VBlLZBIWpVAdZ"
     },
     {
      "exId": "hamstrings-lever-lying-leg-curl",
