@@ -1,6 +1,6 @@
 {
- "version": 51,
- "updatedAt": "2026-11-19T15:37:38.754Z",
+ "version": 52,
+ "updatedAt": "2026-11-19T15:38:08.480Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -354,13 +354,6 @@
      "sets": 1,
      "reps": 15,
      "unit": "min"
-    },
-    {
-     "exId": "custom-cycle-fci6",
-     "sets": 1,
-     "reps": 15,
-     "unit": "min",
-     "cool": true
     },
     {
      "exId": "lib-chest-stretch",
