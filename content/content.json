@@ -1,6 +1,6 @@
 {
- "version": 65,
- "updatedAt": "2026-11-21T06:49:21.511Z",
+ "version": 66,
+ "updatedAt": "2026-11-21T06:57:03.278Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -917,13 +917,14 @@
   },
   {
    "id": "lib-reverse-lunges",
-   "name": "Reverse lunges",
+   "name": "Bulgarian lunges",
    "group": "exercises",
    "part": "legs",
    "equipment": "dumbbell",
    "gif": "media/lib/reverse-lunges.gif",
    "cue": "Reps are per leg. Step one foot back and lower its knee toward the floor. Keep the front foot planted, then push through it to return to standing. Repeat on each side. Avoid: stepping back in one narrow line, collapsing the front knee or pushing off excessively with the rear foot.",
-   "yt": "https://www.youtube.com/watch?v=YB0thmgIx8Q"
+   "yt": "https://www.youtube.com/watch?v=YB0thmgIx8Q",
+   "keep": true
   },
   {
    "id": "lib-standing-calf-raises",
