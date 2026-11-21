@@ -61,6 +61,7 @@ label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:70
 .prbadge{display:inline-flex;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:800;background:color-mix(in srgb,var(--amber) 18%,transparent);color:var(--amber);margin-left:6px}
 .steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
 .move .yt{grid-column:1/-1;font-size:13px}
+.noimg{display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--card2);color:var(--faint);font-size:13px;font-weight:700;text-align:center}
 .altbox{grid-column:1/-1;border:1px dashed color-mix(in srgb,var(--acc) 55%,var(--line2));border-radius:14px;padding:10px;background:color-mix(in srgb,var(--acc) 6%,transparent)}.altbox img,.altbox .noimg{width:44px;height:44px;border-radius:9px;object-fit:cover;background:#fff;flex:none}.altbox .noimg{display:grid;place-items:center;background:var(--card2);color:var(--acc)}.move .yt input{min-height:40px}
 .nums input,.nums select{min-height:40px;text-align:center;padding:0 4px}
 .bar{height:8px;border-radius:99px;background:var(--card2);overflow:hidden}.bar i{display:block;height:100%;background:var(--acc);border-radius:99px}
@@ -341,9 +342,9 @@ async function publish() {
       const theirs = latest && latest.content ? JSON.parse(unb64(latest.content)) : null;
       const merged = theirs && latest.sha !== S.sha ? mergeContent(S.base, S.content, theirs) : S.content;
       c = { ...merged, version: Math.max(merged.version || 0, theirs?.version || 0) + 1, updatedAt: new Date().toISOString() };
-      // drop exercises no plan uses any more, keep the file small
+      // drop exercises no plan uses any more (keeps the file small) — except moves Rishu saved in Moves
       const used = new Set(c.plans.flatMap((p) => p.moves.flatMap((m) => [m.exId, m.alt && m.alt.exId].filter(Boolean))));
-      c.exercises = c.exercises.filter((e) => used.has(e.id));
+      c.exercises = c.exercises.filter((e) => used.has(e.id) || e.keep);
       const body = { message: `Admin: publish plans & foods (${new Date().toISOString().slice(0, 10)})`, content: b64(JSON.stringify(c, null, 1) + '\n'), branch: REPO.branch };
       if (latest?.sha) body.sha = latest.sha;
       try { r = await gh(`contents/${CONTENT_PATH}`, { method: 'PUT', body: JSON.stringify(body) }); break; }
@@ -1482,7 +1483,9 @@ function vWorkouts() {
     return `<button class="wday${pi >= 0 ? ' set' : ''}${i === now ? ' now' : ''}" type="button" ${pi >= 0 ? `data-edit="${pi}"` : 'disabled'}><span>${i === now ? 'Today' : d}</span><b>${label}</b></button>`;
   }).join('')}</div>`;
   const dayNames = (p) => (p.days && p.days.length ? p.days.map((d) => DOW[d]).join(', ') : 'Rotates on gym days');
-  return hdr('Her week', 'Workouts', `<div class="row" style="gap:8px"><button class="btn ghost sm" type="button" id="wkExport">⬇ Export</button><button class="btn sm" type="button" id="newplan">+ New plan</button></div>`) + `<div class="stack" style="gap:14px">
+  const wseg = `<div class="seg" role="group" aria-label="Plans or moves"><button type="button" data-wseg="plans" aria-pressed="${S.workSeg !== 'moves'}">Plans <span class="cnt">${c.plans.length}</span></button><button type="button" data-wseg="moves" aria-pressed="${S.workSeg === 'moves'}">Moves <span class="cnt">${c.exercises.length}</span></button></div>`;
+  if (S.workSeg === 'moves') return hdr('Her week', 'Workouts', `<button class="btn sm" type="button" id="mvNew">+ New move</button>`) + `<div class="stack" style="gap:14px">${wseg}${vMoves()}</div>`;
+  return hdr('Her week', 'Workouts', `<div class="row" style="gap:8px"><button class="btn ghost sm" type="button" id="wkExport">⬇ Export</button><button class="btn sm" type="button" id="newplan">+ New plan</button></div>`) + `<div class="stack" style="gap:14px">${wseg}
     ${week}
     <p class="small muted">She sees one tile a day: the plan pinned to that weekday, otherwise the undated plans take turns on her gym days${gym.size ? ` (${[...gym].sort().map((d) => DOW[d]).join(', ')})` : ''}.</p>
     <div class="stack" style="gap:10px">${c.plans.map((p, i) => `<button class="card plan" type="button" data-edit="${i}"><span style="flex:1;min-width:0"><strong style="font-size:17px;display:block">${esc(p.title)}</strong>${p.focus ? `<span class="small" style="display:block;color:var(--acc);font-weight:600">${esc(p.focus)}</span>` : ''}<span class="small muted" style="display:block">${p.moves.length} moves · ${dayNames(p)}</span></span><span class="row" style="gap:4px">${p.moves.filter((m) => exOf(m.exId)?.gif).slice(0, 3).map((m) => `<img src="${esc(gif(exOf(m.exId)?.gif))}" alt="" loading="lazy" style="width:40px;height:40px;border-radius:9px;object-fit:cover;background:#fff">`).join('')}</span><span class="chev">›</span></button>`).join('') || '<div class="card"><p class="muted">No plans yet — she sees “Rishu is designing today’s plan”. Tap <b>+ New plan</b>.</p></div>'}</div>
@@ -1725,8 +1728,102 @@ function exportSheet() {
     m.querySelector('#exPdf').onclick = () => { const w = window.open('', '_blank'); if (w) { w.document.write(exportPage(rows, info)); w.document.close(); } else save(`sapna-workouts-${stamp}.html`, exportPage(rows, info), 'text/html'); };
   });
 }
+/* --- Moves: edit any move in the library once — every plan using it updates --- */
+const EQUIP = ['bodyweight', 'dumbbell', 'barbell', 'machine', 'cable', 'band', 'kettlebell', 'other'];
+const MV_PARTS = ['legs', 'back', 'chest', 'shoulders', 'arms', 'core', 'cardio'];
+function moveUse(id) {
+  return S.content.plans.flatMap((p) => p.moves.some((m) => m.exId === id || (m.alt && m.alt.exId === id)) ? [{ p, alt: !p.moves.some((m) => m.exId === id) }] : []);
+}
+function vMoves() {
+  if (!S.mv) S.mv = { scope: 'plans', type: 'all', q: '' };
+  const ex = S.content.exercises;
+  const used = ex.filter((e) => moveUse(e.id).length);
+  return `<div class="row wrapr" style="gap:8px">
+      <div class="chips" role="group" aria-label="Which moves"><button class="chip" type="button" data-mvscope="plans" aria-pressed="${S.mv.scope === 'plans'}">In her plans <span class="cnt">${used.length}</span></button><button class="chip" type="button" data-mvscope="all" aria-pressed="${S.mv.scope === 'all'}">All <span class="cnt">${ex.length}</span></button></div>
+      <div class="chips" role="group" aria-label="Type">${[['all', 'All types'], ['exercises', 'Exercises'], ['stretching', 'Stretches']].map(([k, l]) => `<button class="chip" type="button" data-mvtype="${k}" aria-pressed="${S.mv.type === k}">${l}</button>`).join('')}</div></div>
+    <input class="input" id="mvq" type="search" placeholder="Search moves" value="${esc(S.mv.q)}" autocomplete="off">
+    <p class="small muted" style="margin:0">Tap a move to change its name, GIF, video or form tip. It changes everywhere that move is used — then Publish.</p>
+    <div class="list" id="mvlist">${mvRows()}</div>`;
+}
+function mvRows() {
+  const q = S.mv.q.trim().toLowerCase();
+  const rows = S.content.exercises.map((e) => ({ e, use: moveUse(e.id) }))
+    .filter(({ e, use }) => (S.mv.scope === 'all' || use.length) && (S.mv.type === 'all' || e.group === S.mv.type) && (!q || e.name.toLowerCase().includes(q)))
+    .sort((a, b) => (b.use.length ? 1 : 0) - (a.use.length ? 1 : 0) || a.e.name.localeCompare(b.e.name));
+  if (!rows.length) return '<p class="muted" style="padding:12px">No moves match.</p>';
+  return rows.map(({ e, use }) => {
+    const days = [...new Set(use.flatMap(({ p }) => (p.days || []).map((d) => DOW[d])))];
+    return `<button class="lrow" type="button" data-mvopen="${esc(e.id)}" style="gap:12px;align-items:center">
+      ${e.gif ? `<img src="${esc(gif(e.gif))}" alt="" loading="lazy" style="width:52px;height:52px;border-radius:10px;object-fit:cover;background:#fff;flex:none">` : '<span class="noimg" aria-hidden="true" style="width:52px;height:52px;flex:none">＋</span>'}
+      <span style="flex:1;min-width:0"><b style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.name)}</b>
+        <span class="small muted" style="display:block">${e.group === 'stretching' ? 'Stretch' : 'Exercise'}${e.part ? ' · ' + esc(e.part) : ''}${e.equipment && e.equipment !== 'local' && e.equipment !== 'custom' ? ' · ' + esc(e.equipment) : ''}</span>
+        <span class="small" style="display:block;color:${use.length ? 'var(--acc)' : 'var(--faint)'}">${use.length ? `In ${use.length} plan${use.length > 1 ? 's' : ''}${days.length ? ' · ' + days.join(', ') : ''}` : 'Not in a plan'}</span></span>
+      <span class="small" style="flex:none;color:${e.yt ? 'var(--ok)' : 'var(--amber)'}">${e.yt ? '▶ video' : 'no video'}</span></button>`;
+  }).join('');
+}
+function moveSheet(id) {
+  const ex = S.content.exercises;
+  const isNew = id == null;
+  const orig = isNew ? null : ex.find((e) => e.id === id);
+  const d = orig ? JSON.parse(JSON.stringify(orig)) : { id: '', name: '', group: 'exercises', part: 'legs', equipment: 'bodyweight', gif: '', cue: '', yt: '' };
+  let newGif = null;
+  const use = isNew ? [] : moveUse(id);
+  const opt = (list, v) => [...new Set([...(v && !list.includes(v) ? [v] : []), ...list])].map((x) => `<option value="${esc(x)}" ${x === v ? 'selected' : ''}>${esc(x[0].toUpperCase() + x.slice(1))}</option>`).join('');
+  sheet(isNew ? 'New move' : 'Edit move', `<div class="stack" id="mvb" style="gap:12px">
+    <div class="row" style="gap:12px;align-items:flex-start">
+      <div style="flex:none;width:120px"><div id="mvgifbox">${d.gif ? `<img class="gifview" src="${esc(gif(d.gif))}" alt="" style="height:120px;max-height:none">` : '<span class="noimg" style="width:120px;height:120px">No GIF</span>'}</div>
+        <label class="btn ghost sm" style="cursor:pointer;margin-top:6px;width:100%;justify-content:center;white-space:nowrap;padding-left:6px;padding-right:6px">⬆ ${d.gif ? 'New' : 'Add'} GIF<input id="mvgf" type="file" accept="image/gif,image/*" class="sr"></label></div>
+      <div class="stack" style="flex:1;min-width:0;gap:8px">
+        <label class="f">Name<input class="input" name="name" value="${esc(d.name)}" maxlength="60" placeholder="e.g. Hip thrust machine"></label>
+        <label class="f">Type<select class="input" name="group"><option value="exercises" ${d.group !== 'stretching' ? 'selected' : ''}>Exercise</option><option value="stretching" ${d.group === 'stretching' ? 'selected' : ''}>Stretch / warm-up</option></select></label>
+      </div></div>
+    <div class="g2"><label class="f">Body part<select class="input" name="part">${opt(MV_PARTS, d.part)}</select></label><label class="f">Equipment<select class="input" name="equipment">${opt(EQUIP, d.equipment && !['local', 'custom'].includes(d.equipment) ? d.equipment : 'bodyweight')}</select></label></div>
+    <label class="f">…or a GIF link <span class="faint">(https://…gif)</span><input class="input" name="giflink" inputmode="url" value="${/^https:/.test(d.gif) ? esc(d.gif) : ''}" placeholder="Leave empty to keep the current GIF"></label>
+    <label class="f">Form tip she sees<textarea class="input" name="cue" rows="4" maxlength="400" placeholder="e.g. Squeeze at the top for a second">${esc(d.cue || '')}</textarea></label>
+    <label class="f">▶ How-to video <span class="faint">YouTube or Instagram reel</span><input class="input" name="yt" inputmode="url" value="${esc(d.yt || '')}" placeholder="https://youtube.com/shorts/…  or  https://instagram.com/reel/…"></label>
+    <button class="btn ghost sm" type="button" data-mvprev style="align-self:flex-start">▶ Preview video</button>
+    ${use.length ? `<p class="small muted" style="margin:0">Used in: ${use.map(({ p, alt }) => `<b>${esc(p.title)}</b>${(p.days || []).length ? ' (' + p.days.map((x) => DOW[x]).join(', ') + ')' : ''}${alt ? ' as a backup' : ''}`).join(' · ')}. Changes show in all of them.</p>` : ''}
+    <button class="btn" type="button" data-mvsave>${isNew ? 'Add move' : 'Save changes'}</button>
+    ${isNew ? '' : use.length ? '<p class="small muted" style="margin:0">To delete this move, first remove it from the plans above.</p>' : '<button class="btn danger" type="button" data-mvdel>Delete this move</button>'}
+  </div>`, (m, close) => {
+    const f = (n) => m.querySelector(`[name="${n}"]`);
+    m.querySelector('#mvgf').onchange = async (ev) => {
+      const file = ev.target.files[0]; if (!file) return;
+      const box = m.querySelector('#mvgifbox'); box.innerHTML = '<span class="noimg" style="width:120px;height:120px">Uploading…</span>';
+      try { newGif = await uploadGif(file, f('name').value.trim() || d.name || 'move'); box.innerHTML = `<img class="gifview" src="${esc(URL.createObjectURL(file))}" alt="" style="height:120px;max-height:none">`; f('giflink').value = ''; toast('GIF uploaded — Save, then Publish'); }
+      catch (e) { box.innerHTML = '<span class="noimg" style="width:120px;height:120px">Failed</span>'; toastLong('Upload failed: ' + e.message); }
+    };
+    m.querySelector('[data-mvprev]').onclick = () => previewVideo(f('yt').value, f('name').value || d.name);
+    m.querySelector('[data-mvsave]').onclick = () => {
+      const name = f('name').value.trim(); if (!name) return toast('Give the move a name');
+      const yt = fixUrl(f('yt').value); if (yt && !isVideo(yt)) return toast('The video must be a YouTube or Instagram reel link');
+      const link = f('giflink').value.trim(); if (link && !/^https:\/\/.+/i.test(link)) return toast('GIF link must start with https://');
+      Object.assign(d, { name, group: f('group').value, part: f('part').value, equipment: f('equipment').value, cue: f('cue').value.trim() });
+      if (newGif) d.gif = newGif; else if (link) d.gif = link;
+      if (yt) d.yt = yt; else delete d.yt;
+      if (!d.cue) delete d.cue;
+      d.keep = true; // saved in Moves → stays in the library even when no plan uses it
+      if (isNew) { d.id = 'custom-' + slug(name) + '-' + Date.now().toString(36).slice(-4); ex.push(d); }
+      else ex[ex.indexOf(orig)] = d;
+      close(); markDirty(); const y = scrollY; render(); scrollTo(0, y); toast(isNew ? 'Move added — find it under + Add from library, then Publish' : 'Saved — Publish to send it to her');
+    };
+    const del = m.querySelector('[data-mvdel]'); if (del) del.onclick = () => { if (!confirm(`Delete “${d.name}” from the library?`)) return; ex.splice(ex.indexOf(orig), 1); close(); markDirty(); render(); toast('Deleted — Publish to save'); };
+  });
+}
+function wireMoves() {
+  document.querySelectorAll('[data-wseg]').forEach((b) => (b.onclick = () => { S.workSeg = b.dataset.wseg; render(); }));
+  if (S.workSeg !== 'moves') return;
+  $('#mvNew').onclick = () => moveSheet(null);
+  document.querySelectorAll('[data-mvscope]').forEach((b) => (b.onclick = () => { S.mv.scope = b.dataset.mvscope; render(); }));
+  document.querySelectorAll('[data-mvtype]').forEach((b) => (b.onclick = () => { S.mv.type = b.dataset.mvtype; render(); }));
+  const wireRows = () => document.querySelectorAll('[data-mvopen]').forEach((b) => (b.onclick = () => moveSheet(b.dataset.mvopen)));
+  const q = $('#mvq'); q.oninput = () => { S.mv.q = q.value; $('#mvlist').innerHTML = mvRows(); wireRows(); };
+  wireRows();
+}
 function wireWorkouts() {
   const c = S.content;
+  wireMoves();
+  if (S.editing == null && S.workSeg === 'moves') return;
   const ex = $('#wkExport'); if (ex) ex.onclick = exportSheet;
   document.querySelectorAll('[data-edit]').forEach((b) => (b.onclick = () => {
     S.editing = +b.dataset.edit;
