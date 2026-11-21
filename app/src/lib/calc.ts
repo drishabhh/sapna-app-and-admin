@@ -128,7 +128,10 @@ export function nextPlan(d: AppData, c: Content): Plan | null {
 /** Today's plan: one Rishu pinned to this weekday, else the next undated plan in rotation, else none. */
 export function todayPlan(d: AppData, c: Content, date = today()): Plan | null {
   const active = d.sessions.find((s) => !s.endedAt && s.date === date);
-  const act = active && c.plans.find((p) => p.id === active.planId);
+  // A session she has really started (a set logged or a move done) stays put even if Rishu changes the plan;
+  // one she only opened gives way to his new plan for today.
+  const started = !!active && (active.sets.length > 0 || (active.completed || []).length > 0);
+  const act = started && c.plans.find((p) => p.id === active!.planId);
   if (act) return act;
   // A plan Rishu pinned to this weekday wins — even if she already did something else today.
   const pinned = c.plans.filter((p) => p.days?.includes(dow(date)));

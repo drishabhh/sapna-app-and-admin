@@ -131,7 +131,7 @@ export function buildReport(d: AppData, c: Content) {
     adminAck: (d.adminApplied || []).slice(-300),
     push: pushToken(),
     customFoods: d.customFoods.map((f) => ({ id: f.id, name: f.name, portion: f.portion, kcal: f.kcal, protein: f.protein })),
-    activeSession: (() => { const a = d.sessions.find((s) => !s.endedAt && s.date === today()); return a ? { title: a.title, startedAt: a.startedAt, done: (a.completed || []).map((id) => exName((a.swaps || {})[id] || id)), sets: a.sets.length } : null; })(),
+    activeSession: (() => { const a = d.sessions.find((s) => !s.endedAt && s.date === today()); return a ? { id: a.id, title: a.title, startedAt: a.startedAt, done: (a.completed || []).map((id) => exName((a.swaps || {})[id] || id)), sets: a.sets.length } : null; })(),
     targets: c.targets,
     weightKg: kg,
     streaks: { logging: logStreak(d), bestLogging: bestStreak(activeDays(d)), workout: ws.streak },
