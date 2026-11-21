@@ -3,32 +3,32 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0c0c10">
+<meta name="theme-color" content="#08090a" media="(prefers-color-scheme: dark)"><meta name="theme-color" content="#f7f8f8" media="(prefers-color-scheme: light)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Sapna Admin">
 <meta name="robots" content="noindex">
 <title>Sapna Health Admin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0c0c10;--bg2:#121218;--card:rgba(255,255,255,.045);--card2:rgba(255,255,255,.08);--solid:#17171e;--line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.16);--text:#f5f3ef;--muted:#a9a6b0;--faint:#7c7984;--coral:#ff7a59;--lime:#c6f432;--amber:#ffb224;--pink:#ff6fae;--cyan:#4fd1ff;--danger:#ff6b6b;--ok:#4ade80;--acc:var(--coral);--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);color-scheme:dark}
 @media (prefers-color-scheme:light){:root{--amber:#b86e00;--ok:#15803d;--bg:#f4f2ee;--bg2:#ebe8e2;--card:#fff;--card2:#f0ede7;--solid:#fff;--line:rgba(20,18,24,.09);--line2:rgba(20,18,24,.18);--text:#141218;--muted:#5e5a66;--faint:#7d7985;color-scheme:light}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 Figtree,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 var(--font);-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 .wrap{max-width:980px;margin:0 auto;padding:calc(var(--st) + 18px) 16px calc(var(--sb) + 110px)}
-h1{font-family:'Bricolage Grotesque',Figtree,sans-serif;font-weight:800;letter-spacing:-.03em;font-size:clamp(32px,6vw,44px);line-height:1.02;margin:0}
-h2{font-family:'Bricolage Grotesque',Figtree,sans-serif;font-weight:700;font-size:21px;letter-spacing:-.02em;margin:0}
+h1{font-family:var(--font);font-weight:800;letter-spacing:-.03em;font-size:clamp(32px,6vw,44px);line-height:1.02;margin:0}
+h2{font-family:var(--font);font-weight:700;font-size:21px;letter-spacing:-.02em;margin:0}
 .eyebrow{margin:0;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .muted{color:var(--muted)}.small{font-size:13px}.faint{color:var(--faint)}
-.big{font-family:'Bricolage Grotesque',Figtree,sans-serif;font-weight:800;letter-spacing:-.03em;line-height:1}
+.big{font-family:var(--font);font-weight:800;letter-spacing:-.03em;line-height:1}
 .card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px}
 .stack{display:flex;flex-direction:column;gap:12px}.row{display:flex;align-items:center;gap:10px}.between{display:flex;align-items:center;justify-content:space-between;gap:10px}.wrapr{flex-wrap:wrap}
 .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
 .g2{display:grid;gap:10px;grid-template-columns:repeat(2,minmax(0,1fr))}
-.btn{min-height:46px;padding:0 18px;border-radius:14px;border:none;background:var(--acc);color:#0c0c10;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn{min-height:46px;padding:0 18px;border-radius:14px;border:none;background:var(--acc);color:var(--acc-on);font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:8px}
 .btn.ghost{background:var(--card2);color:var(--text);border:1px solid var(--line)}
 .btn.sm{min-height:38px;padding:0 12px;font-size:14px;border-radius:11px}
 .btn.danger{background:transparent;color:var(--danger);border:1px solid color-mix(in srgb,var(--danger) 40%,transparent)}
@@ -40,11 +40,11 @@ textarea.input{padding:10px 12px;min-height:84px;resize:vertical}
 label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:700;color:var(--muted)}
 .tabs{position:sticky;top:0;z-index:10;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:calc(var(--st) + 8px) 0 8px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);margin:0 -16px 14px;padding-left:16px;padding-right:16px}
 .tabs button{min-height:42px;border:none;border-radius:12px;background:var(--card2);color:var(--muted);font-weight:700;font-size:14px}
-.tabs button[aria-pressed=true]{background:var(--acc);color:#0c0c10}
+.tabs button[aria-pressed=true]{background:var(--acc);color:var(--acc-on)}
 [hidden]{display:none!important}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{min-height:38px;padding:0 14px;border-radius:99px;border:1px solid var(--line2);background:transparent;font-size:14px;font-weight:600}
-.chip[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:#0c0c10}
+.chip[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:var(--acc-on)}
 .ex{display:flex;flex-direction:column;border-radius:16px;overflow:hidden;background:var(--card);border:1px solid var(--line);text-align:left;padding:0}
 .ex img,.ex .ph{width:100%;height:120px;object-fit:cover;background:#fff;display:block}
 .exw{position:relative;display:flex}.exw .ex{flex:1}
@@ -65,8 +65,8 @@ label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:70
 .tag{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:99px;font-size:11.5px;font-weight:700;letter-spacing:.02em;white-space:nowrap;vertical-align:middle;line-height:1}
 .tag::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
 .tag.pending{color:var(--amber);background:color-mix(in srgb,var(--amber) 14%,transparent)}
-.tag.pending::before,.tag.live::before{animation:tagpulse 1.6s ease-in-out infinite}
-.tag.live,.tag.ok{color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,transparent)}
+.tag.pending::before,.tag.on::before{animation:tagpulse 1.6s ease-in-out infinite}
+.tag.on,.tag.ok{color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,transparent)}
 .tag.warn{color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,transparent)}
 .tag.muted{color:var(--muted);background:var(--card2)}
 @keyframes tagpulse{50%{opacity:.3}}
@@ -76,7 +76,7 @@ label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:70
 .panel-ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none}
 .panel-ic svg{width:20px;height:20px}
 .panel-ic.pending{background:color-mix(in srgb,var(--amber) 14%,transparent);color:var(--amber)}
-.panel-ic.live{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}
+.panel-ic.on{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}
 .panel-t{font-weight:700;font-size:15.5px;line-height:1.3}
 .panel-s{font-size:13px;color:var(--muted);line-height:1.4;margin-top:2px}
 .panel-b{padding:0 16px 14px}
@@ -165,19 +165,19 @@ html:has(.modal),html:has(.modal) body{overflow:hidden}
 .dstrip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0 4px}
 .dstrip::-webkit-scrollbar{display:none}
 .dchip{flex:none;width:50px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 8px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--muted);font-size:11px;font-weight:700}
-.dchip b{font-size:18px;line-height:1.05;color:var(--text);font-family:'Bricolage Grotesque',Figtree,sans-serif}
+.dchip b{font-size:18px;line-height:1.05;color:var(--text);font-family:var(--font)}
 .dchip i{display:block;width:26px;height:4px;border-radius:99px;background:var(--card2);position:relative;overflow:hidden}
 .dchip i::after{content:'';position:absolute;left:0;top:0;bottom:0;width:var(--p);background:var(--acc);border-radius:99px}
 .dchip i.over::after{background:var(--danger)}
-.dchip[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:#0c0c10}
-.dchip[aria-pressed=true] b{color:#0c0c10}.dchip[aria-pressed=true] i{background:rgba(0,0,0,.2)}.dchip[aria-pressed=true] i::after{background:#0c0c10}
+.dchip[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:var(--acc-on)}
+.dchip[aria-pressed=true] b{color:var(--acc-on)}.dchip[aria-pressed=true] i{background:rgba(255,255,255,.25)}.dchip[aria-pressed=true] i::after{background:var(--acc-on)}
 /* tiles */
 .tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 @media (min-width:760px){.tiles{grid-template-columns:repeat(4,minmax(0,1fr))}.tiles.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .tile{position:relative;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;text-align:left;color:var(--text);min-width:0}
 button.tile:hover{border-color:var(--line2)}
-.tile .v{font-family:'Bricolage Grotesque',Figtree,sans-serif;font-weight:800;font-size:28px;line-height:1;letter-spacing:-.03em}
-.tile .v small{font-size:13px;color:var(--muted);font-family:Figtree,sans-serif;font-weight:600;letter-spacing:0}
+.tile .v{font-family:var(--font);font-weight:800;font-size:28px;line-height:1;letter-spacing:-.03em}
+.tile .v small{font-size:13px;color:var(--muted);font-family:var(--font);font-weight:600;letter-spacing:0}
 .tile .bar{height:6px}
 .tedit{position:absolute;top:10px;right:12px;font-size:12px;font-weight:700;color:var(--acc)}
 /* meals */
@@ -204,7 +204,7 @@ button.tile:hover{border-color:var(--line2)}
 .lmain{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .lmain b{font-weight:600;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .lk{flex:none;display:flex;flex-direction:column;align-items:flex-end}
-.lk b{font-family:'Bricolage Grotesque',Figtree,sans-serif;font-size:20px;font-weight:800;line-height:1.05}
+.lk b{font-family:var(--font);font-size:20px;font-weight:800;line-height:1.05}
 .chev{flex:none;color:var(--faint);font-size:22px;line-height:1}
 .chg .lmain b::after{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber);margin-left:7px;vertical-align:2px}
 .letter{margin:0;padding:6px 14px;font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--muted);background:var(--card2);border-top:1px solid var(--line)}
@@ -240,6 +240,88 @@ mark{background:color-mix(in srgb,var(--acc) 32%,transparent);color:inherit;bord
   .tile .v{font-size:25px}
   .g3 .f{font-size:12px}
   .modal{z-index:50}
+}
+
+/* ===== Design system: Linear (open-design · design-systems/linear-app, Apache-2.0) =====
+   Achromatic surfaces stepped by luminance, one indigo accent, Inter with cv01/ss03,
+   weights 400 / 510 / 590, 6–12px radii, semi-transparent hairline borders. */
+:root{
+  --font:"Inter Variable","Inter","SF Pro Display",-apple-system,system-ui,"Segoe UI",Roboto,sans-serif;
+  --mono:"Berkeley Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --bg:#08090a;--bg2:#0f1011;--solid:#191a1b;--card:#0f1011;--card2:#191a1b;--hover:#28282c;
+  --line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+  --text:#f7f8f8;--muted:#8a8f98;--faint:#62666d;--fg2:#d0d6e0;
+  --acc:#5e6ad2;--acc-on:#fff;--acc-hi:#7170ff;--acc-hover:#828fff;
+  --coral:var(--acc);--pink:var(--acc-hi);--lime:#27a644;--cyan:var(--acc-hi);
+  --ok:#27a644;--amber:#eab308;--danger:#eb5757;
+  --r-sm:6px;--r-md:8px;--r-lg:12px;
+  --elev:0 0 0 1px var(--line),0 2px 4px rgba(0,0,0,.4);
+  --ease:cubic-bezier(.2,0,0,1);
+}
+@media (prefers-color-scheme:light){:root{
+  --bg:#f7f8f8;--bg2:#ffffff;--solid:#ffffff;--card:#ffffff;--card2:#f3f4f5;--hover:#eceef1;
+  --line:#e6e6e6;--line2:#d0d6e0;
+  --text:#0f1011;--muted:#6b6f76;--faint:#8a8f98;--fg2:#3c4149;
+  --acc:#5e6ad2;--acc-hi:#5e6ad2;--acc-hover:#4752c4;
+  --ok:#1f8a3a;--amber:#b45309;--danger:#c52828;
+  --elev:0 0 0 1px var(--line),0 1px 2px rgba(15,16,17,.06);
+}}
+body{font-family:var(--font);font-feature-settings:"cv01","ss03";font-size:15px;line-height:1.5;letter-spacing:-.005em}
+b,strong{font-weight:590}
+h1{font-weight:590;letter-spacing:-.022em;line-height:1.05}
+h2{font-weight:590;font-size:18px;letter-spacing:-.012em}
+.big,.tile .v,.lk b,.dchip b{font-weight:590;letter-spacing:-.022em}
+.eyebrow{font-size:11px;font-weight:510;letter-spacing:.06em;color:var(--faint)}
+label.f{font-weight:510;font-size:12.5px}
+.card,.panel,.list{border-radius:var(--r-lg);background:var(--card);box-shadow:var(--elev);border-color:transparent}
+.tile,.ex,.move{border-radius:var(--r-lg);box-shadow:var(--elev);border-color:transparent}
+.tile{background:var(--card)}
+.btn{border-radius:var(--r-md);font-weight:510;min-height:44px;transition:background .15s var(--ease)}
+.btn:hover:not(:disabled){background:var(--acc-hover)}
+.btn.ghost{background:var(--card2);border:1px solid var(--line);color:var(--text)}
+.btn.ghost:hover:not(:disabled){background:var(--hover)}
+.btn.sm{border-radius:var(--r-sm);min-height:36px;font-size:13.5px}
+.btn.danger:hover:not(:disabled){background:color-mix(in srgb,var(--danger) 10%,transparent)}
+.ib{border-radius:var(--r-md);background:var(--card2)}
+.ib:hover{background:var(--hover)}
+.input,select.input,textarea.input{border-radius:var(--r-md);background:var(--bg);border-color:var(--line2)}
+.input:focus{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 25%,transparent)}
+.tabs button{border-radius:var(--r-md);font-weight:510;background:transparent}
+.tabs button[aria-pressed=true]{background:var(--card2);color:var(--text);box-shadow:var(--elev)}
+.chip{font-weight:510;border-color:var(--line2);min-height:34px;font-size:13.5px}
+.chip[aria-pressed=true]{background:color-mix(in srgb,var(--acc) 16%,transparent);border-color:color-mix(in srgb,var(--acc) 55%,transparent);color:var(--text)}
+.seg{border-radius:var(--r-md);padding:3px}
+.seg button{border-radius:var(--r-sm);font-weight:510;min-height:36px}
+.seg button[aria-pressed=true]{box-shadow:var(--elev)}
+.dchip{border-radius:var(--r-md);font-weight:510;box-shadow:var(--elev);border-color:transparent}
+.dchip[aria-pressed=true]{box-shadow:none}
+.wday{border-radius:var(--r-md);font-weight:510}
+.wday.set{border-color:color-mix(in srgb,var(--acc) 45%,transparent);background:color-mix(in srgb,var(--acc) 8%,var(--card))}
+.pill{border-radius:var(--r-sm);font-weight:510;font-size:11.5px;padding:3px 8px}
+.tag{font-weight:510;border-radius:var(--r-sm);letter-spacing:0;height:22px}
+.panel-ic{border-radius:var(--r-md)}
+.panel-t{font-weight:590;font-size:15px}
+.panel-note{border-radius:var(--r-md)}
+.linkbtn{color:var(--acc-hi);font-weight:510}
+.addb{border-radius:var(--r-sm);font-weight:510;color:var(--acc-hi)}
+.tedit{color:var(--acc-hi);font-weight:510}
+.steps a,.yt a,a{color:var(--acc-hi)}
+.pub{border-radius:var(--r-lg);box-shadow:var(--elev),0 18px 40px -16px rgba(0,0,0,.55)}
+.toast{border-radius:var(--r-md);font-weight:510}
+.modal{background:rgba(0,0,0,.72)}
+.sheet{border-radius:var(--r-lg) var(--r-lg) 0 0;border-top-color:var(--line)}
+.sheet>.between:first-child{border-radius:var(--r-lg) var(--r-lg) 0 0}
+.letter{font-weight:510;letter-spacing:.06em}
+.prbadge{border-radius:var(--r-sm);font-weight:590}
+th{font-weight:510;letter-spacing:.03em}
+.lrow:hover,.trow:hover td{background:var(--hover)}
+.mono{font-family:var(--mono)}
+.prog{border-color:color-mix(in srgb,var(--acc) 35%,transparent)}
+.warn{border-color:color-mix(in srgb,var(--amber) 40%,transparent)}
+@media (max-width:640px){
+  .card{border-radius:var(--r-lg)}
+  .tabs button[aria-pressed=true]{background:transparent;box-shadow:none}
+  .tabs button[aria-pressed=true] .ti{background:color-mix(in srgb,var(--acc) 20%,transparent);color:var(--acc-hi)}
 }
 </style>
 </head>
@@ -742,7 +824,7 @@ function vPushCard() {
         <label class="f">Or pick a time<input class="input" id="pat" type="datetime-local" value="${esc(S.noteAt || '')}"></label>
         <button class="btn" type="button" id="psched">Schedule note</button>
         <p class="small muted">Shows on her phone at that time, even with the app closed (needs her app 1.7.7+).</p></div>` : ''}
-      ${notes.length ? `<div class="stack" style="gap:6px;border-top:1px solid var(--line);padding-top:10px"><p class="eyebrow">Scheduled</p>${notes.map((n) => `<div class="between small" style="align-items:flex-start"><span style="min-width:0"><b>${esc(whenLbl(n.at))}</b> <span class="${n.status === 'shown' ? 'ok' : 'muted'}">${n.status === 'shown' ? '✓ shown' : n.status === 'onphone' ? '✓ set on her phone' : '⏳ waiting for her phone'}</span><span class="muted" style="display:block">${esc(n.body)}</span></span>${n.status !== 'shown' ? `<button class="btn ghost sm" type="button" data-ncancel="${esc(n.id)}">Cancel</button>` : ''}</div>`).join('')}</div>` : ''}`
+      ${notes.length ? `<div class="stack" style="gap:6px;border-top:1px solid var(--line);padding-top:10px"><p class="eyebrow">Scheduled</p>${notes.map((n) => `<div class="between small" style="align-items:flex-start"><span style="min-width:0"><b>${esc(whenLbl(n.at))}</b> ${n.status === 'shown' ? '<span class="tag ok">Shown</span>' : n.status === 'onphone' ? '<span class="tag ok">On her phone</span>' : '<span class="tag pending">Waiting</span>'}<span class="muted" style="display:block">${esc(n.body)}</span></span>${n.status !== 'shown' ? `<button class="btn ghost sm" type="button" data-ncancel="${esc(n.id)}">Cancel</button>` : ''}</div>`).join('')}</div>` : ''}`
       : `<p class="small muted">Once she installs app 1.7 and opens it with live sync on, you can ping her here — and every Publish tells her automatically.</p>`}
   </div>`;
 }
@@ -835,7 +917,7 @@ async function undoOp(id) {
   catch (e) { toastLong('Couldn’t cancel: ' + e.message); }
 }
 
-/** Show pending edits immediately on the dashboard (marked ⏳ until her phone confirms). */
+/** Show pending edits immediately on the dashboard (tagged Pending until her phone confirms). */
 function overlayReport(r) {
   const ops = pendingOps(); if (!ops.length || !r || (r.v || 1) < 2) return r;
   const o = { ...r, food: (r.food || []).map((x) => ({ ...x })), water: { ...(r.water || {}) }, steps: { ...(r.steps || {}) }, weighIns: [...(r.weighIns || [])], sessions: [...(r.sessions || [])], profile: { ...(r.profile || {}) }, reminders: { ...(r.reminders || {}) } };
@@ -1126,6 +1208,28 @@ function vNoReport(c) {
 }
 
 /* --- Today: one day of hers, editable --- */
+/** "At the gym now": live session card — elapsed time, moves done of the plan, and a plan-change warning only when it differs from today's pinned plan. */
+function vActive(M, editable) { // plans from S.content (what you've set, incl. unpublished)
+  const a = M.m.r.activeSession; if (!a || !(a.startedAt > Date.now() - 4 * 3600000)) return '';
+  const plans = (S.content && S.content.plans) || []; const dow = new Date().getDay();
+  const plan = plans.find((p) => p.title === a.title);
+  const pinned = plans.find((p) => (p.days || []).includes(dow));
+  const total = plan ? plan.moves.length : 0; const done = a.done.length;
+  const mins = Math.max(0, Math.round((Date.now() - a.startedAt) / 60000));
+  const el = mins < 60 ? `${mins} min` : `${Math.floor(mins / 60)} h ${mins % 60} min`;
+  const at = new Date(a.startedAt).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
+  const empty = !done && !a.sets;
+  const stale = pinned && pinned.title !== a.title;
+  const cancel = empty && a.id && editable ? `<button class="btn ghost sm" type="button" data-actcancel="${esc(a.id)}">Cancel her session</button>` : '';
+  const note = stale ? `<div class="panel-note">${SVG.info}<div><b>Today’s plan is now ${esc(pinned.title)}.</b> She opened ${esc(a.title)} before you changed it. ${empty ? (cancel ? 'Cancel her session and her phone shows the new plan.' : 'If she taps <b>Finish</b> with nothing done, the session disappears and the new plan shows.') : 'She’s already logged moves, so it stays as it is.'}${cancel ? `<div style="margin-top:8px">${cancel}</div>` : ''}</div></div>` : '';
+  return `<section class="panel" aria-label="At the gym now">
+    <div class="panel-h"><span class="panel-ic on">${SVG.pulse}</span><div class="grow" style="flex:1;min-width:0"><div class="panel-t" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.title)}</div><div class="panel-s">At the gym · started ${at} · ${el}</div></div><span class="tag on">Live</span></div>
+    <div class="panel-b"><div class="between small" style="margin-bottom:6px"><span class="muted">Moves done</span><b>${done}${total ? ` <span class="muted" style="font-weight:400">of ${total}</span>` : ''}</b></div>
+      <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="${total || done || 1}" aria-valuenow="${done}"><i style="width:${total ? Math.min(100, Math.round(done / total * 100)) : done ? 100 : 0}%"></i></div>
+      ${done ? `<p class="small muted" style="margin:8px 0 0">${a.done.map(esc).join(' · ')}</p>` : ''}${a.sets ? `<p class="small faint" style="margin:4px 0 0">${a.sets} set${a.sets === 1 ? '' : 's'} logged</p>` : ''}</div>
+    ${note}</section>`;
+}
+
 function vDay() {
   const M = model();
   if (!M.rep) return hdr('Sapna Health', 'Her day', refreshBtn()) + vNoReport(M.c);
@@ -1158,10 +1262,10 @@ function vDay() {
     const its = items.filter((f) => f.meal === ml); if (!its.length && !editable) return '';
     const sum = its.reduce((s, f) => s + (f.kcal || 0), 0);
     return `<div class="meal"><div class="between"><span><strong>${MEAL_LABEL[ml]}</strong> <span class="small muted">${sum ? n0(sum) + ' kcal' : editable ? '· nothing yet' : ''}</span></span>${editable ? `<button class="addb" type="button" data-fadd="${k}" data-meal="${ml}" aria-label="Add to ${MEAL_LABEL[ml]}">+ Add</button>` : ''}</div>
-      ${its.map((f) => `<div class="fi"><span class="fn">${f._p ? '⏳ ' : ''}<b>${esc(f.name)}</b><span class="small muted">${f.mult && f.mult !== 1 ? `${f.mult}× ` : ''}${esc(f.portion || '')}${f.at ? ` · ${new Date(f.at).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })}` : ''}</span></span><span class="fk">${f.kcal != null ? `<b>${n0(f.kcal)}</b><span class="small muted">${r1(f.protein)} g</span>` : ''}</span>${editable && f.id ? `<span class="fa"><button class="ib sm" type="button" data-fedit="${esc(f.id)}" aria-label="Edit ${esc(f.name)}">✎</button><button class="ib sm" type="button" data-fdel="${esc(f.id)}" aria-label="Remove ${esc(f.name)}">🗑</button></span>` : ''}</div>`).join('')}</div>`;
+      ${its.map((f) => `<div class="fi"><span class="fn"><b>${esc(f.name)}${f._p ? ' ' + PEND : ''}</b><span class="small muted">${f.mult && f.mult !== 1 ? `${f.mult}× ` : ''}${esc(f.portion || '')}${f.at ? ` · ${new Date(f.at).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })}` : ''}</span></span><span class="fk">${f.kcal != null ? `<b>${n0(f.kcal)}</b><span class="small muted">${r1(f.protein)} g</span>` : ''}</span>${editable && f.id ? `<span class="fa"><button class="ib sm" type="button" data-fedit="${esc(f.id)}" aria-label="Edit ${esc(f.name)}">✎</button><button class="ib sm" type="button" data-fdel="${esc(f.id)}" aria-label="Remove ${esc(f.name)}">🗑</button></span>` : ''}</div>`).join('')}</div>`;
   }).join('');
   const daySess = m.sessions.filter((s) => s.date === k);
-  const act = m.r.activeSession && m.r.activeSession.startedAt > Date.now() - 4 * 3600000 && k === td ? `<div class="card" style="border-color:color-mix(in srgb,var(--amber) 45%,transparent)"><p class="eyebrow" style="color:var(--amber)"><span class="live" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span>At the gym now</p><p class="big" style="font-size:22px;margin-top:6px">${esc(m.r.activeSession.title)}</p><p class="small muted">Started ${new Date(m.r.activeSession.startedAt).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })} · ${m.r.activeSession.done.length} moves done${m.r.activeSession.done.length ? ': ' + esc(m.r.activeSession.done.join(', ')) : ''}</p>${!m.r.activeSession.done.length && !m.r.activeSession.sets ? (m.r.activeSession.id && editable ? `<button class="btn ghost sm" type="button" data-actcancel="${esc(m.r.activeSession.id)}" style="margin-top:10px">Cancel this session — she hasn’t started it</button><p class="small muted" style="margin-top:6px">Then she sees today’s plan instead (handy if you changed it after she tapped Start).</p>` : `<p class="small muted" style="margin-top:8px">Changed today’s plan after she tapped Start? She can tap <b>Finish</b> in this session — with nothing done it just disappears and today’s plan shows.</p>`) : ''}</div>` : '';
+  const act = k === td ? vActive(M, editable) : '';
 
   return hdr(`${esc(m.r.name || 'Sapna')} · ${esc(dlabel(k, { day: 'numeric', month: 'long' }))}`, title, nav) + `<div class="stack daycol" style="gap:14px">
     ${F.line}${F.warn}
@@ -2041,7 +2145,7 @@ function vFoods() {
     ${seg === 'lib' ? `<div class="between wrapr" style="gap:8px"><div class="chips" role="group" aria-label="Sort">${[['az', 'A–Z'], ['new', 'Newest'], ['used', 'She eats most']].map(([v, l]) => `<button class="chip" type="button" data-fsort="${v}" aria-pressed="${S.foodSort === v}">${l}</button>`).join('')}</div><button class="btn ghost sm" type="button" id="fjopen">{ } Paste JSON</button></div>
       ${S.foodJsonOpen ? vFoodJson() : ''}
       <p class="small muted">Sapna searches these in her app. Tap a food to edit it; changes go to her after you Publish.</p>`
-      : `<p class="small muted">Foods she saved on her phone. Changes go straight to her phone (⏳ until it confirms) — no Publish needed.</p>`}
+      : `<p class="small muted">Foods she saved on her phone. Changes go straight to her phone (marked <span class="tag pending">Pending</span> until it confirms) — no Publish needed.</p>`}
     <div id="flist"></div>
   </div>`;
 }
@@ -2052,7 +2156,7 @@ function foodListHtml() {
     const r = S._m ? S._m.r : currentReport();
     if (!r) return `<div class="card"><p class="muted">Her foods show here once live sync is connected (Settings → Live sync).</p></div>`;
     const list = (r.customFoods || []).filter((f) => matches(f, q)).sort((a, b) => a.name.localeCompare(b.name));
-    return `<div class="list">${list.map((f) => `<button class="lrow" type="button" ${live && f.id ? `data-cfedit="${esc(f.id)}"` : 'disabled'}><span class="lmain"><b>${f._p ? '⏳ ' : ''}${hl(f.name, q)}</b><span class="small muted">${esc(f.portion || '')} · ${f.protein} g protein</span></span><span class="lk"><b>${n0(f.kcal)}</b><span class="small muted">kcal</span></span>${live ? '<span class="chev">›</span>' : ''}</button>`).join('') || `<p class="muted" style="padding:14px">${q ? 'No match.' : 'She hasn’t saved any foods of her own yet.'}</p>`}</div>
+    return `<div class="list">${list.map((f) => `<button class="lrow" type="button" ${live && f.id ? `data-cfedit="${esc(f.id)}"` : 'disabled'}><span class="lmain"><b>${hl(f.name, q)}${f._p ? ' ' + PEND : ''}</b><span class="small muted">${esc(f.portion || '')} · ${f.protein} g protein</span></span><span class="lk"><b>${n0(f.kcal)}</b><span class="small muted">kcal</span></span>${live ? '<span class="chev">›</span>' : ''}</button>`).join('') || `<p class="muted" style="padding:14px">${q ? 'No match.' : 'She hasn’t saved any foods of her own yet.'}</p>`}</div>
       ${live ? `<button class="btn ghost" type="button" data-cfadd style="width:100%;margin-top:10px">+ Add to her foods</button>` : ''}`;
   }
   const u = usage();
@@ -2210,7 +2314,7 @@ function vHealth() {
   if (!r) return '';
   const at = Date.parse(r.generatedAt || '') || 0;
   const fresh = Date.now() - at;
-  const syncTag = !at ? '<span class="tag muted">Unknown</span>' : fresh < 3 * 60e3 ? '<span class="tag live">Live</span>' : fresh < 6 * 3600e3 ? '<span class="tag ok">Recent</span>' : '<span class="tag warn">Not open lately</span>';
+  const syncTag = !at ? '<span class="tag muted">Unknown</span>' : fresh < 3 * 60e3 ? '<span class="tag on">Live</span>' : fresh < 6 * 3600e3 ? '<span class="tag ok">Recent</span>' : '<span class="tag warn">Not open lately</span>';
   const pub = S.base ? S.base.version : S.content.version;
   const have = r.contentVersion;
   const plans = have == null ? ['<span class="tag muted">Not reported</span>', 'Her app version doesn’t report this yet — comes with the next update.']
@@ -2220,7 +2324,7 @@ function vHealth() {
   const notify = !!(autoPush() && herPush());
   const row = (k, tag, sub) => `<div class="panel-row"><span class="grow">${k}<span class="sub">${sub}</span></span>${tag}</div>`;
   return `<section class="panel" id="health" aria-label="Sync health">
-    <div class="panel-h"><span class="panel-ic live">${SVG.pulse}</span><div style="flex:1;min-width:0"><div class="panel-t">Sync health</div><div class="panel-s">Is her phone up to date with what you set here?</div></div></div>
+    <div class="panel-h"><span class="panel-ic on">${SVG.pulse}</span><div style="flex:1;min-width:0"><div class="panel-t">Sync health</div><div class="panel-s">Is her phone up to date with what you set here?</div></div></div>
     ${row('Her phone', syncTag, at ? `Last update ${ago(at)}` : 'No update received yet')}
     ${row('Her plans', plans[0], plans[1])}
     ${row('Your changes', ops ? `<span class="tag pending">${ops} waiting</span>` : '<span class="tag ok">All delivered</span>', ops ? 'Food, water and other edits reach her within ~20 s while her app is open.' : 'Nothing waiting for her phone.')}
@@ -2289,7 +2393,7 @@ function vAlerts() {
   if (!a.topic) return `<div class="card stack" id="alerts"><h2>Alerts to your phone</h2>
     <p class="small muted">Get a ping when she finishes a workout or sets a new best — through <b>ntfy</b>, a free notification app. No account needed.</p>
     <button class="btn" type="button" id="alSetup" style="align-self:flex-start">Set up alerts</button></div>`;
-  return `<div class="card stack" id="alerts"><div class="between"><h2>Alerts to your phone</h2><span class="pill">${on ? (a.pend ? '⏳ Sending' : 'On') : 'Off'}</span></div>
+  return `<div class="card stack" id="alerts"><div class="between"><h2>Alerts to your phone</h2>${on ? (a.pend ? '<span class="tag pending">Sending</span>' : '<span class="tag ok">On</span>') : '<span class="tag muted">Off</span>'}</div>
     <ol class="steps small">
       <li>Install <b>ntfy</b> from the Play Store (free).</li>
       <li>In ntfy tap <b>+</b> → topic: <code class="mono" style="user-select:all">${esc(a.topic)}</code> <button class="btn ghost sm" type="button" id="alCopy">Copy</button> → <b>Subscribe</b>. <a href="ntfy://ntfy.sh/${esc(a.topic)}" class="small">Open in ntfy</a></li>
@@ -2300,7 +2404,7 @@ function vAlerts() {
     <div class="row" style="gap:10px;flex-wrap:wrap"><label class="row" style="gap:10px;cursor:pointer"><input type="checkbox" id="alF" ${prefs.food ? 'checked' : ''} style="width:20px;height:20px"> <span>If she hasn’t logged any food by</span></label>
       <select class="input" id="alFt" style="width:auto;min-height:40px">${['18:00', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00'].map((t) => `<option ${(prefs.foodAt || '20:30') === t ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
     <div class="row wrapr"><button class="btn sm" type="button" id="alSave">${on ? 'Update on her phone' : 'Turn on for her phone'}</button>${on ? '<button class="btn danger sm" type="button" id="alOff">Turn off</button>' : ''}</div>
-    <p class="small muted">${a.live && !a.pend ? '✓ Her phone has it.' : a.pend ? '⏳ Reaches her phone the next time her app syncs.' : 'Needs her app 1.9.'} The topic name is the key — keep it private. Pings carry only short lines like “Sapna finished Legs · 48 min”. The evening check runs on her phone even if she doesn’t open the app.</p>
+    <p class="small muted">${a.live && !a.pend ? '<span class="tag ok">Delivered</span> Her phone has it.' : a.pend ? '<span class="tag pending">Pending</span> Reaches her phone the next time her app syncs.' : 'Needs her app 1.9.'} The topic name is the key — keep it private. Pings carry only short lines like “Sapna finished Legs · 48 min”. The evening check runs on her phone even if she doesn’t open the app.</p>
   </div>`;
 }
 async function ntfyTest(topic) {
@@ -2331,12 +2435,12 @@ function vAppSwitch() {
   return `<div class="card stack" id="appswitch" style="${off ? 'border-color:color-mix(in srgb,var(--danger) 55%,transparent)' : ''}">
     <div class="between"><h2>Her app</h2><span class="pill" style="${off ? 'background:color-mix(in srgb,var(--danger) 18%,transparent);color:var(--danger)' : 'background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)'}">${off ? 'Switched off' : 'On'}</span></div>
     ${off ? `<p class="small muted">Off since ${esc(when)}. She sees ${L.message ? `only: “${esc(L.message)}”` : 'a blank screen'} and gets no reminders.</p>
-      <p class="small">${confirmed ? '<span class="ok">✓ Her phone has switched off.</span>' : '⏳ Reaches her phone within seconds — or the next time she opens the app.'}</p>
+      <p class="small">${confirmed ? '<span class="ok">✓ Her phone has switched off.</span>' : '<span class="tag pending">Pending</span> Reaches her phone within seconds — or the next time she opens the app.'}</p>
       <button class="btn" type="button" id="lockoff">Turn her app back on</button>`
     : `<p class="small muted">Switch her app off any time. She’ll see a blank screen — or one line from you — and no reminders. Nothing is deleted; switching it back on brings everything back.</p>
       <label class="f">Text on her screen <span class="faint">(optional)</span><textarea class="input" id="lockmsg" maxlength="300" placeholder="Leave empty for a blank screen">${esc(S.lockDraft || '')}</textarea></label>
       <button class="btn danger" type="button" id="lockon">Turn her app off</button>`}
-    ${at && !off && confirmed === false && seen && seen.on ? '<p class="small">⏳ Switching back on — reaches her phone within seconds.</p>' : ''}
+    ${at && !off && confirmed === false && seen && seen.on ? '<p class="small"><span class="tag pending">Pending</span> Switching back on — reaches her phone within seconds.</p>' : ''}
   </div>`;
 }
 /** Publishes only the switch (nothing else you're editing) and pings her phone silently so it applies right away. */
