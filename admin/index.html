@@ -13,7 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0c0c10;--bg2:#121218;--card:rgba(255,255,255,.045);--card2:rgba(255,255,255,.08);--solid:#17171e;--line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.16);--text:#f5f3ef;--muted:#a9a6b0;--faint:#7c7984;--coral:#ff7a59;--lime:#c6f432;--amber:#ffb224;--pink:#ff6fae;--cyan:#4fd1ff;--danger:#ff6b6b;--ok:#4ade80;--acc:var(--coral);--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);color-scheme:dark}
-@media (prefers-color-scheme:light){:root{--amber:#b86e00;--bg:#f4f2ee;--bg2:#ebe8e2;--card:#fff;--card2:#f0ede7;--solid:#fff;--line:rgba(20,18,24,.09);--line2:rgba(20,18,24,.18);--text:#141218;--muted:#5e5a66;--faint:#7d7985;color-scheme:light}}
+@media (prefers-color-scheme:light){:root{--amber:#b86e00;--ok:#15803d;--bg:#f4f2ee;--bg2:#ebe8e2;--card:#fff;--card2:#f0ede7;--solid:#fff;--line:rgba(20,18,24,.09);--line2:rgba(20,18,24,.18);--text:#141218;--muted:#5e5a66;--faint:#7d7985;color-scheme:light}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 Figtree,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -61,6 +61,32 @@ label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:70
 .prbadge{display:inline-flex;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:800;background:color-mix(in srgb,var(--amber) 18%,transparent);color:var(--amber);margin-left:6px}
 .steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
 .move .yt{grid-column:1/-1;font-size:13px}
+/* Design system: status tags, panels, meters, text buttons */
+.tag{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:99px;font-size:11.5px;font-weight:700;letter-spacing:.02em;white-space:nowrap;vertical-align:middle;line-height:1}
+.tag::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+.tag.pending{color:var(--amber);background:color-mix(in srgb,var(--amber) 14%,transparent)}
+.tag.pending::before,.tag.live::before{animation:tagpulse 1.6s ease-in-out infinite}
+.tag.live,.tag.ok{color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,transparent)}
+.tag.warn{color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,transparent)}
+.tag.muted{color:var(--muted);background:var(--card2)}
+@keyframes tagpulse{50%{opacity:.3}}
+@media (prefers-reduced-motion:reduce){.tag::before{animation:none!important}}
+.panel{border:1px solid var(--line);border-radius:20px;background:var(--card);overflow:hidden}
+.panel-h{display:flex;align-items:center;gap:12px;padding:14px 16px}
+.panel-ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none}
+.panel-ic svg{width:20px;height:20px}
+.panel-ic.pending{background:color-mix(in srgb,var(--amber) 14%,transparent);color:var(--amber)}
+.panel-ic.live{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}
+.panel-t{font-weight:700;font-size:15.5px;line-height:1.3}
+.panel-s{font-size:13px;color:var(--muted);line-height:1.4;margin-top:2px}
+.panel-b{padding:0 16px 14px}
+.panel-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-top:1px solid var(--line);font-size:14.5px}
+.panel-row .grow{flex:1;min-width:0}
+.panel-row .sub{display:block;font-size:12.5px;color:var(--faint)}
+.panel-note{display:flex;gap:10px;align-items:flex-start;margin:0 16px 14px;padding:10px 12px;border-radius:12px;font-size:13.5px;line-height:1.45;background:color-mix(in srgb,var(--amber) 10%,transparent)}
+.linkbtn{background:none;border:0;color:var(--acc);font:inherit;font-weight:700;font-size:14px;padding:8px 6px;margin:-8px -6px;cursor:pointer;border-radius:8px}
+.linkbtn:hover{text-decoration:underline}
+.meter{height:6px;border-radius:99px;background:var(--line);overflow:hidden}.meter>i{display:block;height:100%;background:var(--ok);border-radius:inherit;transition:width .4s}
 .noimg{display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--card2);color:var(--faint);font-size:13px;font-weight:700;text-align:center}
 .altbox{grid-column:1/-1;border:1px dashed color-mix(in srgb,var(--acc) 55%,var(--line2));border-radius:14px;padding:10px;background:color-mix(in srgb,var(--acc) 6%,transparent)}.altbox img,.altbox .noimg{width:44px;height:44px;border-radius:9px;object-fit:cover;background:#fff;flex:none}.altbox .noimg{display:grid;place-items:center;background:var(--card2);color:var(--acc)}.move .yt input{min-height:40px}
 .nums input,.nums select{min-height:40px;text-align:center;padding:0 4px}
@@ -846,11 +872,21 @@ function opLabel(op) {
     default: return esc(op.kind);
   }
 }
+const ICON = {
+  sync: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.2M3 12a9 9 0 0 1 15.5-6.2"/><path d="M21 4v5h-5M3 20v-5h5"/></svg>',
+  pulse: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>',
+  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="width:18px;height:18px;flex:none;margin-top:1px;color:var(--amber)"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>',
+};
+const PEND = '<span class="tag pending">Pending</span>';
 function vPending() {
   const ops = pendingOps(); if (!ops.length) return '';
-  return `<div class="card stack" style="border-color:color-mix(in srgb,var(--amber) 50%,transparent)"><div class="between"><strong>⏳ ${ops.length} change${ops.length === 1 ? '' : 's'} waiting for her phone</strong></div>
-    <p class="small muted">They apply within ~20 s while her app is open, otherwise the next time she opens it. Shown below already, marked ⏳.</p>
-    ${ops.map((o) => `<div class="between small"><span>${opLabel(o)}</span><button class="btn ghost sm" type="button" data-undo="${esc(o.id)}">Undo</button></div>`).join('')}</div>`;
+  const when = (o) => o.at ? new Date(o.at).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' }) : '';
+  return `<section class="panel" aria-label="Changes waiting for her phone">
+    <div class="panel-h"><span class="panel-ic pending">${ICON.sync}</span>
+      <div style="flex:1;min-width:0"><div class="panel-t">Waiting to reach her phone</div><div class="panel-s">Applies within ~20 s while her app is open, otherwise when she next opens it.</div></div>
+      <span class="tag pending">${ops.length}</span></div>
+    ${ops.map((o) => `<div class="panel-row"><span class="grow">${opLabel(o)}${when(o) ? `<span class="sub">Queued ${when(o)}</span>` : ''}</span><button class="linkbtn" type="button" data-undo="${esc(o.id)}">Undo</button></div>`).join('')}
+  </section>`;
 }
 
 /* --- small modal helper --- */
