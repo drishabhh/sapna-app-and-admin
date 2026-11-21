@@ -66,6 +66,16 @@ function Shell() {
     if (!nlock || nlock.at !== lock.at) storeNativeLock(lock); // so reminders also stop/resume with the app closed
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lock.on, lock.at, lock.message]);
+  // New plans from Rishu while the app is open: check every 3 min (and on coming back to the app),
+  // so a missed push never leaves her on yesterday's plan. Uses the Pages copy — no rate limit.
+  useEffect(() => {
+    if (!ready || lock.on) return;
+    const check = () => { if (document.visibilityState === 'visible') reloadContent0(); };
+    const t = window.setInterval(check, 3 * 60_000);
+    document.addEventListener('visibilitychange', check);
+    return () => { window.clearInterval(t); document.removeEventListener('visibilitychange', check); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, lock.on]);
   useEffect(() => {
     if (!lock.on) return; // while off: check straight with GitHub every minute, so switching back on is quick
     const t = window.setInterval(() => { reloadContent0({ direct: true }); readNativeLock().then(setNlock); }, 60000);

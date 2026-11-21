@@ -141,6 +141,10 @@ export function buildReport(d: AppData, c: Content) {
     lock: lockForReport(),
     alerts: d.alerts ? { topic: d.alerts.topic, workout: d.alerts.workout, pr: d.alerts.pr, food: !!d.alerts.food, foodAt: d.alerts.foodAt || '20:30' } : null,
     stepsAuto: !!d.health?.on,
+    // For Rishu's sync-health panel: which app build and which published plans this phone is on.
+    appVersion: typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : 'web',
+    contentVersion: c.version,
+    contentUpdatedAt: c.updatedAt,
     drinks: Object.fromEntries(Object.entries(d.drinks || {}).filter(([k]) => k >= last7()[0]).map(([k, v]) => [k, v.map((x) => ({ at: x.at, ml: x.ml }))])),
     steps: d.steps,
     burned,

@@ -2203,6 +2203,36 @@ function wireFoods() {
 }
 
 /* --- Settings --- */
+/* --- Sync health: is her phone current? (the first place to look when "she isn't seeing my change") --- */
+function ago(ms) { const s = Math.max(0, Math.round((Date.now() - ms) / 1000)); return s < 60 ? 'just now' : s < 3600 ? `${Math.round(s / 60)} min ago` : s < 86400 ? `${Math.round(s / 3600)} h ago` : `${Math.round(s / 86400)} d ago`; }
+function vHealth() {
+  const r = S.syncReport || S.report;
+  if (!r) return '';
+  const at = Date.parse(r.generatedAt || '') || 0;
+  const fresh = Date.now() - at;
+  const syncTag = !at ? '<span class="tag muted">Unknown</span>' : fresh < 3 * 60e3 ? '<span class="tag live">Live</span>' : fresh < 6 * 3600e3 ? '<span class="tag ok">Recent</span>' : '<span class="tag warn">Not open lately</span>';
+  const pub = S.base ? S.base.version : S.content.version;
+  const have = r.contentVersion;
+  const plans = have == null ? ['<span class="tag muted">Not reported</span>', 'Her app version doesn’t report this yet — comes with the next update.']
+    : have >= pub ? ['<span class="tag ok">Up to date</span>', `She has your latest published plans (v${have}).`]
+    : ['<span class="tag pending">Updating</span>', `She’s on v${have}; you published v${pub}. Her app picks it up within ~3 min while open, or when she next opens it.`];
+  const ops = pendingOps().length;
+  const notify = !!(autoPush() && herPush());
+  const row = (k, tag, sub) => `<div class="panel-row"><span class="grow">${k}<span class="sub">${sub}</span></span>${tag}</div>`;
+  return `<section class="panel" id="health" aria-label="Sync health">
+    <div class="panel-h"><span class="panel-ic live">${SVG.pulse}</span><div style="flex:1;min-width:0"><div class="panel-t">Sync health</div><div class="panel-s">Is her phone up to date with what you set here?</div></div></div>
+    ${row('Her phone', syncTag, at ? `Last update ${ago(at)}` : 'No update received yet')}
+    ${row('Her plans', plans[0], plans[1])}
+    ${row('Your changes', ops ? `<span class="tag pending">${ops} waiting</span>` : '<span class="tag ok">All delivered</span>', ops ? 'Food, water and other edits reach her within ~20 s while her app is open.' : 'Nothing waiting for her phone.')}
+    ${row('New-plan alert', notify ? '<span class="tag ok">On</span>' : '<span class="tag muted">Off</span>', notify ? 'Her phone is told the moment you publish.' : herPush() ? 'Turn on “Tell her automatically” below so new plans reach her instantly.' : 'Her phone hasn’t registered for notifications yet.')}
+    ${row('Her app', `<span class="tag ${r.appVersion ? 'ok' : 'muted'}">${esc(r.appVersion || '1.11 or older')}</span>`, r.appVersion ? 'Version installed on her phone.' : 'Older versions don’t report their number.')}
+    ${herPush() ? `<div class="panel-b" style="padding-top:12px;border-top:1px solid var(--line)"><button class="btn ghost sm" type="button" id="hNudge">Refresh her app now</button><span class="small muted" style="margin-left:8px">Silent — tells her app to fetch your latest plans.</span></div>` : ''}
+  </section>`;
+}
+function wireHealth() {
+  const b = $('#hNudge'); if (!b) return;
+  b.onclick = async () => { b.disabled = true; try { await sendPush('', '', { kind: 'plan' }, { dataOnly: true }); toast('Sent — her app refreshes in a few seconds'); } catch (e) { toastLong('Couldn’t reach her phone: ' + e.message); } b.disabled = false; };
+}
 function vSettings() {
   const M = model();
   const t = S.content.targets; const c = M.c;
@@ -2218,7 +2248,7 @@ function vSettings() {
       ${r.reminders ? `<div class="between" style="align-items:flex-start"><span class="muted">Reminders on</span><span style="text-align:right">${Object.entries(r.reminders).filter(([, v]) => v === true).map(([k]) => ({ punch: 'gym punch line', meals: 'meals', water: 'water', gym: 'workout days', weigh: 'weigh-in', steps: 'night steps' }[k] || k)).join(', ') || 'none'}</span></div>` : ''}
       </div></div>` : '';
   return hdr('Sapna Health · Admin', 'Settings') + `<div class="setgrid">
-    <section class="stack" style="gap:12px">${vAppSwitch()}<p class="eyebrow sec">Her app · goes out when you Publish</p>
+    <section class="stack" style="gap:12px">${vHealth()}${vAppSwitch()}<p class="eyebrow sec">Her app · goes out when you Publish</p>
       <div class="card stack"><h2>Daily targets</h2><div class="g3">
         <label class="f">Calories<input class="input" id="tk" inputmode="numeric" value="${t.kcal}"></label>
         <label class="f">Protein g<input class="input" id="tp" inputmode="numeric" value="${t.protein}"></label>
@@ -2333,6 +2363,7 @@ async function publishLock(on, message) {
   toast(on ? 'Her app is switched off' : 'Her app is back on');
 }
 function wireSettings() {
+  wireHealth();
   wireAlerts();
   const lm = $('#lockmsg'); if (lm) lm.oninput = () => { S.lockDraft = lm.value; };
   const lon = $('#lockon'); if (lon) lon.onclick = () => { if (!confirm('Switch Sapna’s app off now? She’ll only see ' + ($('#lockmsg').value.trim() ? 'your text' : 'a blank screen') + ' until you switch it back on. Nothing is deleted.')) return; lon.disabled = true; lon.textContent = 'Switching off…'; publishLock(true, $('#lockmsg').value.trim()); };
