@@ -1,6 +1,6 @@
 {
- "version": 61,
- "updatedAt": "2026-11-21T04:25:40.051Z",
+ "version": 62,
+ "updatedAt": "2026-11-21T04:25:50.701Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -485,7 +485,7 @@
    "title": "Chest & triceps",
    "focus": "Bench press, incline press, row, triceps",
    "days": [
-    6
+    0
    ],
    "note": "Use a spotter or set the safeties for the barbell bench. Pick a dumbbell light enough to lower behind your head smoothly. Rest 2–3 min on the big lifts, 60–90 sec on smaller ones. Warm-up: easy walk or cycle, then the drills; do 1–3 lighter sets of the first lift. Cool-down: hold each stretch 20–30 sec per side.",
    "moves": [
