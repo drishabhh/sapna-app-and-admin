@@ -1,6 +1,6 @@
 {
- "version": 66,
- "updatedAt": "2026-11-21T06:57:03.278Z",
+ "version": 67,
+ "updatedAt": "2026-11-21T08:14:51.893Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -10,7 +10,7 @@
   {
    "id": "prog-mon-quads-glutes",
    "title": "Quads & glutes",
-   "focus": "Squat, leg press, RDL, hip thrust",
+   "focus": "Squat, leg press, hip thrust",
    "days": [
     1
    ],
@@ -55,12 +55,6 @@
      "rest": 120
     },
     {
-     "exId": "glutes-dumbbell-romanian-deadlift",
-     "sets": 3,
-     "reps": 12,
-     "rest": 120
-    },
-    {
      "exId": "custom-dumbbell-hip-thrust-sjda",
      "sets": 3,
      "reps": 12,
@@ -90,6 +84,12 @@
      "sets": 1,
      "reps": 30,
      "unit": "sec",
+     "cool": true
+    },
+    {
+     "exId": "lib-cat-cow-stretch",
+     "sets": 1,
+     "reps": 8,
      "cool": true
     }
    ]
@@ -189,6 +189,12 @@
      "cool": true
     },
     {
+     "exId": "lib-cat-cow-stretch",
+     "sets": 1,
+     "reps": 8,
+     "cool": true
+    },
+    {
      "exId": "custom-child-pose-fpoz",
      "sets": 1,
      "reps": 30,
@@ -278,6 +284,12 @@
      "sets": 1,
      "reps": 30,
      "unit": "sec",
+     "cool": true
+    },
+    {
+     "exId": "lib-cat-cow-stretch",
+     "sets": 1,
+     "reps": 8,
      "cool": true
     }
    ]
@@ -375,6 +387,12 @@
      "cool": true
     },
     {
+     "exId": "lib-cat-cow-stretch",
+     "sets": 1,
+     "reps": 8,
+     "cool": true
+    },
+    {
      "exId": "custom-child-pose-fpoz",
      "sets": 1,
      "reps": 30,
@@ -386,7 +404,7 @@
   {
    "id": "prog-fri-thighs-glutes",
    "title": "Thighs & glutes",
-   "focus": "Goblet squat, RDL, reverse lunge, calves",
+   "focus": "Goblet squat, reverse lunge, calves",
    "days": [
     5,
     6
@@ -422,12 +440,6 @@
     {
      "exId": "lib-goblet-squat",
      "sets": 3,
-     "reps": 12,
-     "rest": 120
-    },
-    {
-     "exId": "glutes-dumbbell-romanian-deadlift",
-     "sets": 2,
      "reps": 12,
      "rest": 120
     },
@@ -475,6 +487,12 @@
      "sets": 1,
      "reps": 30,
      "unit": "sec",
+     "cool": true
+    },
+    {
+     "exId": "lib-cat-cow-stretch",
+     "sets": 1,
+     "reps": 8,
      "cool": true
     }
    ]
@@ -565,6 +583,12 @@
      "sets": 1,
      "reps": 30,
      "unit": "sec",
+     "cool": true
+    },
+    {
+     "exId": "lib-cat-cow-stretch",
+     "sets": 1,
+     "reps": 8,
      "cool": true
     },
     {
@@ -756,16 +780,6 @@
    "cue": "Plant both feet. Raise the hips until the torso and thighs form a line and the shins are near vertical. Lower the hips smoothly around the bench edge. Avoid: arching the lower back, pushing through the toes or letting the weight roll.",
    "equipment": "dumbbell",
    "yt": "https://youtube.com/shorts/uUuPYcK9SJI"
-  },
-  {
-   "id": "glutes-dumbbell-romanian-deadlift",
-   "name": "Dumbbell Romanian deadlift",
-   "group": "exercises",
-   "part": "legs",
-   "equipment": "dumbbell",
-   "gif": "media/lib/dumbbell-romanian-deadlift.gif",
-   "cue": "Slide the hips back as the torso tips forward. Keep the weights close. Stop when the hamstrings are taut and the spine stays steady. Stand by extending the hips. Avoid: reaching for the floor, turning the hinge into a squat or leaning back at the finish.",
-   "yt": "https://youtube.com/shorts/hu3jRvTc_po"
   },
   {
    "id": "custom-child-pose-fpoz",
@@ -1054,6 +1068,15 @@
    "equipment": "local",
    "gif": "media/cycle-walk.gif",
    "cue": ""
+  },
+  {
+   "id": "lib-cat-cow-stretch",
+   "name": "Cat pose (cat–cow)",
+   "group": "stretching",
+   "part": "back",
+   "equipment": "bodyweight",
+   "keep": true,
+   "cue": "On hands and knees, hands under shoulders, knees under hips. Breathe out and round the back up toward the ceiling, tucking the chin and tailbone (cat). Breathe in and let the belly drop, lifting the chest and gaze (cow). Move slowly with the breath — 8 rounds, no forcing."
   }
  ],
  "foods": [
