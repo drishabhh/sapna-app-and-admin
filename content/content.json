@@ -1,6 +1,6 @@
 {
- "version": 64,
- "updatedAt": "2026-11-21T04:26:05.556Z",
+ "version": 65,
+ "updatedAt": "2026-11-21T06:49:21.511Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -445,12 +445,10 @@
      "yt": "https://youtube.com/shorts/yjWAuFOjhuY?si=RCM8rwClj7TwiUAb"
     },
     {
-     "exId": "lib-hip-abduction-machine",
-     "sets": 2,
-     "reps": 15,
-     "alt": {
-      "exId": "custom-dumbbell-hip-thrust-sjda"
-     }
+     "exId": "lib-barbell-hip-thrust",
+     "sets": 3,
+     "reps": 12,
+     "unit": "reps"
     },
     {
      "exId": "lib-standing-calf-raises",
