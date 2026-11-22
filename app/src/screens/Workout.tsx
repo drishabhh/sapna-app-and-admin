@@ -52,9 +52,9 @@ export default function WorkoutScreen({ autoStart, onAutoStartHandled }: { autoS
 
 /** The one tile she sees: what today is, not the whole exercise list. */
 function TodayTile({ plan, onStart }: { plan: Plan | null; onStart: () => void }) {
-  const { data, exById } = useStore();
+  const { data, content, exById } = useStore();
   const d = today();
-  const gym = isGymDay(data, d) || data.profile.gymDays.length === 0;
+  const gym = isGymDay(data, d, content) || data.profile.gymDays.length === 0;
   const active = data.sessions.find((s) => !s.endedAt && s.date === d);
   // Done = THIS plan was finished today (another session earlier today doesn't count).
   const done = !!plan && data.sessions.some((s) => s.endedAt && s.date === d && s.sets.length && s.planId === plan.id);
@@ -94,17 +94,29 @@ function TodayTile({ plan, onStart }: { plan: Plan | null; onStart: () => void }
         {stretches ? <span className="chip static">{stretches} stretch{stretches === 1 ? '' : 'es'}</span> : null}
         <span className="chip static">~{mins} min</span>
       </div>
-      {plan.note ? <p className="small muted row" style={{ marginTop: 12, alignItems: 'flex-start' }}><Icon name="glass" size={18} /> {plan.note}</p> : null}
+      {plan.note ? <PlanNote text={plan.note} /> : null}
       {!done ? <CycleGymLine /> : null}
       {done && !active ? (
         <p className="ok-t" style={{ fontWeight: 700, marginTop: 14 }}><Icon name="check" size={16} stroke={3} /> Workout logged. Rest up.</p>
       ) : (
         <button type="button" className="btn lg block" style={{ marginTop: 16 }} onClick={onStart}>
-          <Icon name="play" size={18} /> {active ? `Resume · ${doneCount}/${moves.length} done` : 'Start session'}
+          <Icon name="play" size={18} /> {active && doneCount ? `Continue · ${doneCount} of ${moves.length} done` : 'Start workout'}
         </button>
       )}
-      <p className="small muted" style={{ marginTop: 10, textAlign: 'center' }}>Moves show one by one once you start.</p>
     </section>
+  );
+}
+
+/** Rishu's tips for the plan: one line, tap to read the rest — not a wall of text. */
+function PlanNote({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const long = text.length > 90;
+  return (
+    <button type="button" className="plan-note" aria-expanded={open} onClick={() => setOpen(!open)} disabled={!long}>
+      <Icon name="glass" size={18} />
+      <span className={open || !long ? '' : 'clamp1'}>{text}</span>
+      {long ? <span className="plan-note-more">{open ? 'Less' : 'Tips'}</span> : null}
+    </button>
   );
 }
 
@@ -144,8 +156,9 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
   const [logOpen, setLogOpen] = useDraft('wk.logOpen', false);
   const [listOpen, setListOpen] = useDraft('wk.listOpen', false);
   const yt = ex ? ytLink(ex, doingAlt ? move?.alt : move) : null;
-  const [media, setMedia] = useState<'video' | 'gif'>('video');
-  useEffect(() => setMedia('video'), [curId]);
+  // Open on the animation (clean, same style for every move); the video is one tap away.
+  const [media, setMedia] = useState<'video' | 'gif'>('gif');
+  useEffect(() => setMedia(ex && gifSrc(ex) ? 'gif' : 'video'), [curId]);
 
   // Create (or resume) the session when opened.
   useEffect(() => {
@@ -292,17 +305,17 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
                   : <button type="button" className="btn ghost sm yt-btn" style={{ alignSelf: 'center' }} onClick={() => setShowVid(true)}><Icon name="video" size={20} /> Watch how — {ex.name}</button>) : null}
               </>
             ) : yt && media === 'video' ? (
-              <YtPlayer url={yt} title={ex.name} onPlay={() => setVidOn(true)} style={{ width: '100%', height: '46vh', minHeight: 240, flex: 'none' }} />
+              <YtPlayer url={yt} title={ex.name} onPlay={() => setVidOn(true)} style={{ width: '100%', height: '40vh', minHeight: 220, flex: 'none' }} />
             ) : (
-              <Gif src={gifSrc(ex)} alt={`${ex.name} demonstration`} style={{ width: '100%', height: '46vh', minHeight: 240, objectFit: 'contain', background: '#fff', borderRadius: 24 }} />
+              <Gif src={gifSrc(ex)} alt={`${ex.name} demonstration`} style={{ width: '100%', height: '40vh', minHeight: 220, objectFit: 'contain', background: '#fff', borderRadius: 24, flex: 'none' }} />
             )}
             {!altEx && yt && gifSrc(ex) ? (
               <div className="chips" role="group" aria-label="Show" style={{ justifyContent: 'center' }}>
-                <button type="button" className="chip" aria-pressed={media === 'video'} onClick={() => setMedia('video')}>▶ Video</button>
                 <button type="button" className="chip" aria-pressed={media === 'gif'} onClick={() => setMedia('gif')}>Animation</button>
+                <button type="button" className="chip" aria-pressed={media === 'video'} onClick={() => setMedia('video')}>▶ Video</button>
               </div>
             ) : null}
-            <h1 className="h1" style={{ fontSize: 30, textAlign: 'center', marginTop: 6 }}>{ex.name}</h1>
+            <h1 className="h1 move-title">{ex.name}</h1>
             <p className="muted" style={{ textAlign: 'center', fontWeight: 600 }}>{tip && tip.sets !== move.sets ? `${tip.sets} × ${move.reps} reps · easy week` : doseLabel(move)}</p>
             {isLift && tip && !isDone ? <CoachCard tip={tip} /> : null}
             {yt && vidOn ? (
@@ -342,7 +355,7 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
                 )}
               </>
             ) : (
-              <button type="button" className="btn lg block" onClick={complete}><Icon name="check" size={20} stroke={2.6} /> {isStretch ? 'Done' : 'I did this'}</button>
+              <button type="button" className="btn lg block" onClick={complete}><Icon name="check" size={20} stroke={2.6} /> Done</button>
             )}
             <div className="between">
               <button type="button" className="btn quiet" disabled={idx === 0} onClick={() => setIdx(idx - 1)}>Previous</button>

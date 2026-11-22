@@ -34,7 +34,7 @@ export default function Today() {
   const streak = streakInfo(data);
   const plan = todayPlan(data, content);
   const done = sessionsOn(data, d).some((s) => s.endedAt && s.sets.length && (!plan || s.planId === plan.id));
-  const gym = isGymDay(data);
+  const gym = isGymDay(data, d, content);
   const cyc = data.profile.cycleEnabled ? cycleInfo(data) : null;
   const [mealOpen, setMealOpen] = useState<Meal | null>(null);
   const [stepsOpen, setStepsOpen] = useDraft('today.stepsOpen', false);

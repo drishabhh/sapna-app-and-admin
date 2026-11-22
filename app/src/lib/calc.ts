@@ -153,8 +153,9 @@ export function planBrief(p: Plan, exById: Record<string, { group: string; part:
   return warm ? `Warm-up stretches, then ${hit}` : hit[0].toUpperCase() + hit.slice(1);
 }
 
-export function isGymDay(d: AppData, date = today()): boolean {
-  return d.profile.gymDays.includes(dow(date));
+export function isGymDay(d: AppData, date = today(), c?: Content): boolean {
+  // A day Rishu pinned a plan to is a gym day too, even if it isn't in her own gym days.
+  return d.profile.gymDays.includes(dow(date)) || !!c?.plans.some((p) => p.days?.includes(dow(date)));
 }
 
 /** Most recent weight she lifted for an exercise (before the given session). */

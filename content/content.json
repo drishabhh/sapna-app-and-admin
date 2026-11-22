@@ -1,6 +1,6 @@
 {
- "version": 68,
- "updatedAt": "2026-11-22T06:30:19.647Z",
+ "version": 69,
+ "updatedAt": "2026-11-22T07:09:33.167Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -1065,7 +1065,8 @@
    "part": "back",
    "equipment": "bodyweight",
    "keep": true,
-   "cue": "On hands and knees, hands under shoulders, knees under hips. Breathe out and round the back up toward the ceiling, tucking the chin and tailbone (cat). Breathe in and let the belly drop, lifting the chest and gaze (cow). Move slowly with the breath — 8 rounds, no forcing."
+   "cue": "On hands and knees, hands under shoulders, knees under hips. Breathe out and round the back up toward the ceiling, tucking the chin and tailbone (cat). Breathe in and let the belly drop, lifting the chest and gaze (cow). Move slowly with the breath — 8 rounds, no forcing.",
+   "gif": "media/lib/cat-pose.gif"
   }
  ],
  "foods": [

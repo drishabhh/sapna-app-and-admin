@@ -468,3 +468,12 @@ p { margin: 0; }
 
 .again.plan{border-style:solid;background:color-mix(in srgb,var(--acc,var(--coral)) 14%,var(--card))}
 .again.plan .pill{font-size:11px}
+
+/* Workout: one-line tips that expand; move titles that never clip */
+.plan-note{display:flex;gap:8px;align-items:flex-start;width:100%;margin-top:12px;padding:10px 12px;border-radius:14px;background:var(--card-2);color:var(--muted);font:inherit;font-size:14px;text-align:left;border:0}
+.plan-note:disabled{opacity:1}
+.plan-note>span:first-of-type{flex:1;min-width:0}
+.plan-note .clamp1{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.plan-note-more{flex:none;font-weight:700;color:var(--acc-t)}
+.move-title{font-size:clamp(22px,6.6vw,28px);line-height:1.15;text-align:center;margin-top:6px;text-wrap:balance;overflow-wrap:anywhere;flex:none}
+.chart-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;border:1px dashed var(--line);border-radius:16px}

@@ -60,13 +60,15 @@ export default function ProgressScreen() {
             <span className="big" style={{ fontSize: 30 }}>{logged.length ? <><Num key={metric} value={Math.round(avg)} />{metric === 'kcal' ? ' kcal' : ' g'}</> : '—'}</span>
             <span className="small muted">daily average</span>
           </div>
-          <div className="chart" role="img" aria-label={`${metric === 'kcal' ? 'Calories' : 'Protein'} per day: ${vals.map((v) => `${DOW_SHORT[parseKey(v.k).getDay()]} ${metric === 'kcal' ? v.kcal : v.protein}`).join(', ')}`} style={{ height: H }}>
+          {!logged.length ? (
+            <div className="chart-empty" style={{ height: H }}><p className="muted">No food logged {isThisWeek ? 'this week yet' : 'that week'}.</p>{isThisWeek ? <p className="small muted">Log a meal and your bars show up here.</p> : null}</div>
+          ) : <div className="chart" role="img" aria-label={`${metric === 'kcal' ? 'Calories' : 'Protein'} per day: ${vals.map((v) => `${DOW_SHORT[parseKey(v.k).getDay()]} ${metric === 'kcal' ? v.kcal : v.protein}`).join(', ')}`} style={{ height: H }}>
             <span className="target" style={{ bottom: (target / max) * H }} />
             {vals.map((v) => {
               const n = metric === 'kcal' ? v.kcal : v.protein;
               return <i key={v.k} className={v.k === t || v.future ? 'dim' : ''} style={{ height: Math.max(3, (n / max) * H) }} />;
             })}
-          </div>
+          </div>}
           <div className="chart-labels">{vals.map((v) => <span key={v.k} style={v.k === t ? { color: 'var(--text)' } : undefined}>{DOW_SHORT[parseKey(v.k).getDay()]}</span>)}</div>
           <p className="small muted">Dashed line = {metric === 'kcal' ? `${content.targets.kcal.toLocaleString('en-IN')} kcal target` : `${content.targets.protein} g protein goal`}{isThisWeek ? ' · today still in progress' : ''}</p>
         </section>
