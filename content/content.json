@@ -1,6 +1,6 @@
 {
- "version": 69,
- "updatedAt": "2026-11-22T07:09:33.167Z",
+ "version": 70,
+ "updatedAt": "2026-11-22T07:32:10.730Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -559,6 +559,15 @@
      "exId": "triceps-dumbbell-one-arm-triceps-extension-on-bench",
      "sets": 2,
      "reps": 12
+    },
+    {
+     "exId": "cardio-walk-elliptical-cross-trainer",
+     "sets": 1,
+     "reps": 20,
+     "unit": "min",
+     "alt": {
+      "exId": "local-cycle-walk"
+     }
     },
     {
      "exId": "lib-chest-stretch",
