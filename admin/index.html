@@ -3,14 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#08090a" media="(prefers-color-scheme: dark)"><meta name="theme-color" content="#f7f8f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B0D12" media="(prefers-color-scheme: dark)"><meta name="theme-color" content="#EEF0F5" media="(prefers-color-scheme: light)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Sapna Admin">
 <meta name="robots" content="noindex">
 <title>Sapna Health Admin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>try{var t=localStorage.getItem("sapna_admin_theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
 <style>
 :root{--bg:#0c0c10;--bg2:#121218;--card:rgba(255,255,255,.045);--card2:rgba(255,255,255,.08);--solid:#17171e;--line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.16);--text:#f5f3ef;--muted:#a9a6b0;--faint:#7c7984;--coral:#ff7a59;--lime:#c6f432;--amber:#ffb224;--pink:#ff6fae;--cyan:#4fd1ff;--danger:#ff6b6b;--ok:#4ade80;--acc:var(--coral);--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);color-scheme:dark}
 @media (prefers-color-scheme:light){:root{--amber:#b86e00;--ok:#15803d;--bg:#f4f2ee;--bg2:#ebe8e2;--card:#fff;--card2:#f0ede7;--solid:#fff;--line:rgba(20,18,24,.09);--line2:rgba(20,18,24,.18);--text:#141218;--muted:#5e5a66;--faint:#7d7985;color-scheme:light}}
@@ -323,6 +324,183 @@ th{font-weight:510;letter-spacing:.03em}
   .tabs button[aria-pressed=true]{background:transparent;box-shadow:none}
   .tabs button[aria-pressed=true] .ti{background:color-mix(in srgb,var(--acc) 20%,transparent);color:var(--acc-hi)}
 }
+
+/* ===== Design system: "Sapna Health · Admin" (Google Stitch export) =====
+   Neutral surfaces, one indigo accent, hairline borders, 8–12px radii, Inter + JetBrains Mono for numbers/times/versions.
+   Status colours only for sync state: live/delivered green, pending/updating amber, error red, off grey. */
+:root{
+  --font:"Inter",-apple-system,system-ui,"Segoe UI",Roboto,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --bg:#0B0D12;--bg2:#161922;--solid:#161922;--card:#161922;--card2:#1D212D;--hover:#242836;--surf-hi:#2C3142;
+  --line:#2E3344;--line2:#3A4054;
+  --text:#F1F2F6;--muted:#9CA0B2;--faint:#73788C;--fg2:#C9CCD8;
+  --acc:#818CF8;--acc-on:#1E1B4B;--acc-hi:#A5B4FC;--acc-hover:#9AA3FA;--acc-bg:#312E81;--acc-bg-on:#E0E7FF;
+  --ok:#4ADE80;--ok-bg:#052E16;--ok-on:#BBF7D0;
+  --amber:#FBBF24;--amber-bg:#451A03;--amber-on:#FDE68A;
+  --danger:#F87171;--danger-bg:#7F1D1D;--danger-on:#FEE2E2;
+  --off:#A1A1AA;--off-bg:#27272A;--off-on:#E4E4E7;
+  --pink:#F472B6;--pink-bg:#500724;--coral:var(--acc);--lime:var(--ok);--cyan:var(--acc-hi);
+  --r-sm:6px;--r-md:8px;--r-lg:12px;--r-xl:16px;
+  --elev:none;--float:0 1px 2px rgba(0,0,0,.3),0 12px 32px -12px rgba(0,0,0,.6);
+  --ease:cubic-bezier(.2,0,0,1);
+  color-scheme:dark;
+}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){
+  --bg:#EEF0F5;--bg2:#FFFFFF;--solid:#FFFFFF;--card:#FFFFFF;--card2:#F6F7FA;--hover:#E8EBF2;--surf-hi:#DDE1EC;
+  --line:#CBD0DC;--line2:#B5BBCA;
+  --text:#111218;--muted:#474A59;--faint:#666A7D;--fg2:#2A2C38;
+  --acc:#4338CA;--acc-on:#FFFFFF;--acc-hi:#4338CA;--acc-hover:#3730A3;--acc-bg:#EEF2FF;--acc-bg-on:#312E81;
+  --ok:#15803D;--ok-bg:#DCFCE7;--ok-on:#14532D;
+  --amber:#B45309;--amber-bg:#FEF3C7;--amber-on:#78350F;
+  --danger:#B91C1C;--danger-bg:#FEE2E2;--danger-on:#7F1D1D;
+  --off:#52525B;--off-bg:#F4F4F5;--off-on:#27272A;
+  --pink:#BE185D;--pink-bg:#FCE7F3;
+  --float:0 1px 2px rgba(17,18,24,.06),0 12px 32px -14px rgba(17,18,24,.25);
+  color-scheme:light;
+}}
+:root[data-theme=light]{
+  --bg:#EEF0F5;--bg2:#FFFFFF;--solid:#FFFFFF;--card:#FFFFFF;--card2:#F6F7FA;--hover:#E8EBF2;--surf-hi:#DDE1EC;
+  --line:#CBD0DC;--line2:#B5BBCA;
+  --text:#111218;--muted:#474A59;--faint:#666A7D;--fg2:#2A2C38;
+  --acc:#4338CA;--acc-on:#FFFFFF;--acc-hi:#4338CA;--acc-hover:#3730A3;--acc-bg:#EEF2FF;--acc-bg-on:#312E81;
+  --ok:#15803D;--ok-bg:#DCFCE7;--ok-on:#14532D;
+  --amber:#B45309;--amber-bg:#FEF3C7;--amber-on:#78350F;
+  --danger:#B91C1C;--danger-bg:#FEE2E2;--danger-on:#7F1D1D;
+  --off:#52525B;--off-bg:#F4F4F5;--off-on:#27272A;
+  --pink:#BE185D;--pink-bg:#FCE7F3;
+  --float:0 1px 2px rgba(17,18,24,.06),0 12px 32px -14px rgba(17,18,24,.25);
+  color-scheme:light;
+}
+html,body{background:var(--bg);color:var(--text)}
+body{font-family:var(--font);font-feature-settings:normal;font-size:14px;line-height:1.45;letter-spacing:0}
+b,strong{font-weight:600}
+h1{font-size:28px;font-weight:600;letter-spacing:-.5px;line-height:34px}
+h2{font-size:16px;font-weight:600;letter-spacing:-.15px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}.faint{color:var(--faint)}
+.mono,.num,.tile .v small,.dchip span,.tag.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.big,.tile .v,.dchip b,.lk b{font-variant-numeric:tabular-nums;letter-spacing:-.4px;font-weight:600}
+
+/* surfaces: flat, hairline, no heavy shadows */
+.card,.panel,.list,.tile,.ex,.move{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:none}
+.card.warn,.warn{border-color:var(--line);background:var(--card)}
+.panel-note{background:var(--amber-bg);color:var(--amber-on);border:0;border-radius:var(--r-md)}
+.panel-note svg{color:var(--amber-on)}
+.panel-row+.panel-row,.lrow+.lrow{border-color:var(--line)}
+.panel-ic{background:var(--acc-bg);color:var(--acc-hi);border-radius:var(--r-md)}
+.panel-ic.on{background:var(--ok-bg);color:var(--ok)}
+
+/* status pills */
+.tag{height:22px;padding:0 8px;border-radius:9999px;font-size:11px;font-weight:600;letter-spacing:.2px}
+.tag.on,.tag.ok{color:var(--ok-on);background:var(--ok-bg)}
+.tag.on::before,.tag.ok::before{background:var(--ok)}
+.tag.ok::before{animation:none}
+.tag.pending,.tag.warn{color:var(--amber-on);background:var(--amber-bg)}
+.tag.pending::before,.tag.warn::before{background:var(--amber)}
+.tag.pending::before{animation:none}
+.tag.muted{color:var(--off-on);background:var(--off-bg)}
+.tag.muted::before{background:var(--off)}
+.tag.err{color:var(--danger-on);background:var(--danger-bg)}
+.tag.err::before{background:var(--danger)}
+.tag.plain::before{display:none}
+.pill{border-radius:9999px;background:var(--acc-bg);color:var(--acc-bg-on);font-weight:600}
+
+/* buttons */
+.btn{border-radius:var(--r-md);font-weight:500;background:var(--acc);color:var(--acc-on);min-height:44px;box-shadow:none;transition:background .12s ease-out,transform .12s ease-out}
+.btn:hover:not(:disabled){background:var(--acc-hover)}
+.btn:active:not(:disabled){transform:scale(.98)}
+.btn.ghost{background:var(--card2);color:var(--text);border:1px solid var(--line)}
+.btn.ghost:hover:not(:disabled){background:var(--hover)}
+.btn.danger{background:var(--danger-bg);color:var(--danger-on);border:0}
+.btn.danger:hover:not(:disabled){background:color-mix(in srgb,var(--danger-bg) 85%,var(--danger))}
+.btn.sm{min-height:36px;border-radius:var(--r-md);font-size:13px}
+.ib{border-radius:var(--r-md);background:transparent;border:1px solid var(--line);color:var(--text)}
+.ib:hover{background:var(--hover)}
+.linkbtn,.addb,.tedit,a{color:var(--acc-hi)}
+.addb{background:transparent;font-weight:500}
+
+/* inputs */
+.input,select.input,textarea.input{background:var(--card2);border:1px solid var(--line);border-radius:var(--r-md);color:var(--text)}
+.input:focus{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 22%,transparent);outline:0}
+label.f{font-size:12px;font-weight:500;color:var(--muted)}
+
+/* segmented controls, chips, day strip, week grid */
+.seg{background:var(--card2);border:1px solid var(--line);border-radius:var(--r-lg);padding:3px}
+.seg button{border-radius:var(--r-md);font-weight:500;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--card);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.12);border:1px solid var(--line)}
+.chip{border-radius:9999px;border:1px solid var(--line);background:var(--card);font-weight:500}
+.chip[aria-pressed=true]{background:var(--acc-bg);border-color:var(--acc);color:var(--acc-bg-on)}
+.dchip{border-radius:var(--r-md);border:1px solid var(--line);background:var(--card);box-shadow:none}
+.dchip span{font-size:11px}
+.dchip[aria-pressed=true]{background:var(--acc-bg);border-color:var(--acc);color:var(--acc-bg-on)}
+.dchip[aria-pressed=true] *{color:var(--acc-bg-on)}
+.wday{border-radius:var(--r-md);border:1px solid var(--line);background:var(--card);text-align:left;font-weight:500}
+.wday.set{border-color:var(--line);background:var(--card)}
+.wday[aria-pressed=true],.wday.today{border-color:var(--acc);background:var(--acc-bg);color:var(--acc-bg-on)}
+.meter{background:var(--hover);border-radius:9999px}
+.meter>i,.bar>i{background:var(--acc);border-radius:9999px}
+
+/* floating */
+.pub{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--float)}
+.sheet{background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:var(--r-xl) var(--r-xl) 0 0;box-shadow:var(--float);animation:sheetin .22s var(--ease)}
+.sheet>.between:first-child{background:var(--card)}
+.modal{background:color-mix(in srgb,#000 55%,transparent)}
+.toast{background:var(--text);color:var(--bg);border-radius:var(--r-md);box-shadow:var(--float)}
+@keyframes sheetin{from{transform:translateY(16px);opacity:.6}}
+
+/* header + status */
+.hdr{align-items:flex-start}
+.hdr-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.hdr-status{display:flex;gap:6px;align-items:center}
+.themeb{width:40px;height:40px;border-radius:var(--r-md);border:1px solid transparent;background:transparent;color:var(--text);display:inline-flex;align-items:center;justify-content:center}
+.themeb:hover{background:var(--hover)}
+.themeb svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.side-brand,.side-foot{display:none}
+
+/* tab bar (mobile) */
+.tabs{background:color-mix(in srgb,var(--card) 92%,transparent);border-color:var(--line)}
+.tabs button{background:transparent;color:var(--muted);font-weight:500;border-radius:var(--r-md)}
+.tabs button[aria-pressed=true]{background:transparent;color:var(--acc-hi);box-shadow:none}
+@media (max-width:640px){
+  .tabs{border-top:1px solid var(--line);box-shadow:none}
+  .tabs button[aria-pressed=true] .ti{background:transparent;color:var(--acc-hi)}
+  .tabs button[aria-pressed=true] svg{stroke-width:2.4}
+  h1{font-size:28px}
+}
+
+/* desktop: 240px sidebar */
+@media (min-width:1024px){
+  .tabs{position:fixed;top:0;left:0;bottom:0;width:240px;margin:0;padding:24px 16px;display:flex;flex-direction:column;gap:4px;
+    background:var(--card);border:0;border-right:1px solid var(--line);backdrop-filter:none;-webkit-backdrop-filter:none;z-index:30}
+  .tabs button{justify-content:flex-start;gap:12px;padding:0 12px;min-height:44px;font-size:14px;color:var(--fg2)}
+  .tabs button:hover{background:var(--hover)}
+  .tabs button[aria-pressed=true]{background:var(--acc-bg);color:var(--acc-bg-on)}
+  .side-brand{display:flex;flex-direction:column;gap:2px;padding:0 8px 20px}
+  .side-brand span{font-size:11px;font-weight:600;letter-spacing:.4px;color:var(--muted)}
+  .side-brand b{font-size:16px}
+  .side-foot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding:16px 8px 0;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+  .wrap{max-width:none;margin-left:240px;padding:28px 32px 120px}
+  .wrap>main{max-width:1100px}
+  .pub{left:calc(240px + 32px);right:32px;max-width:760px;margin:0 auto}
+}
+
+.hdr.st{display:flex;flex-direction:column;align-items:stretch;gap:2px}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:40px}
+.hdr-top .eyebrow{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0}
+.hdr-status{flex:none;gap:6px}
+.hdr-main{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.hdr-main h1{margin:0}
+.hdr-act{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dchip[aria-pressed=true] b,.dchip[aria-pressed=true] span,.dchip[aria-pressed=true] small{color:var(--acc-bg-on) !important}
+.dchip[aria-pressed=true] i{background:color-mix(in srgb,var(--acc) 30%,transparent) !important}
+.dchip[aria-pressed=true] i::after{background:var(--acc) !important}
+
+.wday{align-items:flex-start;text-align:left;padding:10px 12px;gap:2px;font-size:11px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;color:var(--muted)}
+.wday b{font-size:13px;-webkit-line-clamp:2;text-align:left}
+.wday.now{box-shadow:none;border-color:var(--acc);background:var(--acc-bg);color:var(--acc-bg-on)}
+.wday.now b{color:var(--acc-bg-on)}
+.wday:not(.set):not(.now){background:var(--card2)}
+@media (max-width:640px){.week{grid-template-columns:repeat(2,minmax(0,1fr)) !important}.week .wday:last-child:nth-child(odd){grid-column:1/-1}}
 </style>
 </head>
 <body>
@@ -542,9 +720,28 @@ const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 try { const t = localStorage.getItem(LS_TAB); S.tab = TABS.some(([k]) => k === t) ? t : 'day'; } catch { S.tab = 'day'; }
 
 function tabs() {
-  return `<nav class="tabs" aria-label="Sections">${TABS.map(([k, l]) => `<button type="button" data-tab="${k}" aria-pressed="${S.tab === k}"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg></span><span class="tl">${l}</span></button>`).join('')}</nav>`;
+  return `<nav class="tabs" aria-label="Sections"><div class="side-brand"><span>SAPNA HEALTH</span><b>Admin</b></div>${TABS.map(([k, l]) => `<button type="button" data-tab="${k}" aria-pressed="${S.tab === k}"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg></span><span class="tl">${l}</span></button>`).join('')}<div class="side-foot"><span>Her phone</span>${phoneTag()}</div></nav>`;
 }
-const hdr = (eyebrow, title, right = '') => `<header class="hdr"><div style="min-width:0"><p class="eyebrow">${eyebrow}</p><h1>${title}</h1></div>${right}</header>`;
+const hdr = (eyebrow, title, right = '') => `<header class="hdr st"><div class="hdr-top"><p class="eyebrow">${eyebrow}</p><div class="hdr-status">${hdrStatus()}${themeBtn()}</div></div><div class="hdr-main"><h1>${title}</h1>${right ? `<div class="hdr-act">${right}</div>` : ''}</div></header>`;
+/** Her phone: Live (reported in the last 3 min) · last seen · nothing yet */
+function phoneTag() {
+  const r = S.syncReport || S.report; const at = r ? Date.parse(r.generatedAt || '') || 0 : 0;
+  if (!syncCfg() || !at) return '<span class="tag muted">Not linked</span>';
+  return Date.now() - at < 3 * 60e3 ? '<span class="tag on">Live</span>' : `<span class="tag muted">${ago(at)}</span>`;
+}
+function hdrStatus() {
+  const q = syncCfg() ? pendingOps().length : 0;
+  return `${q ? `<span class="tag pending">${q} queued</span>` : ''}${syncCfg() ? phoneTag() : ''}`;
+}
+const themeNow = () => document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+const themeBtn = () => `<button type="button" class="themeb" data-theme-toggle aria-label="Switch to ${themeNow() === 'dark' ? 'light' : 'dark'} theme" title="Theme"><svg viewBox="0 0 24 24" aria-hidden="true">${themeNow() === 'dark' ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' : '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'}</svg></button>`;
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('[data-theme-toggle]')) return;
+  const next = themeNow() === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem('sapna_admin_theme', next); } catch {}
+  render();
+});
 const refreshBtn = () => (syncCfg() ? `<button class="ib" type="button" id="srefresh" aria-label="Refresh her data" title="Refresh">${S.sync.status === 'loading' ? '<span class="spin"></span>' : '<svg viewBox="0 0 24 24" class="ic" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v5h-5"/></svg>'}</button>` : '');
 
 function render() {
