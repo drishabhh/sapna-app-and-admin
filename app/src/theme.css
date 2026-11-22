@@ -477,3 +477,122 @@ p { margin: 0; }
 .plan-note-more{flex:none;font-weight:700;color:var(--acc-t)}
 .move-title{font-size:clamp(22px,6.6vw,28px);line-height:1.15;text-align:center;margin-top:6px;text-wrap:balance;overflow-wrap:anywhere;flex:none}
 .chart-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;border:1px dashed var(--line);border-radius:16px}
+
+/* =====================================================================
+   Workout redesign (open-design Apple layout) + neon effects + smooth motion
+   Motion uses transform/opacity only; everything stops for reduced motion.
+   ===================================================================== */
+:root { --spring: cubic-bezier(0.16, 1, 0.3, 1); --pop: cubic-bezier(0.3, 1.6, 0.5, 1); --neon-2: var(--pink); --neon-3: var(--cyan); }
+
+/* Today: the plan in three parts */
+.plan-parts { list-style: none; margin: 14px 0 0; padding: 4px 14px; border-radius: 20px; background: color-mix(in srgb, var(--bg) 70%, transparent); display: flex; flex-direction: column; }
+.plan-parts li { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.plan-parts li:last-child { border-bottom: 0; }
+.pp-n { width: 30px; height: 30px; flex: none; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 13px; color: var(--acc-t); background: color-mix(in srgb, var(--acc) 14%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--acc) 40%, transparent), 0 0 14px -2px color-mix(in srgb, var(--acc) 55%, transparent); }
+.pp-t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pp-t strong { font-size: 16px; }
+
+/* Session: three-part progress */
+.wk-prog { display: grid; gap: 6px; }
+.wk-prog > span { height: 6px; border-radius: 99px; background: var(--card-2); overflow: hidden; }
+.wk-prog > span > i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--acc), color-mix(in srgb, var(--acc) 55%, var(--neon-2))); box-shadow: 0 0 12px var(--acc); transition: width 0.6s var(--spring); }
+.wk-prog > span.now { background: color-mix(in srgb, var(--acc) 18%, var(--card-2)); }
+.wk-prog-l { display: grid; gap: 6px; margin-top: 6px; font-size: 11px; font-weight: 700; color: var(--faint); }
+.wk-prog-l .now { color: var(--text); }
+
+/* Sets */
+.set-track { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 8px; }
+.set-track li { border-radius: 16px; padding: 9px 8px; background: var(--card-2); display: flex; flex-direction: column; align-items: center; gap: 1px; transition: background 0.3s ease, box-shadow 0.3s ease; }
+.set-track li span { font-size: 12px; font-weight: 700; color: var(--faint); }
+.set-track li b { font-size: 15px; color: var(--faint); }
+.set-track li.done b { color: var(--acc-t); text-shadow: 0 0 12px color-mix(in srgb, var(--acc) 70%, transparent); }
+.set-track li.done { animation: pop-in 0.45s var(--pop) both; }
+.set-track li.now { box-shadow: inset 0 0 0 2px var(--acc), 0 0 18px -4px var(--acc); }
+.set-track li.now b, .set-track li.now span { color: var(--text); }
+.done-line { display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; }
+.done-line .btn.quiet { min-height: 32px; padding: 0 8px; }
+
+/* Stretch hold ring */
+.hold { display: flex; justify-content: center; padding: 4px 0; }
+.hold-ring { position: relative; width: 168px; height: 168px; border: 0; padding: 0; background: none; color: var(--text); border-radius: 50%; }
+.hold-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+.hold-bg { fill: none; stroke: var(--card-2); stroke-width: 11; }
+.hold-fg { fill: none; stroke: var(--acc); stroke-width: 11; stroke-linecap: round; transition: stroke-dashoffset 0.25s linear; filter: drop-shadow(0 0 6px var(--acc)) drop-shadow(0 0 14px color-mix(in srgb, var(--acc) 60%, transparent)); }
+.hold-t { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.hold-t b { font-family: var(--display); font-size: 42px; font-weight: 800; letter-spacing: -0.03em; }
+.hold-t small { font-size: 12px; color: var(--muted); font-weight: 600; }
+.hold-ring.run .hold-t b { text-shadow: 0 0 18px color-mix(in srgb, var(--acc) 60%, transparent); }
+
+/* End review */
+.skip-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.skip-list li { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 20px; background: var(--card); border: 1px solid var(--line); animation: rise 0.5s var(--spring) both; }
+.skip-list .thumb { width: 60px; height: 60px; border-radius: 14px; object-fit: cover; background: #fff; flex: none; }
+.review-stats { text-align: center; }
+.review-stats > div { display: flex; flex-direction: column; gap: 2px; }
+.review-stats .big { font-size: 28px; }
+.review-stats small { font-size: 15px; }
+
+/* ---------- Neon ---------- */
+@property --na { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+.neon-ring { position: relative; isolation: isolate; }
+.neon-ring::before {
+  content: ''; position: absolute; inset: -1px; border-radius: inherit; padding: 1.5px; pointer-events: none; z-index: 2;
+  background: conic-gradient(from var(--na), var(--acc), var(--neon-2), var(--neon-3), var(--violet), var(--acc));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: neon-spin 6s linear infinite;
+}
+.card.hero.neon-ring { border-color: transparent; box-shadow: 0 0 30px -8px color-mix(in srgb, var(--acc) 55%, transparent), 0 0 70px -24px color-mix(in srgb, var(--neon-2) 60%, transparent); }
+@keyframes neon-spin { to { --na: 360deg; } }
+
+.btn.neon { position: relative; overflow: hidden; isolation: isolate;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--acc) 70%, #fff), 0 0 18px color-mix(in srgb, var(--acc) 65%, transparent), 0 12px 40px -10px color-mix(in srgb, var(--acc) 80%, transparent); }
+.btn.neon::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.55) 50%, transparent 65%); transform: translateX(-120%); animation: sheen 3.6s var(--spring) infinite 1.2s; }
+@keyframes sheen { 0%, 55% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+
+.media-card { box-shadow: 0 0 0 1px color-mix(in srgb, var(--acc) 35%, transparent), 0 0 34px -10px color-mix(in srgb, var(--acc) 70%, transparent); }
+.tabbar button[aria-current='page'] { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--acc) 40%, transparent), 0 0 20px -6px var(--acc); text-shadow: 0 0 10px color-mix(in srgb, var(--acc) 70%, transparent); }
+.tabbar button[aria-current='page'] svg { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--acc) 80%, transparent)); }
+.screen header .h1 {
+  background: linear-gradient(100deg, var(--text) 0 40%, var(--acc-t) 50%, var(--text) 60% 100%); background-size: 250% 100%; background-position: 100% 0;
+  -webkit-background-clip: text; background-clip: text; color: transparent; animation: title-glint 7s ease-in-out infinite 0.6s;
+}
+@keyframes title-glint { 0%, 70% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+
+@media (prefers-color-scheme: light) {
+  .card.hero.neon-ring { box-shadow: 0 0 24px -10px color-mix(in srgb, var(--acc) 45%, transparent); }
+  .btn.neon { box-shadow: 0 10px 28px -10px color-mix(in srgb, var(--acc) 80%, transparent); }
+  .wk-prog > span > i, .tabbar button[aria-current='page'] { box-shadow: none; }
+  .hold-fg { filter: none; }
+  .set-track li.done b, .tabbar button[aria-current='page'] { text-shadow: none; }
+}
+
+/* ---------- Smooth motion ---------- */
+.btn, .icon-btn, .chip, .tabbar button, .list-row, .hold-ring { transition: transform 0.35s var(--pop), background-color 0.25s ease, color 0.25s ease, box-shadow 0.3s ease, opacity 0.2s ease; -webkit-tap-highlight-color: transparent; }
+.btn:active, .icon-btn:active, .chip:active, .tabbar button:active, .list-row:active { transform: scale(0.95); transition-duration: 0.12s; }
+.hold-ring:active { transform: scale(0.97); }
+.sheet { animation: up 0.42s var(--spring); }
+.fullsheet { animation: sheet-in 0.42s var(--spring); }
+.overlay { animation: fade 0.25s ease; }
+.toast { animation: drop 0.4s var(--pop); }
+@keyframes sheet-in { from { transform: translate3d(0, 6%, 0) scale(0.98); opacity: 0; } }
+@keyframes rise { from { transform: translate3d(0, 14px, 0); opacity: 0; } }
+@keyframes pop-in { from { transform: scale(0.85); opacity: 0.4; } }
+@keyframes mv-in { from { transform: translate3d(26px, 0, 0); opacity: 0; } }
+.mv-in { animation: mv-in 0.42s var(--spring) both; }
+.plan-parts li { animation: rise 0.55s var(--spring) both; }
+@media (prefers-reduced-motion: no-preference) {
+  .screen > .stack > *:not(.glow) { animation: rise 0.55s var(--spring) both; }
+  .screen > .stack > *:nth-child(2) { animation-delay: 0.05s; }
+  .screen > .stack > *:nth-child(3) { animation-delay: 0.1s; }
+  .screen > .stack > *:nth-child(4) { animation-delay: 0.15s; }
+  .screen > .stack > *:nth-child(5) { animation-delay: 0.2s; }
+  .screen > .stack > *:nth-child(n+6) { animation-delay: 0.25s; }
+  .glow { animation: aurora 14s ease-in-out infinite alternate; transform-origin: 70% 0; will-change: transform, opacity; }
+}
+@keyframes aurora { 0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.85; } 50% { transform: translate3d(-6%, 2%, 0) scale(1.08); opacity: 1; } 100% { transform: translate3d(4%, -1%, 0) scale(1.03); opacity: 0.9; } }
+
+.review-actions { gap: 8px; padding: 12px 18px calc(var(--sb) + 18px); border-top: 1px solid var(--line); background: var(--bg-2); }
+.hold-ring { width: clamp(132px, 19vh, 168px); height: clamp(132px, 19vh, 168px); }
+.hold-t b { font-size: clamp(32px, 5vh, 42px); }

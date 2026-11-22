@@ -43,6 +43,8 @@ export interface PlanMove {
   alt?: { exId: string; yt?: string };
   /** rest between sets, seconds (default 75) */
   rest?: number;
+  /** a cool-down stretch (Rishu's Cool-down section) */
+  cool?: boolean;
 }
 
 /** Rishu's weekly progression for a plan: + stepKg on each move's start kg every week, with an easy week every N. */
