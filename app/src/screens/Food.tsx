@@ -71,7 +71,7 @@ export default function FoodScreen() {
           return (
             <section key={m.id} className="card" aria-label={m.label} style={{ padding: 14 }}>
               <div className="between">
-                <div><h2 className="h3" style={{ fontSize: 17 }}>{m.label}</h2><p className="small muted">{mt.kcal} kcal · {mt.protein} g protein</p></div>
+                <div><h2 className="h3" style={{ fontSize: 17 }}>{m.label}</h2><p className="small muted mono">{mt.kcal} kcal · {mt.protein} g protein</p></div>
                 <button type="button" className="icon-btn solid" aria-label={`Add to ${m.label}`} onClick={() => nav.openLogger(m.id, day)}><Icon name="plus" size={20} stroke={2.6} /></button>
               </div>
               {!mt.entries.length ? plansFor(m.id).map((x) => {
@@ -96,7 +96,7 @@ export default function FoodScreen() {
                     <button key={e.id} type="button" className="between" style={{ border: 'none', background: 'transparent', color: 'var(--text)', padding: '11px 2px', borderTop: '1px solid var(--line)', textAlign: 'left', minHeight: 48 }}
                       onClick={() => setEditId(e.id)}>
                       <span style={{ minWidth: 0 }}><strong style={{ fontWeight: 600 }}>{e.name}</strong> <span className="small muted">{e.mult !== 1 ? `${e.mult}× ` : ''}{e.portion}</span></span>
-                      <span className="small" style={{ whiteSpace: 'nowrap' }}>{e.kcal} kcal</span>
+                      <span className="small mono" style={{ whiteSpace: 'nowrap' }}>{e.kcal} kcal</span>
                     </button>
                   ))}
                 </div>

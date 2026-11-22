@@ -596,3 +596,64 @@ p { margin: 0; }
 .review-actions { gap: 8px; padding: 12px 18px calc(var(--sb) + 18px); border-top: 1px solid var(--line); background: var(--bg-2); }
 .hold-ring { width: clamp(132px, 19vh, 168px); height: clamp(132px, 19vh, 168px); }
 .hold-t b { font-size: clamp(32px, 5vh, 42px); }
+
+
+/* =====================================================================
+   Stitch design ("Sapna Health" app export): solid surfaces + hairlines, HUD dot grid on hero cards,
+   JetBrains Mono for small numbers and times, pulsing neon rings, amber/coral/cyan workout border.
+   ===================================================================== */
+:root {
+  --bg: #0C0C10; --bg-2: #13131A; --card: #181822; --card-solid: #181822; --card-2: #1F1F2B; --card-3: #282836;
+  --line: #282838; --line-2: #36364A; --text: #F5F5F8; --muted: #A3A3B5; --faint: #8A8A9E;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --r-lg: 24px; --r-md: 20px; --r-sm: 14px;
+}
+@media (prefers-color-scheme: light) {
+  :root { --bg: #F7F7FA; --bg-2: #F1F2F6; --card: #FFFFFF; --card-solid: #FFFFFF; --card-2: #F1F2F6; --card-3: #E8EAF0; --line: #D5D7E2; --line-2: #C3C6D3; --text: #14141A; --muted: #525260; --faint: #686878; }
+}
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.card { background: var(--card); border: 1px solid var(--line); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.card.hero {
+  background-color: var(--card);
+  background-image: radial-gradient(color-mix(in srgb, var(--acc) 13%, transparent) 1px, transparent 1px), linear-gradient(160deg, color-mix(in srgb, var(--acc) 10%, transparent), transparent 55%);
+  background-size: 16px 16px, 100% 100%;
+  border-color: color-mix(in srgb, var(--acc) 38%, var(--line));
+  box-shadow: 0 0 32px -6px color-mix(in srgb, var(--acc) 38%, transparent), inset 0 1px 0 0 rgba(255, 255, 255, 0.07);
+}
+@media (prefers-color-scheme: light) { .card.hero { box-shadow: 0 0 26px -10px color-mix(in srgb, var(--acc) 45%, transparent); } }
+.list-row { background: var(--card); border-color: var(--line); }
+.icon-btn { background: var(--card-2); border-color: var(--line); }
+.chip { background: var(--card-2); border-color: var(--line); }
+.tabbar { background: color-mix(in srgb, var(--card) 94%, transparent); border-color: var(--line); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.tabbar button[aria-current='page'] { background: color-mix(in srgb, var(--acc) 16%, transparent); }
+
+/* rings: steady glow that breathes */
+.ring-neon { filter: drop-shadow(0 0 6px var(--rc)); }
+@media (prefers-reduced-motion: no-preference) {
+  .ring-neon { animation: ring-pulse 3s ease-in-out infinite; }
+}
+@keyframes ring-pulse { 0%, 100% { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--rc) 60%, transparent)); } 50% { filter: drop-shadow(0 0 14px color-mix(in srgb, var(--rc) 90%, transparent)); } }
+@media (prefers-color-scheme: light) { .ring-neon { animation: none; filter: none; } }
+
+/* workout card: Stitch's amber → coral → cyan spinning border */
+.neon-ring::before { background: conic-gradient(from var(--na), var(--amber), var(--coral), transparent 35%, var(--cyan) 65%, var(--amber)); padding: 2px; }
+.card.hero.neon-ring { box-shadow: 0 0 36px -10px color-mix(in srgb, var(--amber) 45%, transparent); }
+
+/* three parts as separate rows, numbers in mono */
+.plan-parts { background: transparent; padding: 0; gap: 8px; }
+.plan-parts li { border: 1px solid var(--line); border-radius: 16px; background: var(--card-2); padding: 11px 12px; }
+.plan-parts li:last-child { border-bottom: 1px solid var(--line); }
+.plan-parts .small, .plan-parts .pp-t .small { font-family: var(--mono); font-size: 12px; }
+.pp-n { box-shadow: none; background: color-mix(in srgb, var(--acc) 18%, transparent); }
+.plan-note { border: 1px solid var(--line); }
+
+/* live workout */
+.set-track b, .rest-t b, .hold-t small, .wk-prog-l { font-family: var(--mono); }
+.set-track li { border: 1px solid var(--line); }
+.set-track li.done { background: color-mix(in srgb, var(--acc) 12%, var(--card-2)); border-color: color-mix(in srgb, var(--acc) 40%, var(--line)); }
+.rest { border: 1px solid color-mix(in srgb, var(--acc) 35%, var(--line)); }
+.btn.quiet.allmoves { color: var(--text); background: var(--card-2); border-radius: 999px; padding: 0 18px; }
+.coach { border: 1px solid color-mix(in srgb, var(--acc) 35%, var(--line)); }
+
+/* rise like Stitch: 420ms spring with a hint of scale */
+@keyframes rise { from { transform: translate3d(0, 14px, 0) scale(0.98); opacity: 0; } }

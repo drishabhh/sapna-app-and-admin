@@ -349,9 +349,9 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
         <>
           <div className="row" style={{ padding: 'calc(var(--st) + 12px) 18px 6px' }}>
             <button type="button" className="icon-btn" aria-label="Minimise session" onClick={onClose}><Icon name="back" /></button>
-            <div style={{ flex: 1, gap: 1, minWidth: 0 }} className="stack">
-              <strong style={{ fontSize: 16 }}>{SEC_NAME[sec]} · {secPos} of {secMoves.length}</strong>
-              <span className="small muted">{elapsed ? `${elapsed} min in` : 'Just started'}</span>
+            <div style={{ flex: 1, gap: 1, minWidth: 0, alignItems: 'center', textAlign: 'center' }} className="stack">
+              <strong style={{ fontSize: 16, fontFamily: 'var(--display)' }}>{SEC_NAME[sec]} · {secPos} of {secMoves.length}</strong>
+              <span className="small mono acc-t">{elapsed ? `${elapsed} min in` : 'Just started'}</span>
             </div>
             <button type="button" className="btn sm ghost" onClick={askEnd}>End</button>
           </div>
@@ -453,7 +453,7 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
             )}
             <div className="between">
               <button type="button" className="btn quiet" disabled={idx === 0} onClick={() => setIdx(idx - 1)}>Previous</button>
-              <button type="button" className="btn quiet" style={{ color: 'var(--text)' }} onClick={() => setListOpen(true)}>All moves</button>
+              <button type="button" className="btn quiet allmoves" onClick={() => setListOpen(true)}>All moves</button>
               <button type="button" className="btn quiet" disabled={idx >= moves.length - 1} onClick={() => setIdx(idx + 1)}>Skip</button>
             </div>
           </div>

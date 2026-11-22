@@ -86,7 +86,7 @@ export function Ring({ value, max, size = 168, stroke = 14, color = 'var(--acc)'
         {pct > 0.001 ? <circle
           cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round"
           strokeDasharray={`${c * pct} ${c}`} transform={`rotate(-90 ${size / 2} ${size / 2})`}
-          style={{ filter: `drop-shadow(0 0 8px ${color})` }}
+          className="ring-neon" style={{ ['--rc' as string]: color }}
         /> : null}
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>

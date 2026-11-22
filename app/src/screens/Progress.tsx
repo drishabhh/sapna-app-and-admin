@@ -60,7 +60,7 @@ export default function ProgressScreen() {
             <span className="big" style={{ fontSize: 30 }}>{logged.length ? <><Num key={metric} value={Math.round(avg)} />{metric === 'kcal' ? ' kcal' : ' g'}</> : '—'}</span>
             <span className="small muted">daily average</span>
           </div>
-          {!logged.length ? (
+          {!vals.some((v) => v.count > 0) ? (
             <div className="chart-empty" style={{ height: H }}><p className="muted">No food logged {isThisWeek ? 'this week yet' : 'that week'}.</p>{isThisWeek ? <p className="small muted">Log a meal and your bars show up here.</p> : null}</div>
           ) : <div className="chart" role="img" aria-label={`${metric === 'kcal' ? 'Calories' : 'Protein'} per day: ${vals.map((v) => `${DOW_SHORT[parseKey(v.k).getDay()]} ${metric === 'kcal' ? v.kcal : v.protein}`).join(', ')}`} style={{ height: H }}>
             <span className="target" style={{ bottom: (target / max) * H }} />
