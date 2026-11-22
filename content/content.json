@@ -1,6 +1,6 @@
 {
- "version": 67,
- "updatedAt": "2026-11-21T08:14:51.893Z",
+ "version": 68,
+ "updatedAt": "2026-11-22T06:30:19.647Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -549,17 +549,6 @@
      "sets": 2,
      "reps": 12,
      "rest": 120
-    },
-    {
-     "exId": "local-cable-row",
-     "sets": 2,
-     "reps": 12,
-     "rest": 120
-    },
-    {
-     "exId": "lib-dumbbell-lateral-raise",
-     "sets": 2,
-     "reps": 12
     },
     {
      "exId": "triceps-cable-overhead-triceps-extension-rope-attachment",
