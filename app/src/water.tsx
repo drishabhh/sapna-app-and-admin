@@ -52,7 +52,7 @@ export function WaterCard({ onOpen }: { onOpen: () => void }) {
       <div className="between"><strong className="row" style={{ gap: 6 }}><Icon name="drop" size={18} /> Water</strong>{pct >= 100 ? <span className="acc-t small" style={{ fontWeight: 800 }}>Done ✓</span> : null}</div>
       <div className="row" style={{ gap: 10, alignItems: 'flex-end' }}>
         <WaterGlass pct={pct} w={34} h={48} label={false} />
-        <p className="big" style={{ fontSize: 24, whiteSpace: 'nowrap' }}>{fmtL(ml)}<span className="small muted" style={{ fontFamily: 'var(--body)', fontWeight: 600 }}> / {fmtL(g.ml)}</span></p>
+        <p className="big" style={{ fontSize: 24 }}><span className="nowrap">{fmtL(ml)}</span> <span className="small muted nowrap" style={{ fontFamily: 'var(--body)', fontWeight: 600, display: 'inline-block' }}>/ {fmtL(g.ml)}</span></p>
       </div>
       <button type="button" className="btn sm" style={{ whiteSpace: 'nowrap', padding: '0 8px' }} aria-label={`Drink ${cup} ml`}
         onClick={(e) => { e.stopPropagation(); drink(() => latest.current, update, content, cup); }}>

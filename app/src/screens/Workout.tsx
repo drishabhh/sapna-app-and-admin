@@ -349,8 +349,8 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
         <>
           <div className="row" style={{ padding: 'calc(var(--st) + 12px) 18px 6px' }}>
             <button type="button" className="icon-btn" aria-label="Minimise session" onClick={onClose}><Icon name="back" /></button>
-            <div style={{ flex: 1, gap: 1, minWidth: 0, alignItems: 'center', textAlign: 'center' }} className="stack">
-              <strong style={{ fontSize: 16, fontFamily: 'var(--display)' }}>{SEC_NAME[sec]} · {secPos} of {secMoves.length}</strong>
+            <div style={{ flex: 1, gap: 1, minWidth: 0, alignItems: 'center', textAlign: 'center' }} className="stack wk-title">
+              <strong className="ellip" style={{ fontSize: 16, fontFamily: 'var(--display)', maxWidth: '100%' }}><span className="t-long">{SEC_NAME[sec]} · {secPos} of {secMoves.length}</span><span className="t-short">{SEC_NAME[sec]} {secPos}/{secMoves.length}</span></strong>
               <span className="small mono acc-t">{elapsed ? `${elapsed} min in` : 'Just started'}</span>
             </div>
             <button type="button" className="btn sm ghost" onClick={askEnd}>End</button>
@@ -451,10 +451,10 @@ function SessionView({ open, plan, onClose }: { open: boolean; plan: Plan; onClo
             ) : (
               <button type="button" className="btn lg block neon" onClick={complete}><Icon name="check" size={20} stroke={2.6} /> Done</button>
             )}
-            <div className="between">
-              <button type="button" className="btn quiet" disabled={idx === 0} onClick={() => setIdx(idx - 1)}>Previous</button>
-              <button type="button" className="btn quiet allmoves" onClick={() => setListOpen(true)}>All moves</button>
-              <button type="button" className="btn quiet" disabled={idx >= moves.length - 1} onClick={() => setIdx(idx + 1)}>Skip</button>
+            <div className="wk-nav">
+              <button type="button" className="btn quiet" data-fit data-fit-group="wknav" disabled={idx === 0} onClick={() => setIdx(idx - 1)}><Icon name="prev" size={18} /><span className="lbl">Previous</span></button>
+              <button type="button" className="btn quiet allmoves" data-fit data-fit-group="wknav" onClick={() => setListOpen(true)}><Icon name="list" size={18} /><span className="lbl">All moves</span></button>
+              <button type="button" className="btn quiet" data-fit data-fit-group="wknav" disabled={idx >= moves.length - 1} onClick={() => setIdx(idx + 1)}><span className="lbl">Skip</span><Icon name="skip" size={18} /></button>
             </div>
           </div>
         </>

@@ -32,6 +32,23 @@ public class MainActivity extends BridgeActivity {
                 return true;
             }
         });
+        capTextZoom();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        capTextZoom(); // she may have changed the phone's font size while away
+    }
+
+    /** Follow the phone's font size (Samsung "Font size" / Android "Display size and text"), but only up to 130%,
+     *  so very large settings can't push cards, tiles and buttons out of shape. The web layer is built for 85–130%. */
+    private void capTextZoom() {
+        try {
+            if (bridge == null || bridge.getWebView() == null) return;
+            int z = Math.round(getResources().getConfiguration().fontScale * 100f);
+            bridge.getWebView().getSettings().setTextZoom(Math.max(85, Math.min(130, z)));
+        } catch (Exception ignored) { }
     }
 
     @Override

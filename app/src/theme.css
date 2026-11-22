@@ -657,3 +657,64 @@ p { margin: 0; }
 
 /* rise like Stitch: 420ms spring with a hint of scale */
 @keyframes rise { from { transform: translate3d(0, 14px, 0) scale(0.98); opacity: 0; } }
+
+
+/* =====================================================================
+   Responsive: every card, tile and button copes with narrow phones (Galaxy Z Fold cover 344px, 320px)
+   and large system font (up to 130% — MainActivity caps the WebView text zoom there).
+   em-based container queries scale with the font size, so big text gets the narrow layout too.
+   ===================================================================== */
+.nowrap { white-space: nowrap; }
+.ellip { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.row > *, .between > *, .stack > * { min-width: 0; }
+.card, .list-row, .sheet, .fullsheet { overflow-wrap: break-word; }
+.big, .num { overflow-wrap: normal; word-break: keep-all; }
+.btn, .chip, .pill, .icon-btn, .tag { flex-shrink: 0; }
+.btn { max-width: 100%; }
+.btn.block { flex-shrink: 1; }
+
+/* icon-only when the label doesn't fit (lib/fit.ts) */
+[data-fit] .lbl { min-width: 0; max-width: 100%; overflow: hidden; white-space: nowrap; }
+[data-fit].icon-only .lbl { display: none; }
+.tabbar button { min-width: 0; padding: 0 2px; }
+.tabbar button.icon-only svg { width: 26px; height: 26px; }
+
+/* segmented controls never push past the screen */
+.seg { grid-auto-columns: minmax(0, 1fr); }
+.seg button { min-width: 0; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* workout bottom row: three equal cells, icon + label */
+.wk-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; align-items: center; }
+.wk-nav .btn { width: 100%; min-width: 0; gap: 6px; padding: 0 6px; }
+.wk-nav .btn:first-child { justify-content: flex-start; }
+.wk-nav .btn:last-child { justify-content: flex-end; }
+.wk-nav .btn.icon-only { justify-content: center; }
+.wk-nav .btn.allmoves { justify-self: center; width: auto; max-width: 100%; }
+
+/* containers */
+.screen { container: screen / inline-size; }
+.card.hero { container-type: inline-size; }
+@container screen (max-width: 19.5em) {
+  .grid2 { grid-template-columns: minmax(0, 1fr); }
+  .grid3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid3 > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .h1 { font-size: 34px; }
+}
+/* Today's calorie card: ring on top, numbers in a row underneath */
+@container (max-width: 17em) {
+  .hero-row { flex-direction: column; align-items: stretch; gap: 14px !important; }
+  .hero-row > :first-child { align-self: center; }
+  .hero-stats { display: grid !important; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); text-align: center; gap: 6px !important; }
+  .hero-stats .big { font-size: 22px !important; }
+  .hero-earn { display: block; margin-top: 4px; }
+}
+.row > svg, .between > svg, .row > span:has(> svg:only-child), .between > span:has(> svg:only-child), .icon-btn, .pp-n, .move-num { flex-shrink: 0; }
+.between > [style*="nowrap"], .row > [style*="nowrap"], .between > .nowrap, .row > .nowrap { flex-shrink: 0; }
+
+/* live-workout title: "Exercises · 2 of 4" → "Exercises 2/4" when the middle gets tight */
+.wk-title { container-type: inline-size; }
+.wk-title .t-short { display: none; }
+@container (max-width: 11.5em) { .wk-title .t-long { display: none; } .wk-title .t-short { display: inline; } }
+/* segmented controls: smaller labels before they shorten */
+.seg { container-type: inline-size; }
+@container (max-width: 19em) { .seg button { font-size: 12.5px; padding: 0 3px; } }

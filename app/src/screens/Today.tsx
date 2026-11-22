@@ -83,15 +83,15 @@ export default function Today() {
         ) : null}
 
         <section className="card hero" aria-label="Calories and protein">
-          <div className="row" style={{ gap: 18 }}>
+          <div className="row hero-row" style={{ gap: 18 }}>
             <Ring value={t.kcal} max={content.targets.kcal + earned} label={`${t.kcal} of ${content.targets.kcal} kcal eaten`} color={left < 0 ? 'var(--danger)' : 'var(--acc)'}>
               <span className="big" style={{ fontSize: 40 }}><Num value={Math.abs(left)} duration={1100} /></span>
               <span className="small muted">{left >= 0 ? 'kcal left' : 'kcal over'}</span>
             </Ring>
-            <div className="stack" style={{ gap: 12, minWidth: 0 }}>
+            <div className="stack hero-stats" style={{ gap: 12, minWidth: 0 }}>
               <div><p className="eyebrow">Eaten</p><p className="big" style={{ fontSize: 26 }}><Num value={t.kcal} /></p></div>
               <div><p className="eyebrow">Target</p><p className="big" style={{ fontSize: 26 }}><Num value={content.targets.kcal} /></p></div>
-              {burned ? <div data-acc="workout"><p className="eyebrow acc-t">Burned</p><p className="big" style={{ fontSize: 22 }}><Num value={burned} /><span className="small muted" style={{ fontFamily: 'var(--body)', fontWeight: 600 }}> · +{earned} to eat</span></p></div> : null}
+              {burned ? <div data-acc="workout"><p className="eyebrow acc-t">Burned</p><p className="big" style={{ fontSize: 22 }}><Num value={burned} /><span className="small muted hero-earn" style={{ fontFamily: 'var(--body)', fontWeight: 600 }}> · +{earned} to eat</span></p></div> : null}
             </div>
           </div>
           <div className="stack" style={{ gap: 8, marginTop: 18 }} data-acc="food">

@@ -314,9 +314,9 @@ function Shell() {
 
         <nav className="tabbar" aria-label="Main" data-acc={tab}>
           {TABS.map((t) => (
-            <button key={t.id} type="button" aria-current={tab === t.id ? 'page' : undefined} data-acc={t.id} onClick={() => go(t.id)}>
+            <button key={t.id} type="button" aria-current={tab === t.id ? 'page' : undefined} data-acc={t.id} data-fit data-fit-group="tabs" onClick={() => go(t.id)}>
               <Icon name={t.icon} size={22} stroke={tab === t.id ? 2.3 : 1.9} />
-              {t.label}
+              <span className="lbl">{t.label}</span>
             </button>
           ))}
         </nav>
