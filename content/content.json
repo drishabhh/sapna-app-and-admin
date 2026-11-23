@@ -1,6 +1,6 @@
 {
- "version": 71,
- "updatedAt": "2026-11-22T09:30:03.446Z",
+ "version": 72,
+ "updatedAt": "2026-11-23T07:34:42.962Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -19,7 +19,7 @@
     {
      "exId": "custom-cycle-fci6",
      "sets": 1,
-     "reps": 4,
+     "reps": 15,
      "unit": "min"
     },
     {
@@ -64,6 +64,12 @@
      "exId": "lib-leg-extension",
      "sets": 2,
      "reps": 15
+    },
+    {
+     "exId": "local-cycle-walk",
+     "sets": 1,
+     "reps": 15,
+     "unit": "min"
     },
     {
      "exId": "lib-quadriceps-stretch",
