@@ -1,6 +1,6 @@
 {
- "version": 72,
- "updatedAt": "2026-11-23T07:34:42.962Z",
+ "version": 73,
+ "updatedAt": "2026-11-23T07:34:58.058Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -19,7 +19,7 @@
     {
      "exId": "custom-cycle-fci6",
      "sets": 1,
-     "reps": 15,
+     "reps": 3,
      "unit": "min"
     },
     {
