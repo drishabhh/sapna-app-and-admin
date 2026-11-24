@@ -1,6 +1,6 @@
 {
- "version": 73,
- "updatedAt": "2026-11-23T07:34:58.058Z",
+ "version": 74,
+ "updatedAt": "2026-11-24T11:22:18.631Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -170,15 +170,16 @@
      "reps": 12
     },
     {
+     "exId": "custom-leg-raise-see-the-video-cxi7",
+     "sets": 1,
+     "reps": 1,
+     "unit": "min"
+    },
+    {
      "exId": "lib-forearm-plank",
      "sets": 3,
      "reps": 30,
      "unit": "sec"
-    },
-    {
-     "exId": "custom-leg-raise-see-the-video-cxi7",
-     "sets": 2,
-     "reps": 12
     },
     {
      "exId": "lib-chest-stretch",
