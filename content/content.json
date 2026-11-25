@@ -1,6 +1,6 @@
 {
- "version": 75,
- "updatedAt": "2026-11-25T05:39:38.583Z",
+ "version": 76,
+ "updatedAt": "2026-11-25T05:40:22.970Z",
  "targets": {
   "kcal": 1300,
   "protein": 100,
@@ -267,6 +267,15 @@
      "sets": 3,
      "reps": 12,
      "unit": "reps"
+    },
+    {
+     "exId": "cardio-walk-elliptical-cross-trainer",
+     "sets": 1,
+     "reps": 15,
+     "unit": "min",
+     "alt": {
+      "exId": "local-cycle-walk"
+     }
     },
     {
      "exId": "lib-quadriceps-stretch",
